@@ -31,6 +31,7 @@
     justify-content: center;
     gap: 30px;
     margin-top: 10px;
+    position: relative;
   }
   
   nav a {
@@ -41,7 +42,35 @@
   }
   
   nav a:hover {
-    color: red;
+    color: #66a6ff;
+  }
+  
+  .dropdown {
+    position: relative;
+  }
+  
+  .dropdown-menu {
+    display: none;
+    position: absolute;
+    top: 100%;
+    left: 0;
+    background-color: rgba(255, 255, 255, 0.95);
+    list-style: none;
+    padding: 10px;
+    border-radius: 10px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  }
+  
+  .dropdown-menu li {
+    margin: 10px 0;
+  }
+  
+  .dropdown-menu li a {
+    color: #4a4a4a;
+  }
+  
+  .dropdown-menu li a:hover {
+    color: redgit;
   }
   
   .container {
@@ -82,4 +111,3 @@
     background-color: rgba(255, 255, 255, 0.9);
     margin-top: 40px;
   }
-  
