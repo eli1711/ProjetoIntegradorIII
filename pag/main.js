@@ -1,9 +1,6 @@
 // script.js
 const atividades = [
-    "Aula de yoga semanal para relaxamento e concentração.",
-    "Oficina de alimentação saudável e consciente.",
-    "Sessão de meditação guiada para redução do estresse.",
-    "Encontros sobre saúde mental e emocional."
+   
   ];
   
   const lista = document.getElementById("lista-atividades");

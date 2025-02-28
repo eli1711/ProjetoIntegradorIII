@@ -8,7 +8,7 @@
   body {
     font-family: 'Open Sans', sans-serif;
     background: linear-gradient(135deg, #89f7fe, #66a6ff);
-    color: #333;
+    color:red;
     line-height: 1.6;
     min-height: 100vh;
   }
@@ -37,12 +37,12 @@
   nav a {
     text-decoration: none;
     font-weight: 600;
-    color: #4a4a4a;
+    color: #f70606;
     transition: color 0.3s;
   }
   
   nav a:hover {
-    color: #66a6ff;
+    color:red;
   }
   
   .dropdown {
