@@ -1,4 +1,4 @@
-/* styles.css */
+
 * {
     margin: 0;
     padding: 0;
@@ -7,8 +7,8 @@
   
   body {
     font-family: 'Open Sans', sans-serif;
-    background: linear-gradient(135deg, #89f7fe, #66a6ff);
-    color:red;
+    background: linear-gradient(135deg, red,rgb(182, 55, 55));
+    color:black;
     line-height: 1.6;
     min-height: 100vh;
   }

@@ -1,4 +1,4 @@
-// script.js
+
 const atividades = [
    
   ];
