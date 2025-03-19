@@ -1,3 +1,4 @@
+
 package com.escola.controller;
 
 import com.escola.dao.AlunoDAO;
@@ -31,3 +32,4 @@ public class LoginServlet extends HttpServlet {
         }
     }
 }
+
