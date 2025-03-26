@@ -1,13 +1,7 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login do Aluno</title>
-    <link rel="stylesheet" href="styles.css">
-</head>
-<body>
-    <header>
+function funcoes() {
+    return(
+        <>
+        <header>
         <h1>Qualidade de Vida Escolar</h1>
       </header>
   
@@ -46,8 +40,9 @@
           <p>Email: qualidadevida@senai.edu.br</p>
           <p>Telefone: (11) 1234-5678</p>
         </p>
-      </footer>
-      
-<script src="script.js"></script>
-</body>
-</html>
+      </footer>  
+      </>
+    );
+}
+
+export default funcoes;
