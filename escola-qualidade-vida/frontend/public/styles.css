@@ -1,123 +1,107 @@
-/* styles.css */
+/* Reset e configurações básicas */
 * {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'Open Sans', sans-serif;
+  background-size: cover;
+  background-repeat: no-repeat;
+  background-attachment: fixed;
+  background-position: center;
+  color: #000283;
+  min-height: 100vh;
+  line-height: 1.6;
+}
+
+header {
+  background-color: #c40000;
+  padding: 30px 20px;
+  text-align: center;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  position: relative;
+}
+
+header h1 {
+  font-size: 2.5rem;
+  color: #fff;
+  margin-top: 10px;
+}
+
+.logo {
+  width: 200px;
+  position: absolute;
+  top: 45px;
+  left: 300px;
+}
+
+@media (max-width: 768px) {
+  .logo {
+    position: static;
+    display: block;
+    margin: 0 auto 20px;
+    width: 40vw;
   }
-  
-  body {
-    font-family: Verdana, Geneva, Tahoma, sans-serif;
-    background-image: url("../img/fundo.png");
-    background-size: 100%;
-    color: #000283;
-    line-height: 1.6;
-    min-height: 100vh;
-  }
-  
-  header {
-    background-color: #d1d1d1;
-    padding: 20px;
-    text-align: center;
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-  }
-  
-  header h1 {
-    font-family: "Jersey 25", sans-serif;
-    font-size: 3rem;
-    color: rgb(191, 11, 11);
-  }
-  
-  nav {
-    display: flex;
-    justify-content: center;
-    gap: 30px;
-    margin-top: 10px;
-    position: relative;
-  }
-  
-  nav a {
-    text-decoration: none;
-    font-weight: 600;
-    color: #f70606;
-    transition: color 0.3s;
-  }
-  
-  nav a:hover {
-    color: red;
-  }
-  
-  .dropdown {
-    position: relative;
-  }
-  
-  .dropdown-menu {
-    display: none;
-    position: absolute;
-    top: 100%;
-    left: 0;
-    background-color: rgba(255, 255, 255, 0.95);
-    list-style: none;
-    padding: 10px;
-    border-radius: 10px;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-  }
-  
-  .dropdown-menu li {
-    margin: 10px 0;
-  }
-  
-  .dropdown-menu li a {
-    color: #4a4a4a;
-  }
-  
-  .dropdown-menu li a:hover {
-    color: redgit;
-  }
-  
+}
+
+.container {
+  padding: 50px 20px;
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 30px;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+@media (min-width: 768px) {
   .container {
-    padding: 40px 20px;
-    display: grid;
-    grid-template-columns: 1fr;
-    gap: 40px;
+    grid-template-columns: repeat(2, 1fr);
   }
-  
-  .a {
-    background-color: rgba(255, 255, 255, 0.9);
-    color: #000283;
-    padding: 30px;
-    border: solid 2px black;
-    border-radius: 15px;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+@media (min-width: 1024px) {
+  .container {
+    grid-template-columns: repeat(3, 1fr);
   }
-  
-  .a:active {
-    background-color: #3e8e41;
-    box-shadow: 0 5px #666;
-    transform: translateY(4px);
-  }
-  
-  .section h2 {
-    font-family: "Jersey 25", sans-serif;
-    font-size: 2rem;
-    margin-bottom: 20px;
-  }
-  
-  @media (min-width: 768px) {
-    .container {
-      grid-template-columns: repeat(2, 1fr);
-    }
-  }
-  
-  @media (min-width: 1024px) {
-    .container {
-      grid-template-columns: repeat(3, 1fr);
-    }
-  }
-  
-  footer {
-    text-align: center;
-    padding: 20px;
-    background-color: #d1d1d1;
-    margin-top: 15%;
-  }
-  
+}
+
+.a {
+  background-color: rgba(255, 255, 255, 0.95);
+  padding: 25px 30px;
+  border-radius: 15px;
+  border: 2px solid transparent;
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+  color: #000283;
+  text-decoration: none;
+  transition: all 0.3s ease-in-out;
+}
+
+.a h2 {
+  margin-bottom: 10px;
+  font-size: 1.6rem;
+  color: #c40000;
+}
+
+.a:hover {
+  background-color: #fff;
+  border-color: #c40000;
+  color: #c40000;
+  transform: translateY(-5px);
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.15);
+}
+
+.a:active {
+  transform: translateY(2px);
+  box-shadow: inset 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+footer {
+  text-align: center;
+  padding: 20px;
+  background-color: #f0f0f0;
+  color: #333;
+  margin-top: 300px;
+  font-size: 0.9rem;
+}
