@@ -1,11 +1,11 @@
-from sqlalchemy import Column, Integer, String, Enum
-from app.utils.database import Base
+# backend/app/models/usuario.py
 
-class Usuario(Base):
-    __tablename__ = "usuarios"
+from app import db
 
-    id_usuario = Column(Integer, primary_key=True, index=True)
-    nome = Column(String(100), nullable=False)
-    email = Column(String(255), unique=True, nullable=False)
-    senha = Column(String(255), nullable=False)
-    tipo_usuario = Column(Enum("admin", "professor", "coordenador", name="tipo_usuario_enum"), nullable=False, default="professor")
+class Usuario(db.Model):
+    __tablename__ = 'usuarios'
+
+    id = db.Column(db.Integer, primary_key=True)
+    nome = db.Column(db.String(100), nullable=False)
+    email = db.Column(db.String(120), unique=True, nullable=False)
+    senha = db.Column(db.String(255), nullable=False)  # hash da senha

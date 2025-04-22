@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cadastro de Aluno</title>
+    <link rel="stylesheet" href="/css/cadastroAluno.css">
+</head>
+<body>
+    <header>
+        <h1>Qualidade de Vida Escolar</h1>
+        <nav>
+            <ul>
+                <li><a href="/principal.html">Home</a></li>
+                <li><a href="/pages/ocorrencias.html">Ocorrências</a></li>
+                <li><a href="/pages/relatorios.html">Relatórios</a></li>
+                <li><a href="/pages/acompanhamento.html">Acompanhamento</a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <form action="/aluno" method="post" enctype="multipart/form-data">
+            <label for="name">Nome:</label>
+            <input type="text" id="name" name="name"><br>
+
+            <label for="sobrenome">Sobrenome:</label>
+            <input type="text" id="sobrenome" name="sobrenome"><br>
+
+            <label for="cidade">Cidade:</label>
+            <input type="text" id="cidade" name="cidade"><br>
+
+            <label for="bairro">Bairro:</label>
+            <input type="text" id="bairro" name="bairro"><br>
+
+            <label for="rua">Rua:</label>
+            <input type="text" id="rua" name="rua"><br>
+
+            <label for="idade">Idade:</label>
+            <input type="number" id="idade" name="idade" placeholder="Digite a idade do aluno">
+            <div id="responsavelFields" style="display: none;">
+                <label for="nomeResponsavel">Nome do Responsável:</label>
+                <input type="text" id="nomeResponsavel" name="nomeResponsavel"><br>
+
+                <label for="respSobrenome">Sobrenome:</label>
+                <input type="text" id="respSobrenome" name="respSobrenome"><br>
+
+                <label for="respParentesco">Grau de Parentesco:</label>
+                <input type="text" id="respParentesco" name="respParentesco"><br>
+
+                <label for="respCidade">Cidade:</label>
+                <input type="text" id="respCidade" name="respCidade"><br>
+
+                <label for="respBairro">Bairro:</label>
+                <input type="text" id="respBairro" name="respBairro"><br>
+
+                <label for="respRua">Rua:</label>
+                <input type="text" id="respRua" name="respRua"><br>
+            </div>
+
+            <label>É empregado?</label><br>
+            <input type="radio" id="empregado" name="emprego" value="sim">Sim
+            <input type="radio" id="desempregado" name="emprego" value="nao">Não
+
+            <div id="empresaFields" style="display: none; margin-top: 20px;">
+                <label for="empresa">Se sim, qual empresa?</label>
+                <input type="text" id="empresa" name="empresa"><br>
+            </div>
+
+            <label>O aluno possui alguma comorbidade?</label><br>
+            <input type="radio" id="temcomorbidade" name="comorbidade" value="sim">Sim
+            <input type="radio" id="naotemcomorbidade" name="comorbidade" value="nao">Não
+
+            <div id="comorbidadeFields" style="display: none; margin-top: 20px;">
+                <label for="comorbidade">Se sim, qual?</label>
+                <input type="text" id="comorbidade" name="comorbidade"><br>
+            </div>
+
+            <label for="curso">Curso Matriculado:</label>
+            <input type="text" id="curso" name="curso"><br>
+
+            <label for="arquivos">Escolha a foto do aluno:</label>
+            <input type="file" name="arquivos"><br>
+        </form>
+    </main>
+    <footer>
+        <p>&copy; 2024 Departamento de Qualidade de Vida - Todos os direitos reservados.</p>
+    </footer>
+    <script src="/js/script.js"></script>
+</body>
+</html>

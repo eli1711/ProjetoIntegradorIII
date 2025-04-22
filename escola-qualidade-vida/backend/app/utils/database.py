@@ -1,11 +1,13 @@
+import os
 from sqlalchemy import create_engine
-from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import sessionmaker
+from flask_sqlalchemy import SQLAlchemy
 
-DATABASE_URL = "mysql+mysqlconnector://app_user:SenhaSegura123!@localhost:3306/projetoteste"
-engine = create_engine(DATABASE_URL, pool_pre_ping=True, pool_recycle=3600)
-SessionLocal = sessionmaker(bind=engine)
-Base = declarative_base()
+db = SQLAlchemy()
 
-def get_db_session():
-    return SessionLocal()
+# Constrói a URL do banco com variáveis de ambiente
+DATABASE_URL = (
+    f"mysql+pymysql://{os.environ['DB_USER']}:{os.environ['DB_PASSWORD']}@"
+    f"{os.environ['DB_HOST']}:{os.environ['DB_PORT']}/{os.environ['DB_NAME']}"
+)
+
+engine = create_engine(DATABASE_URL, pool_pre_ping=True)

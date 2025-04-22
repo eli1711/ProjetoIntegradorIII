@@ -8,3 +8,6 @@ psycopg2-binary
 Flask
 flask_sqlalchemy
 flask_jwt_extended
+mysql-connector-python
+flask-cors
+cryptography

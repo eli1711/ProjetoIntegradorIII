@@ -1,7 +1,7 @@
-from sqlalchemy import Column, Integer, String, Enum, ForeignKey # type: ignore
-from sqlalchemy.orm import relationship # type: ignore
-from app.utils.database import Base
+from sqlalchemy import Column, Integer, String, Enum, ForeignKey
+from sqlalchemy.orm import relationship
 from enum import Enum as PyEnum
+from app.utils.database import Base
 
 class Periodo(PyEnum):
     MANHA = "manhã"
@@ -10,7 +10,7 @@ class Periodo(PyEnum):
 
 class Aluno(Base):
     __tablename__ = "aluno"
-    
+
     id_aluno = Column(Integer, primary_key=True, index=True)
     nome = Column(String(100), nullable=False)
     turma_id = Column(Integer, ForeignKey("turma.id_turma"))
@@ -20,7 +20,7 @@ class Aluno(Base):
     nome_responsavel = Column(String(100), nullable=False)
     telefone_responsavel = Column(String(20))
     celular_responsavel = Column(String(20), nullable=False)
-    
+
     turma = relationship("Turma", back_populates="alunos")
     curso = relationship("Curso", back_populates="alunos")
     ocorrencias = relationship("Ocorrencia", back_populates="aluno")
