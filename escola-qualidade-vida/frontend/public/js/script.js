@@ -9,26 +9,20 @@ async function getAlunos() {
     }
 }
 
-const menorCheckbox = document.getElementById('menorIdade');
-    const maiorCheckbox = document.getElementById('maiorIdade');
-    const responsavelDiv = document.getElementById('responsavelFields');
+const idadeInput = document.getElementById('idade');
+const responsavelDiv = document.getElementById('responsavelFields');
 
-    function atualizarCamposResponsavel() {
-        if (menorCheckbox.checked) {
-            responsavelDiv.style.display = 'block';
-            maiorCheckbox.checked = false;
-        } else {
-            responsavelDiv.style.display = 'none';
-        }
+function atualizarCamposResponsavel() {
+    const idade = parseInt(idadeInput.value);
 
-        if (maiorCheckbox.checked) {
-            menorCheckbox.checked = false;
-            responsavelDiv.style.display = 'none';
-        }
+    if (!isNaN(idade) && idade < 18) {
+        responsavelDiv.style.display = 'block';
+    } else {
+        responsavelDiv.style.display = 'none';
     }
+}
 
-    menorCheckbox.addEventListener('change', atualizarCamposResponsavel);
-    maiorCheckbox.addEventListener('change', atualizarCamposResponsavel);
+idadeInput.addEventListener('input', atualizarCamposResponsavel);
 
     const empregado = document.getElementById('empregado');
     const desempregado = document.getElementById('desempregado');
