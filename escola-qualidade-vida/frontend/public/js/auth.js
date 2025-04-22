@@ -1,45 +1,59 @@
-document.addEventListener('DOMContentLoaded', function () {
-    const form = document.getElementById('loginForm');
-    const alertBox = document.getElementById('loginAlert');
-
-    form.addEventListener('submit', async function (e) {
+document.addEventListener('DOMContentLoaded', function() {
+    const loginForm = document.getElementById('loginForm');
+    const loginAlert = document.getElementById('loginAlert');
+    
+    loginForm.addEventListener('submit', async function(e) {
         e.preventDefault();
-
-        const email = document.getElementById('email').value.trim();
-        const senha = document.getElementById('password').value.trim();
-
-        const API_URL = "/auth"; // Prefixo da rota da API Flask (ajustada pelo Nginx)
-
+        
+        const email = document.getElementById('email').value;
+        const password = document.getElementById('password').value;
+        
         try {
-            const response = await fetch(`${API_URL}/login`, {
+            const response = await fetch('http://localhost:8000/auth/login', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
                 },
-                body: JSON.stringify({ email, senha })
+                body: JSON.stringify({
+                    email: email,
+                    senha: password
+                })
             });
-
-            const result = await response.json();
-
-            if (response.ok && result.token) {
+            
+            const data = await response.json();
+            
+            if (response.ok) {
+                // Login bem-sucedido
+                loginAlert.textContent = 'Login realizado com sucesso! Redirecionando...';
+                loginAlert.className = 'alert success';
+                
                 // Armazena o token JWT
-                localStorage.setItem('token', result.token);
-
-                // Redireciona para a página principal
-                window.location.href = "http://localhost/principal.html";
-
+                localStorage.setItem('authToken', data.access_token);
+                
+                // Redireciona após 2 segundos
+                setTimeout(() => {
+                    window.location.href = 'dashboard.html';
+                }, 2000);
             } else {
-                showAlert(result.erro || result.mensagem || "Falha no login");
+                // Exibe mensagem de erro
+                loginAlert.textContent = data.detail || 'Erro ao realizar login';
+                loginAlert.className = 'alert error';
             }
         } catch (error) {
-            console.error("Erro ao fazer login:", error);
-            showAlert("Erro de conexão com o servidor.");
+            console.error('Erro:', error);
+            loginAlert.textContent = 'Erro de conexão com o servidor';
+            loginAlert.className = 'alert error';
         }
     });
-
-    function showAlert(message) {
-        alertBox.className = 'alert error';
-        alertBox.innerText = message;
-        alertBox.style.display = 'block';
-    }
+    
+    // Verifica se já está logado ao carregar a página
+    checkAuthStatus();
 });
+
+function checkAuthStatus() {
+    const token = localStorage.getItem('authToken');
+    if (token) {
+        // Se já estiver logado, redireciona para o dashboard
+        window.location.href = 'dashboard.html';
+    }
+}

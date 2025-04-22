@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="./css/ocorrencias.css">
+    <title>Relatório de Ocorrências</title>
+</head>
+<body>
+    <header>
+        <h1>Qualidade de Vida Escolar</h1>
+        <nav>
+            <ul>
+                <li><a href="./principal.html">Home</a></li>
+                <li><a href="./cadastroAluno.html">Cadastro de Aluno</a></li>
+                <li><a href="./relatorios.html">Relatórios</a></li>
+                <li><a href="./acompanhamento.html">Acompanhamento</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <main>
+        <div class="documento">
+            <h2>Relatório de Ocorrências do Aluno</h2>
+            
+            <div class="busca-aluno">
+                <label for="buscaAluno">Buscar Aluno:</label>
+                <input type="text" id="buscaAluno" name="buscaAluno" placeholder="Digite o nome do aluno">
+                <button type="button">Buscar</button>
+            </div>
+
+            <div class="info-aluno">
+                <h3>Dados do Aluno</h3>
+                <p><strong>Nome:</strong> João da Silva</p>
+                <p><strong>Matrícula:</strong> 20240001</p>
+                <p><strong>Turma:</strong> ADS </p>
+            </div>
+
+            <br>
+
+            <form action="" method="post">
+                <h3>Registro de Atrasos</h3>
+                <label for="fname"> Data: </label>
+                <input type="date" id="data" name="data"><br>
+    
+                <label for="fname"> Hora: </label>
+                <input type="time" id="hora" name="hora"><br>
+
+                <label for="fname"> Motivo: </label>
+                <input type="text" id="motivo" name="motivo"><br>
+
+            <br>
+
+            <form action="" method="post">
+                <h3>Registro de Faltas</h3>
+                <label for="fname"> Data: </label>
+                <input type="date" id="data" name="data"><br>
+    
+                <label for="fname"> Período: </label>
+                <input type="time" id="hora" name="hora"><br>
+
+                <label for="fname"> Justificativa: </label>
+                <input type="text" id="motivo" name="motivo"><br>
+
+            <br>
+
+            <button type="button" class="imprimir">Imprimir Relatório</button>
+        </div>
+    </form>
+    </main>
+
+    <footer>
+        <p>
+            &copy; 2024 Departamento de Qualidade de Vida - Todos os direitos reservados.
+        </p>
+    </footer>
+</body>
+</html>

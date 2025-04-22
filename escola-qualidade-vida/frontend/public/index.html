@@ -4,35 +4,42 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Login - Qualidade de Vida Escolar</title>
-    <link rel="stylesheet" href="/css/styles.css">
-    <link rel="stylesheet" href="/css/login.css">
+    <link rel="stylesheet" href="./css/styles.css">
+    <link rel="stylesheet" href="./css/login.css">
 </head>
 <body>
     <div class="login-container">
         <div class="login-header">
-            <img src="/images/SENAI_São_Paulo_logo.png" alt="Logo Qualidade de Vida" class="logo">
+            <img src="img/senai-logo.png" alt="Logo Qualidade de Vida" class="logo">
             <h1>Acesso Restrito</h1>
             <p>Área exclusiva para profissionais</p>
         </div>
-        <form id="loginForm" class="login-form">
+        
+        <form id="loginForm" class="login-form" action="http://localhost:8000/auth/login" method="POST">
+
             <div class="form-group">
                 <label for="email">E-mail Institucional</label>
                 <input type="email" id="email" name="email" required placeholder="seu.email@escola.edu.br">
             </div>
+            
             <div class="form-group">
                 <label for="password">Senha</label>
                 <input type="password" id="password" name="senha" required placeholder="••••••••">
                 <a href="#forgot-password" class="forgot-password">Esqueci minha senha</a>
             </div>
+            
             <button type="submit" class="login-button">Acessar Sistema</button>
+            
             <div class="form-footer">
                 <div class="alert" id="loginAlert" role="alert"></div>
             </div>
         </form>
+        
         <div class="security-info">
             <p><i class="icon-lock"></i> Sua sessão será encerrada automaticamente após 30 minutos de inatividade</p>
         </div>
     </div>
-    <script src="/js/auth.js"></script>
+
+    <script src="auth.js"></script>
 </body>
 </html>

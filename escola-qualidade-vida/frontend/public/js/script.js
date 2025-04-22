@@ -1,8 +1,6 @@
 async function getAlunos() {
     try {
-        const apiUrl = "http://escola-qualidade-vida-backend:5000"; // Nome do serviço backend no docker-compose.yml
-
-
+        const response = await fetch('http://localhost:8000/alunos');
         const data = await response.json();
         console.log(data);
         // Processar dados...
@@ -11,20 +9,26 @@ async function getAlunos() {
     }
 }
 
-const idadeInput = document.getElementById('idade');
-const responsavelDiv = document.getElementById('responsavelFields');
+const menorCheckbox = document.getElementById('menorIdade');
+    const maiorCheckbox = document.getElementById('maiorIdade');
+    const responsavelDiv = document.getElementById('responsavelFields');
 
     function atualizarCamposResponsavel() {
-        const idade = parseInt(idadeInput.value);
-
-        if (!isNaN(idade) && idade < 18) {
+        if (menorCheckbox.checked) {
             responsavelDiv.style.display = 'block';
+            maiorCheckbox.checked = false;
         } else {
+            responsavelDiv.style.display = 'none';
+        }
+
+        if (maiorCheckbox.checked) {
+            menorCheckbox.checked = false;
             responsavelDiv.style.display = 'none';
         }
     }
 
-    idadeInput.addEventListener('input', atualizarCamposResponsavel);
+    menorCheckbox.addEventListener('change', atualizarCamposResponsavel);
+    maiorCheckbox.addEventListener('change', atualizarCamposResponsavel);
 
     const empregado = document.getElementById('empregado');
     const desempregado = document.getElementById('desempregado');
