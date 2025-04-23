@@ -1,13 +1,21 @@
+import pymysql
+pymysql.install_as_MySQLdb()
+
 from flask import Flask, Blueprint, request, jsonify
 from flask_sqlalchemy import SQLAlchemy
 from werkzeug.security import check_password_hash
-from app.models.usuario import Usuario
-
+import os
 
 # Inicializa a aplicação e o banco
 app = Flask(__name__)
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///usuarios.db'  # ou outro banco
+
+# Configuração do banco de dados MySQL
+app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get(
+    'DATABASE_URI', 'mysql://root:password@mysql/escola_db'
+)
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+
+# Inicializa o SQLAlchemy
 db = SQLAlchemy(app)
 
 # Modelo de Usuário
@@ -35,7 +43,6 @@ def login():
     if not usuario or not check_password_hash(usuario.senha, senha):
         return jsonify({"erro": "E-mail ou senha inválidos"}), 401
 
-    # Aqui poderia ser gerado um token JWT (opcional)
     return jsonify({"mensagem": "Login bem-sucedido!"}), 200
 
 # Registra o blueprint
