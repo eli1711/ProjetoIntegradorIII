@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="./css/acompanhamento.css">
     <title>Document</title>
+    
 </head>
 <body>
     <header>
@@ -18,5 +19,56 @@
             </ul>
         </nav>
     </header>
+    <main>
+        <h2>Filtrar Ocorrências</h2>
+
+    <div class="filtro">
+        <label>
+            <input type="checkbox" id="filtroAndamento" /> Em andamento
+        </label>
+
+        <label>
+            Aluno:
+            <input type="text" id="filtroAluno" placeholder="Nome do aluno">
+        </label>
+
+        <label>
+            Turma:
+            <input type="text" id="filtroTurma" placeholder="Turma">
+        </label>
+
+        <label>
+            Período:
+            <select id="filtroPeriodo">
+                <option value="">Todos</option>
+                <option value="Manhã">Manhã</option>
+                <option value="Tarde">Tarde</option>
+                <option value="Noite">Noite</option>
+            </select>
+        </label>
+
+        <button onclick="limparFiltros()">Limpar</button>
+    </div>
+
+    <table id="tabelaOcorrencias">
+        <thead>
+            <tr>
+                <th>Aluno</th>
+                <th>Turma</th>
+                <th>Período</th>
+                <th>Status</th>
+                <th>Descrição</th>
+            </tr>
+        </thead>
+        <tbody>
+            <!-- Ocorrências serão renderizadas aqui -->
+        </tbody>
+    </table>
+
+    <div class="mensagem" id="mensagem"></div>
+
+    </main>
+
+<script src="./js/filtros.js"></script>
 </body>
 </html>

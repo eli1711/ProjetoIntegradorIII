@@ -65,3 +65,5 @@ idadeInput.addEventListener('input', atualizarCamposResponsavel);
 
     temcomorbidade.addEventListener('change', atualizarCamposComorbidade);
     naotemcomorbidade.addEventListener('change', atualizarCamposComorbidade);
+
+    

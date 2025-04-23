@@ -41,3 +41,65 @@ nav a {
 nav a:hover {
     color: #1abc9c;
 }
+
+.filtro {
+    margin-bottom: 20px;
+}
+
+label {
+    margin-right: 10px;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 15px;
+}
+
+th, td {
+    border: 1px solid #ccc;
+    padding: 8px;
+    text-align: left;
+}
+
+th {
+    background-color: #eee;
+}
+
+.mensagem {
+    margin-top: 20px;
+    font-style: italic;
+    color: #777;
+}
+
+  /* ... seu estilo atual ... */
+  .btn-detalhes {
+    background-color: #007bff;
+    color: white;
+    border: none;
+    padding: 5px 10px;
+    cursor: pointer;
+    font-size: 14px;
+    border-radius: 4px;
+  }
+
+  .btn-detalhes:hover {
+    background-color: #0056b3;
+  }
+
+  .descricao-completa {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.3s ease, padding 0.3s ease;
+    background-color: #f1f1f1;
+    margin-top: 5px;
+    padding: 0 10px;
+    border-radius: 4px;
+    font-size: 14px;
+    color: #333;
+  }
+
+  .descricao-completa.show {
+    max-height: 200px;
+    padding: 10px;
+  }
