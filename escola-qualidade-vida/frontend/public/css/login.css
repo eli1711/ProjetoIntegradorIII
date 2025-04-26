@@ -1,3 +1,21 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+  }
+  
+  body {
+    font-family: 'Open Sans', sans-serif;
+    background-color: #c40000;
+    background-size: cover;
+    background-repeat: no-repeat;
+    background-attachment: fixed;
+    background-position: center;
+    color: #000283;
+    min-height: 100vh;
+    line-height: 1.6;
+  }
+
 /* Container principal do login */
 .login-container {
     max-width: 480px;
@@ -9,16 +27,30 @@
     box-shadow: 0 8px 16px rgba(0, 0, 0, 0.15);
 }
 
-/* Cabeçalho com logo e título */
 .login-header {
     text-align: center;
     margin-bottom: 2rem;
-}
-
-.login-header .logo {
-    height: 90px;
+  }
+  
+.logo {
+    height: 60px;
+    top: 20px;
     margin-bottom: 1rem;
-}
+    align-items: center;
+    left: 850px;
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.15);
+    border-radius: 15px;
+
+  }
+  
+
+.logo:hover {
+    transform: scale(1.05);
+    opacity: 0.9;
+  }  
 
 .login-header h1 {
     font-size: 2rem;
