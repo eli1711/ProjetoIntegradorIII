@@ -9,7 +9,7 @@ document.addEventListener('DOMContentLoaded', function() {
         const password = document.getElementById('password').value;
         
         try {
-            const response = await fetch('http://localhost:8000/auth/login', {
+            const response = await fetch('http://localhost:5000/auth/login', {  // Correção aqui
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'

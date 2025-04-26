@@ -1,23 +1,17 @@
-# Use a imagem oficial do Python como base
+# Usando a imagem oficial do Python
 FROM python:3.11-slim
 
-# Defina o diretório de trabalho no container
+# Definir o diretório de trabalho
 WORKDIR /app
 
-# Copie o conteúdo da pasta 'app' do projeto local para o container
+# Copiar os arquivos do backend para o contêiner
 COPY ./app /app
 
-# Copie o script adicional, caso necessário
-COPY atualiza_senha.py atualiza_senha.py
+# Instalar as dependências do projeto
+RUN pip install --no-cache-dir -r requirements.txt
 
-# Variável de ambiente para reconhecer o módulo 'app' corretamente
-ENV PYTHONPATH=/app
-
-# Instala as dependências listadas no requirements.txt
-RUN pip install --no-cache-dir -r /app/requirements.txt
-
-# Exponha a porta 5000, que é a porta padrão do Flask
+# Expor a porta em que o Flask estará rodando
 EXPOSE 5000
 
-# Comando para rodar a aplicação Flask quando o container for iniciado
-CMD ["python", "app/main.py"]
+# Iniciar o Flask
+CMD ["python", "main.py"]
