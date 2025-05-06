@@ -1,4 +1,3 @@
-# Usando uma imagem do Nginx para servir os arquivos estáticos
 FROM nginx:latest
 
 WORKDIR /usr/share/nginx/html

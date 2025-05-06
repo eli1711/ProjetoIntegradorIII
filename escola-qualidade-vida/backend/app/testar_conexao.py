@@ -1,13 +1,11 @@
-from app import create_app, db
-from sqlalchemy import text
+from sqlalchemy import create_engine
+from config import SQLALCHEMY_DATABASE_URI
 
-app = create_app()
+# Testando a conexão com o banco
+engine = create_engine(SQLALCHEMY_DATABASE_URI)
 
-# Teste de Conexão com o banco de dados
-with app.app_context():
-    try:
-        # Executa a consulta SQL
-        result = db.session.execute(text("SELECT 1"))
-        print("✅ Conexão bem-sucedida com o MySQL!")
-    except Exception as e:
-        print(f"❌ Erro ao conectar com o MySQL: {e}")
+try:
+    with engine.connect() as connection:
+        print("Conexão com o MySQL bem-sucedida!")
+except Exception as e:
+    print(f"Erro ao conectar ao MySQL: {e}")

@@ -30,10 +30,23 @@ services:
       SECRET_KEY: uma_chave_super_secreta_32_caracteres_no_minimo
     ports:
       - "5000:5000"
-    volumes:
-      - ./frontend/public:/app/static  # Montando os arquivos estáticos do frontend no backend
     depends_on:
       - mysql
+    networks:
+      - rede-interna
+
+  nginx:
+    build:
+      context: ./frontend  # Certifique-se de que o diretório do frontend está correto
+      dockerfile: Dockerfile  # Dockerfile do Nginx
+    container_name: nginx
+    restart: always
+    ports:
+      - "80:80"
+    depends_on:
+      - backend
+    volumes:
+      - ./frontend/public:/usr/share/nginx/html  # Serve os arquivos estáticos do frontend
     networks:
       - rede-interna
 
