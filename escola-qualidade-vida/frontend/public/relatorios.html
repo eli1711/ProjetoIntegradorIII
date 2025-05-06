@@ -12,11 +12,65 @@
         <nav>
             <ul>
                 <li><a href="./principal.html">Home</a></li>
-                <li><a href="./ocorrencias.html">Ocorrências</a></li>
-                <li><a href="./cadastroAluno.html">cadastro de Aluno</a></li>
+                <li><a href="./cadastroAluno.html">Cadastro de Aluno</a></li>
+                <li><a href="./relatorios.html">Relatórios</a></li>
                 <li><a href="./acompanhamento.html">Acompanhamento</a></li>
             </ul>
         </nav>
     </header>
+
+    <main>
+
+    <div class="filtro">
+
+        <label>
+            Matricula:
+            <input type="text" id="filtroMatricula" placeholder="Número da Matricula">
+        </label>
+
+        <label>
+            Nome:
+            <input type="text" id="filtroAluno" placeholder="Nome do Aluno">
+        </label>
+
+        <label>
+            Turma:
+            <input type="text" id="filtroTurma" placeholder="Turma">
+        </label>
+
+        <label>
+            Período:
+            <select id="filtroPeriodo">
+                <option value="">Todos</option>
+                <option value="Manhã">Manhã</option>
+                <option value="Tarde">Tarde</option>
+                <option value="Noite">Noite</option>
+            </select>
+        </label>
+
+        <button onclick="limparFiltros()">Limpar</button>
+
+    </div>
+
+        <table id="tabelaAlunos">
+            <thead>
+                <tr>
+                    <th>Aluno</th>
+                    <th>Turma</th>
+                    <th>Período</th>
+                </tr>
+            </thead>
+            <tbody>
+                <!-- Ocorrências serão renderizadas aqui -->
+            </tbody>
+        </table>
+        
+    <div class="mensagem" id="mensagem"></div>
+
+</main>
+
+<script src="./js/consulta.js"></script>
+    
+
 </body>
 </html>
