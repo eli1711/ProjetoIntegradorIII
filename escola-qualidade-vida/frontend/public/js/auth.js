@@ -9,7 +9,7 @@ document.addEventListener('DOMContentLoaded', function() {
         const password = document.getElementById('password').value;
         
         try {
-            const response = await fetch('http://localhost:5000/auth/login', {  // Correção aqui
+            const response = await fetch('http://localhost:5000/auth/login', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
@@ -45,6 +45,7 @@ document.addEventListener('DOMContentLoaded', function() {
             loginAlert.className = 'alert error';
         }
     });
+    
     
     // Verifica se já está logado ao carregar a página
     checkAuthStatus();

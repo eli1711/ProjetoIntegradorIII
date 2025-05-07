@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="./css/cadastroAluno.css">
-    <title>cadastro de Aluno</title>
+    <title>Cadastro de Aluno</title>
 </head>
 <body>
     <header>
@@ -18,75 +18,75 @@
             </ul>
         </nav>
     </header>
+
     <main>
-        <form action="" method="post">
-            <label for="fname">Nome:</label><br>
-            <input type="text" id="name" name="name"><br>
+        <form id="cadastroAlunoForm">
+            <label for="name">Nome:</label><br>
+            <input type="text" id="name" name="name" required><br>
 
-            <label for="fname">Sobrenome:</label><br>
-            <input type="text" id="sobrenome" name="sobrenome"><br>
+            <label for="sobrenome">Sobrenome:</label><br>
+            <input type="text" id="sobrenome" name="sobrenome" required><br>
 
-            <label for="fname">Cidade:</label><br>
-            <input type="text" id="cidade" name="cidade"><br>
+            <label for="cidade">Cidade:</label><br>
+            <input type="text" id="cidade" name="cidade" required><br>
 
-            <label for="fname">Bairro:</label><br>
-            <input type="text" id="bairro" name="bairro"><br>
+            <label for="bairro">Bairro:</label><br>
+            <input type="text" id="bairro" name="bairro" required><br>
 
-            <label for="fname">Rua:</label><br>
-            <input type="text" id="rua" name="rua"><br>
+            <label for="rua">Rua:</label><br>
+            <input type="text" id="rua" name="rua" required><br>
 
+            <label for="idade">Idade:</label><br>
+            <input type="number" id="idade" name="idade" placeholder="Digite sua idade" required><br>
 
-            <label for="fname">Idade:</label><br>
-            <input type="number" id="idade" placeholder="Digite sua idade" />
             <div id="responsavelFields" style="display: none; margin-top: 20px;">
-                <!-- Campos do responsável -->
                 <label for="nomeResponsavel">Nome do Responsável:</label>
-                <input type="text" id="nomeResponsavel" />
+                <input type="text" id="nomeResponsavel" name="nomeResponsavel">
 
-                <label for="respSobrenome">Sobrenome:</label><br>
+                <label for="respSobrenome">Sobrenome:</label>
                 <input type="text" id="respSobrenome" name="respSobrenome"><br>
 
-                <label for="respParentesco">Grau de Parentesco:</label><br>
+                <label for="respParentesco">Grau de Parentesco:</label>
                 <input type="text" id="respParentesco" name="respParentesco"><br>
 
-                <label for="respCidade">Cidade:</label><br>
+                <label for="respCidade">Cidade:</label>
                 <input type="text" id="respCidade" name="respCidade"><br>
 
-                <label for="respBairro">Bairro:</label><br>
+                <label for="respBairro">Bairro:</label>
                 <input type="text" id="respBairro" name="respBairro"><br>
 
-                <label for="respRua">Rua:</label><br>
+                <label for="respRua">Rua:</label>
                 <input type="text" id="respRua" name="respRua"><br>
             </div>
 
-            <label for="fname">É empregado?</label><br>
+            <label for="empregado">É empregado?</label><br>
             <input type="checkbox" id="empregado" name="empregado">Sim<br>
             <input type="checkbox" id="desempregado" name="desempregado">Não<br>
 
             <div id="empresaFields" style="display: none; margin-top: 20px;">
-                <label for="fname">Qual empresa?</label><br>
+                <label for="empresa">Qual empresa?</label><br>
                 <input type="text" id="empresa" name="empresa"><br>
             </div>
-            
 
-            <label for="fname">O aluno possui alguma comorbidade?</label><br>
+            <label for="temcomorbidade">O aluno possui alguma comorbidade?</label><br>
             <input type="checkbox" id="temcomorbidade" name="temcomorbidade">Sim<br>
             <input type="checkbox" id="naotemcomorbidade" name="naotemcomorbidade">Não<br>
 
             <div id="comorbidadeFields" style="display: none; margin-top: 20px;">
-                <label for="fname">Qual?</label><br>
+                <label for="comorbidade">Qual?</label><br>
                 <input type="text" id="comorbidade" name="comorbidade"><br>
             </div>
-            
 
-            <label for="fname">Escolha a foto do aluno</label><br>
-            <input type="file" name="arquivos">
+            <label for="imagem">Escolha a foto do aluno</label><br>
+            <input type="file" id="imagem" name="imagem" accept="image/*"><br>
+
+            <button type="submit">Cadastrar Aluno</button>
         </form>
     </main>
+
     <footer>
         <p>
-            &copy; 2024 Departamento de Qualidade de Vida - Todos os direitos
-          reservados.
+            &copy; 2024 Departamento de Qualidade de Vida - Todos os direitos reservados.
         </p>
     </footer>
 

@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="pt-br">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -26,53 +26,32 @@
             <div class="busca-aluno">
                 <label for="buscaAluno">Buscar Aluno:</label>
                 <input type="text" id="buscaAluno" name="buscaAluno" placeholder="Digite o nome do aluno">
-                <button type="button">Buscar</button>
+                <button id="buscarAlunoBtn">Buscar</button>
             </div>
 
-            <div class="info-aluno">
-                <h3>Dados do Aluno</h3>
-                <p><strong>Nome:</strong> João da Silva</p>
-                <p><strong>Matrícula:</strong> 20240001</p>
-                <p><strong>Turma:</strong> ADS </p>
+            <div id="dadosAluno">
+                <!-- Dados do aluno serão exibidos aqui -->
             </div>
 
-            <br>
+            <form id="cadastroOcorrenciaForm">
+                <label for="aluno_id">ID do Aluno:</label><br>
+                <input type="number" id="aluno_id" name="aluno_id" readonly><br>
 
-            <form action="" method="post">
-                <h3>Registro de Atrasos</h3>
-                <label for="fname"> Data: </label>
-                <input type="date" id="data" name="data"><br>
-    
-                <label for="fname"> Hora: </label>
-                <input type="time" id="hora" name="hora"><br>
+                <label for="tipo">Tipo da Ocorrência:</label><br>
+                <input type="text" id="tipo" name="tipo" required><br>
 
-                <label for="fname"> Motivo: </label>
-                <input type="text" id="motivo" name="motivo"><br>
+                <label for="descricao">Descrição:</label><br>
+                <textarea id="descricao" name="descricao" required></textarea><br>
 
-            <br>
+                <label for="usuario_id">ID do Usuário:</label><br>
+                <input type="number" id="usuario_id" name="usuario_id" required><br>
 
-            <form action="" method="post">
-                <h3>Registro de Faltas</h3>
-                <label for="fname"> Data: </label>
-                <input type="date" id="data" name="data"><br>
-    
-                <label for="fname"> Período: </label>
-                <input type="time" id="hora" name="hora"><br>
-
-                <label for="fname"> Justificativa: </label>
-                <input type="text" id="motivo" name="motivo"><br>
-
-            <br>
-
-            <button type="button" class="imprimir">Imprimir Relatório</button>
+                <button type="submit">Registrar Ocorrência</button>
+            </form>
         </div>
-    </form>
     </main>
 
-    <footer>
-        <p>
-            &copy; 2024 Departamento de Qualidade de Vida - Todos os direitos reservados.
-        </p>
-    </footer>
+    <!-- Link to external JavaScript file -->
+    <script src="./js/ocorrencias.js"></script>
 </body>
 </html>
