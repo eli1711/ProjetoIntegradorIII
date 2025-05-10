@@ -10,3 +10,5 @@ COPY public /usr/share/nginx/html
 
 # Expondo a porta padrão do Nginx
 EXPOSE 80
+ENV PYTHONPATH="/app:${PYTHONPATH}"
+

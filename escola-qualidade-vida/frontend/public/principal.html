@@ -6,46 +6,59 @@
     <title>Login do Aluno</title>
     <link rel="stylesheet" href="css/styles.css">
     <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600&display=swap" rel="stylesheet">
-
 </head>
 <body>
     <header>
-      <img src="img/senai-logo.png" class="logo">
+        <img src="img/senai-logo.png" class="logo">
         <h1>Qualidade de Vida Escolar</h1>
-      </header>
-  
-      <main class="container">
-  
+    </header>
+
+    <main class="container">
         <a class="a" id="cadastro-aluno" href="./cadastroAluno.html">
-          <h2>Cadastro de Aluno</h2>
-          <p>
-            Formulário para cadastro de novos alunos no sistema do departamento.
-          </p>
+            <h2>Cadastro de Aluno</h2>
+            <p>Formulário para cadastro de novos alunos no sistema do departamento.</p>
         </a>
-  
+
         <a class="a" id="ocorrencias" href="./ocorrencias.html">
-          <h2>Ocorrências</h2>
-          <p>Registro e acompanhamento de ocorrências envolvendo alunos.</p>
+            <h2>Ocorrências</h2>
+            <p>Registro e acompanhamento de ocorrências envolvendo alunos.</p>
         </a>
-  
+
         <a class="a" id="relatorios" href="./relatorios.html">
-          <h2>Relatórios</h2>
-          <p>
-            Visualização e geração de relatórios sobre atividades e ocorrências.
-          </p>
+            <h2>Relatórios</h2>
+            <p>Visualização e geração de relatórios sobre atividades e ocorrências.</p>
         </a>
-  
+
         <a class="a" id="acompanhamento" href="./acompanhamento.html">
-          <h2>Acompanhamento</h2>
-          <p>Monitoramento do progresso e bem-estar dos alunos.</p>
+            <h2>Acompanhamento</h2>
+            <p>Monitoramento do progresso e bem-estar dos alunos.</p>
         </a>
-      </main>
-  
-      <footer>
+    </main>
+
+    <!-- Botão Sair (Agora redondo e posicionado no canto superior direito) -->
+    <button id="logoutBtn" class="logout-btn">SAIR</button>
+
+    <footer>
         <p>&copy; 2024 Departamento de Qualidade de Vida - Todos os direitos reservados.</p>
-      </footer>
-      
-      
-<script src="/public/js/script.js"></script>
+    </footer>
+
+    <script src="/public/js/script.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const logoutBtn = document.getElementById('logoutBtn');
+
+            // Adiciona a função de logout
+            logoutBtn.addEventListener('click', logout);
+        });
+
+        // Função de logout
+        function logout() {
+            // Remove o token JWT do localStorage
+            localStorage.removeItem('authToken');
+            
+            // Redireciona para a página de login
+            window.location.href = 'index.html';
+        }
+    </script>
 </body>
 </html>
