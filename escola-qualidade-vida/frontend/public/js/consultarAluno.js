@@ -1,33 +1,33 @@
 async function consultarAluno() {
-    const alunoId = document.getElementById('alunoId').value;  // Obtendo o ID do aluno ou nome do formulário
-    const alunoNome = document.getElementById('alunoNome').value;
-
-    let url = 'http://localhost:5000/consultar/aluno?';
-    
+    const alunoId = document.getElementById('alunoId').value;
+    const nomeAluno = document.getElementById('nomeAluno').value;
+    let queryParam = '';
     if (alunoId) {
-        url += `id=${alunoId}`;
-    } else if (alunoNome) {
-        url += `nome=${alunoNome}`;
+        queryParam = `id=${alunoId}`;
+    } else if (nomeAluno) {
+        queryParam = `nome=${nomeAluno}`;
     } else {
-        alert('Por favor, insira um ID ou nome de aluno');
+        alert("Informe ID ou Nome para consulta.");
         return;
     }
 
     try {
-        const response = await fetch(url);
+        const response = await fetch(`http://localhost:5000/alunos/consultar?${queryParam}`, {
+            headers: {
+                'Authorization': `Bearer ${localStorage.getItem('access_token')}`
+            }
+        });
         const data = await response.json();
-
         if (response.ok) {
             console.log('Aluno encontrado:', data);
-            // Aqui você pode exibir os dados do aluno na interface
+            // Exemplo: preencher campos na página com os dados retornados
+            document.getElementById('resultado').innerText = 
+                `Aluno: ${data.nome} ${data.sobrenome}, ${data.idade} anos, ${data.cidade}/${data.bairro}`;
         } else {
-            console.error('Erro:', data.erro);
-            alert(data.erro);
+            alert(data.erro || "Aluno não encontrado.");
         }
     } catch (error) {
-        console.error('Erro ao consultar aluno:', error);
+        console.error("Erro na consulta de aluno:", error);
+        alert("Erro ao consultar aluno.");
     }
 }
-
-// Evento de consulta
-document.getElementById('consultarButton').addEventListener('click', consultarAluno);

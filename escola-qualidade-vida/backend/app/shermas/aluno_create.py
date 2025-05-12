@@ -1,4 +1,3 @@
-#shermas/aluno.py
 from pydantic import BaseModel
 from enum import Enum
 

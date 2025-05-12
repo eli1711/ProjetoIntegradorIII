@@ -1,7 +1,5 @@
-# criar_usuario.py
-
 from werkzeug.security import generate_password_hash
-from app import db
+from app import create_app, db
 from app.models.usuario import Usuario
 
 def criar_usuario():
@@ -21,4 +19,6 @@ def criar_usuario():
     print("✅ Usuário criado com sucesso!")
 
 if __name__ == '__main__':
-    criar_usuario()
+    app = create_app()
+    with app.app_context():
+        criar_usuario()

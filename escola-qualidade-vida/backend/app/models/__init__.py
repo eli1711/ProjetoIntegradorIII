@@ -1,3 +1,7 @@
 # app/models/__init__.py
 
-from .usuario import Usuario
+from .aluno import Aluno
+#from .responsavel import Responsavel
+#from .empresa import Empresa
+from app.models.usuario import Usuario  # Importa o modelo Usuario
+

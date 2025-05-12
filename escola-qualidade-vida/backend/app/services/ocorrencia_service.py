@@ -1,8 +1,14 @@
 from app.models.ocorrencia import Ocorrencia
-from app.utils.database import get_db_session
 
 def listar_ocorrencias():
-    session = get_db_session()
-    ocorrencias = session.query(Ocorrencia).all()
-    session.close()
-    return ocorrencias
+    ocorrencias = Ocorrencia.query.all()
+    return [
+        {
+            "id": o.id,
+            "tipo": o.tipo,
+            "descricao": o.descricao,
+            "aluno_id": o.aluno_id,
+            "usuario_id": o.usuario_id
+        }
+        for o in ocorrencias
+    ]

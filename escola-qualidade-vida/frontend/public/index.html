@@ -9,39 +9,50 @@
 </head>
 <body>
 
-    <div><img src="img/senai-logo.png" alt="Logo Qualidade de Vida" class="logo"></div>
+    <!-- Logo do sistema -->
+    <div class="logo-container">
+        <img src="img/senai-logo.png" alt="Logo Qualidade de Vida" class="logo">
+    </div>
 
+    <!-- Container principal de login -->
     <div class="login-container">
         <div class="login-header">
             <h1>Acesso Restrito</h1>
             <p>Área exclusiva para profissionais</p>
         </div>
         
-        <form id="loginForm" class="login-form" action="http://localhost:5000/auth/login" method="POST">
+        <!-- Formulário de login -->
+        <form id="loginForm" class="login-form">
 
+            <!-- Campo de email -->
             <div class="form-group">
                 <label for="email">E-mail Institucional</label>
                 <input type="email" id="email" name="email" required placeholder="seu.email@escola.edu.br">
             </div>
             
+            <!-- Campo de senha -->
             <div class="form-group">
                 <label for="password">Senha</label>
                 <input type="password" id="password" name="senha" required placeholder="••••••••">
                 <a href="#forgot-password" class="forgot-password">Esqueci minha senha</a>
             </div>
             
+            <!-- Botão de login -->
             <button type="submit" class="login-button">Acessar Sistema</button>
             
+            <!-- Mensagem de alerta -->
             <div class="form-footer">
                 <div class="alert" id="loginAlert" role="alert"></div>
             </div>
         </form>
         
+        <!-- Informações de segurança -->
         <div class="security-info">
-            <p><i class="icon-lock"></i> Sua sessão será encerrada automaticamente após 30 minutos de inatividade</p>
+            <p><i class="icon-lock"></i> Sua sessão será encerrada automaticamente após 30 minutos de inatividade.</p>
         </div>
     </div>
 
+    <!-- Script de login -->
     <script src="js/auth.js"></script>
 </body>
 </html>

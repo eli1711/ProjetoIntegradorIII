@@ -1,11 +1,9 @@
-from sqlalchemy import Column, Integer, String
-from sqlalchemy.orm import relationship
-from app.utils.database import Base
+from app import db
 
-class Curso(Base):
-    __tablename__ = "curso"
+class Curso(db.Model):
+    __tablename__ = 'cursos'
 
-    id_curso = Column(Integer, primary_key=True, index=True)
-    nome = Column(String(100), nullable=False)
+    id = db.Column(db.Integer, primary_key=True)
+    nome = db.Column(db.String(100), nullable=False)
 
-    alunos = relationship("Aluno", back_populates="curso")
+    # Obs: relacionamento com Aluno removido ou a ser definido quando Aluno tiver campo curso_id

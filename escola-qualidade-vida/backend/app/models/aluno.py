@@ -1,27 +1,20 @@
-from sqlalchemy import Column, Integer, String, Enum, ForeignKey, Text, LargeBinary
-from sqlalchemy.orm import relationship
-from enum import Enum as PyEnum
-from app.utils.database import Base
+from app import db
 
-class Empregado(PyEnum):
-    SIM = "sim"
-    NAO = "no"
+class Aluno(db.Model):
+    __tablename__ = 'alunos'
 
-class Aluno(Base):
-    __tablename__ = "aluno"
-
-    id_aluno = Column(Integer, primary_key=True, index=True, autoincrement=True)
-    nome = Column(String(255), nullable=False)
-    sobrenome = Column(String(255), nullable=False)
-    cidade = Column(String(255), nullable=False)
-    bairro = Column(String(255), nullable=False)
-    rua = Column(String(255), nullable=False)
-    idade = Column(Integer, nullable=False)
-    empregado = Column(Enum(Empregado), nullable=False)
-    coma_com_quem = Column(String(255), nullable=True)
-    comorbidade = Column(Text, nullable=True)
-    foto = Column(LargeBinary, nullable=True)
-
-    turma = relationship("Turma", back_populates="alunos")
-    curso = relationship("Curso", back_populates="alunos")
-    ocorrencias = relationship("Ocorrencia", back_populates="aluno")
+    id = db.Column(db.Integer, primary_key=True)
+    nome = db.Column(db.String(100), nullable=False)
+    sobrenome = db.Column(db.String(100), nullable=False)
+    cidade = db.Column(db.String(100), nullable=False)
+    bairro = db.Column(db.String(100), nullable=False)
+    rua = db.Column(db.String(100), nullable=False)
+    idade = db.Column(db.Integer, nullable=False)
+    empregado = db.Column(db.String(10), nullable=False, default='nao')
+    empresa = db.Column(db.String(100), nullable=True)
+    comorbidade = db.Column(db.Text, nullable=True)
+    nome_responsavel = db.Column(db.String(100), nullable=True)
+    sobrenome_responsavel = db.Column(db.String(100), nullable=True)
+    parentesco_responsavel = db.Column(db.String(100), nullable=True)
+    telefone_responsavel = db.Column(db.String(50), nullable=True)
+    foto = db.Column(db.String(255), nullable=True)  # caminho para imagem salva (upload)

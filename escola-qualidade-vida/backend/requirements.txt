@@ -1,0 +1,27 @@
+# Frameworks
+Flask==2.3.0  # Framework principal para o backend (API)
+fastapi==0.109.1  # Caso realmente queira usar FastAPI também (remova se não for necessário)
+
+# Servidores de aplicação
+uvicorn==0.27.0  # Servidor ASGI para FastAPI, se necessário
+gunicorn==20.1.0  # Servidor WSGI para Flask, se estiver usando Flask (caso contrário, remova)
+
+# Banco de dados
+Flask-SQLAlchemy==2.5.1  # Integração do Flask com SQLAlchemy
+sqlalchemy==1.4.41  # ORM para Flask
+pymysql==1.1.0  # Conector MySQL para SQLAlchemy
+mysql-connector-python==8.0.29  # Conector MySQL para Python (Caso não use pymysql)
+
+# PostgreSQL (se for necessário)
+psycopg2-binary==2.9.3  # Conector PostgreSQL para SQLAlchemy
+
+# Autenticação
+Flask-JWT-Extended==4.4.4  # Extensão JWT para autenticação em Flask
+passlib[bcrypt]  # Biblioteca para hash de senhas
+cryptography==3.4.8  # Biblioteca para criptografia
+
+# Multiparte (upload de arquivos)
+python-multipart==0.0.5  # Suporte a uploads no FastAPI
+
+# CORS
+flask-cors==3.0.10 # Suporte a CORS no Flask (caso use o Flask)

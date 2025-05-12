@@ -1,91 +1,73 @@
 document.addEventListener('DOMContentLoaded', function () {
     const loginForm = document.getElementById('loginForm');
     const loginAlert = document.getElementById('loginAlert');
-    
-    loginForm.addEventListener('submit', handleLogin);
-    
-    // Verifica o estado de autenticação ao carregar a página
-    checkAuthStatus();
+
+    // Verificar se já existe um token de autenticação
+    if (localStorage.getItem('access_token')) {
+        // Se o token existir, redireciona diretamente para a página principal
+        window.location.href = 'principal.html';
+    }
+
+    if (!loginForm || !loginAlert) {
+        console.error("Formulário ou alerta de login não encontrado no DOM.");
+        return;
+    }
+
+    loginForm.addEventListener('submit', function (event) {
+        handleLogin(event, loginAlert);
+    });
 });
 
-async function handleLogin(event) {
+async function handleLogin(event, loginAlert) {
     event.preventDefault();
 
-    const email = document.getElementById('email').value;
-    const password = document.getElementById('password').value;
+    const emailInput = document.getElementById('email');
+    const senhaInput = document.getElementById('password');
 
-    const loginAlert = document.getElementById('loginAlert');
+    if (!emailInput || !senhaInput) {
+        exibirMensagem(loginAlert, "Erro: Campos de e-mail ou senha não encontrados.", "error");
+        return;
+    }
 
-    // Valida os campos de entrada
-    if (!email || !password) {
-        displayAlert('E-mail e senha são obrigatórios', 'error');
+    const loginData = {
+        email: emailInput.value.trim(),
+        senha: senhaInput.value.trim()
+    };
+
+    if (!loginData.email || !loginData.senha) {
+        exibirMensagem(loginAlert, "Por favor, preencha o e-mail e a senha.", "error");
         return;
     }
 
     try {
         const response = await fetch('http://localhost:5000/auth/login', {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({ email, senha: password })
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(loginData)
         });
 
         const data = await response.json();
 
         if (response.ok) {
-            // Login bem-sucedido
-            displayAlert('Login realizado com sucesso! Redirecionando...', 'success');
-            localStorage.setItem('authToken', data.token);  // Salva o token JWT
-            setTimeout(() => window.location.href = 'principal.html', 2000);
+            // Armazena o token no localStorage
+            localStorage.setItem('access_token', data.access_token);
+            exibirMensagem(loginAlert, "✅ Login bem-sucedido! Redirecionando...", "success");
+            setTimeout(() => {
+                window.location.href = 'principal.html';
+            }, 1500); // Delay para a mensagem de sucesso aparecer
         } else {
-            // Exibe mensagem de erro
-            displayAlert(data.detail || 'Erro ao realizar login', 'error');
+            exibirMensagem(loginAlert, data.erro || "❌ E-mail ou senha inválidos.", "error");
         }
-    } catch (error) {
-        console.error('Erro:', error);
-        displayAlert('Erro de conexão com o servidor', 'error');
+    } catch (err) {
+        console.error("Erro na requisição de login:", err);
+        exibirMensagem(loginAlert, "❌ Erro inesperado ao tentar fazer login.", "error");
     }
 }
 
-function displayAlert(message, type) {
-    const loginAlert = document.getElementById('loginAlert');
-    loginAlert.textContent = message;
-    loginAlert.className = `alert ${type}`; // 'alert success' ou 'alert error'
-}
-
-function checkAuthStatus() {
-    const token = localStorage.getItem('authToken');
-
-    // Se o token existir e for válido, redireciona para o dashboard
-    if (token) {
-        if (isTokenValid(token)) {
-            window.location.href = 'principal.html';
-        } else {
-            localStorage.removeItem('authToken'); // Remove o token expirado
-            console.log('Token expirado, redirecionando para login...');
-        }
-    } else {
-        // Se o token não estiver presente, mantém na página de login
-        console.log('Token não encontrado, permanecendo na página de login...');
-    }
-}
-
-function isTokenValid(token) {
-    try {
-        // Tenta decodificar o token
-        const decoded = jwt.decode(token);
-        const currentTime = Math.floor(Date.now() / 1000);
-
-        // Verifica se o token expirou
-        if (decoded.exp < currentTime) {
-            localStorage.removeItem('authToken'); // Remove o token expirado
-            return false;
-        }
-        return true;
-    } catch (e) {
-        console.error('Token inválido:', e);
-        localStorage.removeItem('authToken'); // Remove o token inválido
-        return false;
-    }
+// Função para exibir mensagens com estilo
+function exibirMensagem(elemento, mensagem, tipo) {
+    elemento.textContent = mensagem;
+    elemento.classList.remove('success', 'error');
+    elemento.classList.add(tipo);
+    elemento.style.display = "block"; // Garante que a mensagem será exibida
 }

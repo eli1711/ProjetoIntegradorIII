@@ -1,11 +1,9 @@
-from sqlalchemy import Column, Integer, String
-from sqlalchemy.orm import relationship
-from app.utils.database import Base
+from app import db
 
-class Turma(Base):
-    __tablename__ = "turma"
+class Turma(db.Model):
+    __tablename__ = 'turmas'
 
-    id_turma = Column(Integer, primary_key=True, index=True)
-    nome = Column(String(100), nullable=False)
+    id = db.Column(db.Integer, primary_key=True)
+    nome = db.Column(db.String(100), nullable=False)
 
-    alunos = relationship("Aluno", back_populates="turma")
+    # Obs: relacionamento com Aluno removido até que Aluno possua campo turma_id

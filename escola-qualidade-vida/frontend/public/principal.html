@@ -3,13 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login do Aluno</title>
+    <title>Principal - Qualidade de Vida Escolar</title>
     <link rel="stylesheet" href="css/styles.css">
     <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600&display=swap" rel="stylesheet">
 </head>
 <body>
     <header>
-        <img src="img/senai-logo.png" class="logo">
+        <img src="img/senai-logo.png" class="logo" alt="Logo Qualidade de Vida">
         <h1>Qualidade de Vida Escolar</h1>
     </header>
 
@@ -35,30 +35,14 @@
         </a>
     </main>
 
-    <!-- Botão Sair (Agora redondo e posicionado no canto superior direito) -->
+    <!-- Botão Sair -->
     <button id="logoutBtn" class="logout-btn">SAIR</button>
 
     <footer>
         <p>&copy; 2024 Departamento de Qualidade de Vida - Todos os direitos reservados.</p>
     </footer>
 
-    <script src="/public/js/script.js"></script>
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            const logoutBtn = document.getElementById('logoutBtn');
-
-            // Adiciona a função de logout
-            logoutBtn.addEventListener('click', logout);
-        });
-
-        // Função de logout
-        function logout() {
-            // Remove o token JWT do localStorage
-            localStorage.removeItem('authToken');
-            
-            // Redireciona para a página de login
-            window.location.href = 'index.html';
-        }
-    </script>
+    <script src="js/script.js"></script>
+    
 </body>
 </html>
