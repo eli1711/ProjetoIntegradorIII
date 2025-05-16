@@ -14,6 +14,11 @@ services:
       - ./db_data:/var/lib/mysql  # Persistindo os dados em db_data no host
     networks:
       - rede-interna
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
 
   backend:
     build:

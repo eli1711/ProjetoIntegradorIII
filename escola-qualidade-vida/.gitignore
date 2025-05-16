@@ -1,5 +1,5 @@
 # Ignorar arquivos e pastas do MySQL
-db_data/
+#db_data/
 *.sock
 *.log
 *.pid
