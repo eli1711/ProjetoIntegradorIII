@@ -4,21 +4,25 @@ document.getElementById('cadastroAlunoForm').addEventListener('submit', async fu
     const formData = new FormData(form);
 
     try {
-        const response = await fetch('http://localhost:5000/alunos/cadastrar', {
+        const response = await fetch('http://localhost:5000/alunos/cadastrar-aluno', {  // Certifique-se de que a URL está correta
+            method: 'POST',
             headers: {
                 'Authorization': `Bearer ${localStorage.getItem('access_token')}`
             },
-            method: 'POST',
-            body: formData
+            body: formData  // Usando FormData para envio de arquivos e dados de formulário
         });
-        const data = await response.json();
+
+        // Verifica se a resposta foi bem-sucedida (código 2xx)
         if (response.ok) {
-            alert("✅ " + data.mensagem);
-            form.reset();
+            const data = await response.json(); // Espera a resposta JSON do servidor
+            alert("✅ " + data.mensagem); // Alerta de sucesso
+            form.reset(); // Reseta o formulário
         } else {
-            alert("❌ Erro: " + (data.erro || 'Não foi possível cadastrar o aluno'));
+            const errorData = await response.json(); // Pega o erro da resposta do servidor
+            alert("❌ Erro: " + (errorData.erro || 'Não foi possível cadastrar o aluno'));
         }
     } catch (error) {
+        // Caso ocorra um erro durante a requisição
         console.error("Erro ao cadastrar aluno:", error);
         alert("❌ Erro inesperado no cadastro.");
     }
