@@ -33,7 +33,7 @@ def cadastrar_aluno():
             rua=data['rua'],
             idade=idade,
             empregado=empregado,
-            coma_com_quem=data.get('mora_com_quem'),
+            mora_com_quem=data.get('mora_com_quem'),
             sobre_aluno=data.get('sobre_aluno'),
             responsavel_id=None,
             empresa_id=None
