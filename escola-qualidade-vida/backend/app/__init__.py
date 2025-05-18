@@ -41,7 +41,7 @@ def create_app():
 
     # Registro dos blueprints com prefixos
     app.register_blueprint(auth_bp, url_prefix='/auth')
-    app.register_blueprint(cadastro_bp, url_prefix='/alunos')  # Definir prefixo no blueprint
+    app.register_blueprint(cadastro_bp, url_prefix='/cadastro')  # Alterado para '/cadastro'
     app.register_blueprint(curso_bp, url_prefix='/cursos')
     app.register_blueprint(turma_bp, url_prefix='/turmas')
     app.register_blueprint(ocorrencia_bp, url_prefix='/ocorrencias')

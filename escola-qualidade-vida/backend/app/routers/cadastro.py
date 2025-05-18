@@ -3,41 +3,56 @@ from app import db
 from app.models.aluno import Aluno
 import os
 
-# Criação do Blueprint
-cadastro_bp = Blueprint('cadastro', __name__)
+cadastro_bp = Blueprint('cadastro', __name__, url_prefix='/cadastro')
 
-@cadastro_bp.route('/cadastrar-aluno', methods=['POST'])
+@cadastro_bp.route('/aluno', methods=['POST'])
 def cadastrar_aluno():
-    if request.method == 'POST':
-        # Captura os dados do formulário
-        nome = request.form['nome']
-        sobrenome = request.form['sobrenome']
-        cidade = request.form['cidade']
-        bairro = request.form['bairro']
-        rua = request.form['rua']
-        idade = request.form['idade']
-        empregado = request.form['empregado']
-        mora_com_quem = request.form['mora_com_quem']
-        sobre_aluno = request.form['sobre_aluno']
-        
-        # Processando o upload da foto
-        foto = request.files['foto']
-        foto_filename = None
-        if foto:
-            foto_filename = foto.filename
-            if not os.path.exists('./uploads'):
-                os.makedirs('./uploads')  # Cria o diretório de uploads se necessário
-            foto.save(f'./uploads/{foto_filename}')  # Salva a foto no diretório de uploads
+    data = request.form.to_dict()
 
-        # Criando o objeto aluno
-        novo_aluno = Aluno(
-            nome=nome, sobrenome=sobrenome, cidade=cidade, bairro=bairro, rua=rua, 
-            idade=idade, empregado=empregado, coma_com_quem=mora_com_quem, sobre_aluno=sobre_aluno, foto=foto_filename
+    try:
+        # Validar campos obrigatórios
+        obrigatorios = ['nome', 'sobrenome', 'cidade', 'bairro', 'rua', 'idade']
+        if not all(data.get(campo) for campo in obrigatorios):
+            return jsonify({'erro': 'Campos obrigatórios não preenchidos'}), 400
+
+        idade = int(data.get('idade'))
+        if idade < 18:
+            resp_fields = ['nomeResponsavel', 'sobrenomeResponsavel', 'parentescoResponsavel']
+            if not all(data.get(f) for f in resp_fields):
+                return jsonify({'erro': 'Dados do responsável são obrigatórios para menores de 18 anos.'}), 400
+
+        empregado = data.get('empregado', 'nao')
+        if empregado == 'sim' and not data.get('empresa'):
+            return jsonify({'erro': 'Campo empresa é obrigatório se aluno for empregado.'}), 400
+
+        aluno = Aluno(
+            nome=data['nome'],
+            sobrenome=data['sobrenome'],
+            cidade=data['cidade'],
+            bairro=data['bairro'],
+            rua=data['rua'],
+            idade=idade,
+            empregado=empregado,
+            coma_com_quem=data.get('mora_com_quem'),
+            sobre_aluno=data.get('sobre_aluno'),
+            responsavel_id=None,
+            empresa_id=None
         )
 
-        # Adicionando o aluno ao banco de dados
-        db.session.add(novo_aluno)
+        if 'foto' in request.files:
+            foto = request.files['foto']
+            upload_dir = os.path.join(os.getcwd(), 'uploads')
+            if not os.path.exists(upload_dir):
+                os.makedirs(upload_dir)
+            foto_path = os.path.join(upload_dir, foto.filename)
+            foto.save(foto_path)
+            aluno.foto = foto_path
+
+        db.session.add(aluno)
         db.session.commit()
 
-        # Retornando a resposta JSON de sucesso
-        return jsonify({"mensagem": "Aluno cadastrado com sucesso!"}), 201
+        return jsonify({'mensagem': 'Cadastro realizado com sucesso!'}), 201
+
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'erro': 'Erro ao cadastrar aluno', 'detalhes': str(e)}), 500

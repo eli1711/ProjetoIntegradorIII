@@ -4,7 +4,7 @@ document.getElementById('cadastroAlunoForm').addEventListener('submit', async fu
     const formData = new FormData(form);
 
     try {
-        const response = await fetch('http://localhost:5000/alunos/cadastrar-aluno', {  // Certifique-se de que a URL está correta
+        const response = await fetch('http://localhost:5000/cadastro/aluno', {  // URL corrigida
             method: 'POST',
             headers: {
                 'Authorization': `Bearer ${localStorage.getItem('access_token')}`

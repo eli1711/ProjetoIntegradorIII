@@ -1,3 +1,5 @@
+#backend/app/models/empresa.py
+
 from app import db
 
 class Empresa(db.Model):

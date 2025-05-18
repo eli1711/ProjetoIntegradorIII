@@ -1,3 +1,5 @@
+#backend/app/models/aluno.py
+
 from app import db
 
 class Aluno(db.Model):
@@ -11,7 +13,7 @@ class Aluno(db.Model):
     rua = db.Column(db.String(255), nullable=False)
     idade = db.Column(db.Integer, nullable=False)
     empregado = db.Column(db.Enum('sim', 'nao'), nullable=False)
-    coma_com_quem = db.Column(db.String(255))
+    mora_com_quem = db.Column(db.String(255))
     sobre_aluno = db.Column(db.Text)
     foto = db.Column(db.String(255))
     
