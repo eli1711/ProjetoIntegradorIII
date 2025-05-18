@@ -29,7 +29,7 @@ class Aluno(db.Model):
         self.rua = rua
         self.idade = idade
         self.empregado = empregado
-        self.coma_com_quem = coma_com_quem
+        self.coma_com_quem = mora_com_quem
         self.sobre_aluno = sobre_aluno
         self.foto = foto
         self.responsavel_id = responsavel_id
