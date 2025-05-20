@@ -29,11 +29,7 @@ def __init__(self, nome, sobrenome, cidade, bairro, rua, idade, empregado, mora_
         self.rua = rua
         self.idade = idade
         self.empregado = empregado
-<<<<<<< HEAD
-        self.mora_com_quem = mora_com_quem  
-=======
-        self.coma_com_quem = mora_com_quem
->>>>>>> 3ff3ef9da55ec26c760c7dce1b3a9a43eae118b7
+        self.mora_com_quem = mora_com_quem 
         self.sobre_aluno = sobre_aluno
         self.foto = foto
         self.responsavel_id = responsavel_id 
