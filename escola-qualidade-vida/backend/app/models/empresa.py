@@ -11,4 +11,4 @@ class Empresa(db.Model):
     telefone = db.Column(db.String(255), nullable=False)
 
     # Relacionamento com a tabela Aluno
-    alunos = db.relationship('Aluno', backref='empresa', lazy=True)
+    alunos = db.relationship('aluno', backref='empresa', lazy=True)

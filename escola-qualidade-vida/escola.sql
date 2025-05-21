@@ -3,7 +3,7 @@ CREATE DATABASE IF NOT EXISTS escola_db;
 USE escola_db;
 
 -- Tabela Empresa
-CREATE TABLE Empresa (
+CREATE TABLE empresa (
     id INT AUTO_INCREMENT PRIMARY KEY,
     nome VARCHAR(255) NOT NULL,
     endereco VARCHAR(255),
@@ -14,7 +14,7 @@ CREATE TABLE Empresa (
 );
 
 -- Tabela Responsavel
-CREATE TABLE Responsavel (
+CREATE TABLE responsavel (
     id INT AUTO_INCREMENT PRIMARY KEY,
     nome VARCHAR(255) NOT NULL,
     sobrenome VARCHAR(255) NOT NULL,
@@ -34,7 +34,7 @@ CREATE TABLE usuarios (
 );
 
 -- Tabela Aluno
-CREATE TABLE Aluno (
+CREATE TABLE aluno (
     id INT AUTO_INCREMENT PRIMARY KEY,
     nome VARCHAR(255) NOT NULL,
     sobrenome VARCHAR(255) NOT NULL,
@@ -49,8 +49,8 @@ CREATE TABLE Aluno (
     descricao_comorbidade TEXT,
     responsavel_id INT,
     empresa_id INT,
-    FOREIGN KEY (responsavel_id) REFERENCES Responsavel(id) ON DELETE SET NULL ON UPDATE CASCADE,
-    FOREIGN KEY (empresa_id) REFERENCES Empresa(id) ON DELETE SET NULL ON UPDATE CASCADE
+    FOREIGN KEY (responsavel_id) REFERENCES responsavel(id) ON DELETE SET NULL ON UPDATE CASCADE,
+    FOREIGN KEY (empresa_id) REFERENCES empresa(id) ON DELETE SET NULL ON UPDATE CASCADE
 );
 
 -- Tabela ocorrencias
@@ -60,7 +60,7 @@ CREATE TABLE ocorrencias (
     tipo VARCHAR(100) NOT NULL,
     descricao TEXT NOT NULL,
     usuario_id INT,
-    FOREIGN KEY (aluno_id) REFERENCES Aluno(id) ON DELETE CASCADE ON UPDATE CASCADE
+    FOREIGN KEY (aluno_id) REFERENCES aluno(id) ON DELETE CASCADE ON UPDATE CASCADE
     -- Você pode adicionar FK para usuario_id se criar a tabela usuários antes
 );
 

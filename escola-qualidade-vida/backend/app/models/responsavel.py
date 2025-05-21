@@ -10,4 +10,4 @@ class Responsavel(db.Model):
     endereco = db.Column(db.String(255), nullable=False)
     
     # Relacionamento com a tabela Aluno
-    alunos = db.relationship('Aluno', backref='responsavel', lazy=True)
+    alunos = db.relationship('aluno', backref='responsavel', lazy=True)

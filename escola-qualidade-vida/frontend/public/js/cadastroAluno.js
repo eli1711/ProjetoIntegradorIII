@@ -1,29 +1,53 @@
 document.getElementById('cadastroAlunoForm').addEventListener('submit', async function(e) {
     e.preventDefault();
     const form = e.target;
-    const formData = new FormData(form);
+    const submitButton = form.querySelector('button[type="submit"]');
+    const originalButtonText = submitButton.textContent;
+    
+    // Verifica se o token existe
+    if (!localStorage.getItem('access_token')) {
+        alert("❌ Você precisa estar logado para cadastrar um aluno");
+        return;
+    }
+
+    // Mostra feedback visual
+    submitButton.disabled = true;
+    submitButton.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Cadastrando...';
 
     try {
-        const response = await fetch('http://localhost:5000/cadastro/aluno', {  // URL corrigida
+        const response = await fetch('http://localhost:5000/cadastro/aluno', {
             method: 'POST',
             headers: {
                 'Authorization': `Bearer ${localStorage.getItem('access_token')}`
             },
-            body: formData  // Usando FormData para envio de arquivos e dados de formulário
+            body: new FormData(form)
         });
 
-        // Verifica se a resposta foi bem-sucedida (código 2xx)
         if (response.ok) {
-            const data = await response.json(); // Espera a resposta JSON do servidor
-            alert("✅ " + data.mensagem); // Alerta de sucesso
-            form.reset(); // Reseta o formulário
+            const data = await response.json();
+            showAlert('success', data.mensagem || 'Aluno cadastrado com sucesso!');
+            form.reset();
         } else {
-            const errorData = await response.json(); // Pega o erro da resposta do servidor
-            alert("❌ Erro: " + (errorData.erro || 'Não foi possível cadastrar o aluno'));
+            const errorData = await response.json();
+            showAlert('danger', errorData.erro || 'Erro ao cadastrar aluno');
         }
     } catch (error) {
-        // Caso ocorra um erro durante a requisição
         console.error("Erro ao cadastrar aluno:", error);
-        alert("❌ Erro inesperado no cadastro.");
+        showAlert('danger', 'Erro inesperado no cadastro.');
+    } finally {
+        submitButton.disabled = false;
+        submitButton.textContent = originalButtonText;
     }
 });
+
+function showAlert(type, message) {
+    // Implementação de um alerta mais bonito (pode usar Bootstrap ou outro framework)
+    const alertDiv = document.createElement('div');
+    alertDiv.className = `alert alert-${type} alert-dismissible fade show`;
+    alertDiv.innerHTML = `
+        ${message}
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    `;
+    document.body.prepend(alertDiv);
+    setTimeout(() => alertDiv.remove(), 5000);
+}

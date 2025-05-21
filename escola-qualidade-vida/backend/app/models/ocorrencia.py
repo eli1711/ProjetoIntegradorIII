@@ -10,5 +10,5 @@ class Ocorrencia(db.Model):
     usuario_id = db.Column(db.Integer, db.ForeignKey('usuarios.id'), nullable=True)
 
     # Relacionamentos opcionais
-    aluno = db.relationship('Aluno', backref='ocorrencias')
-    usuario = db.relationship('Usuario', backref='ocorrencias')
+    aluno = db.relationship('aluno', backref='ocorrencias')
+    usuario = db.relationship('usuario', backref='ocorrencias')

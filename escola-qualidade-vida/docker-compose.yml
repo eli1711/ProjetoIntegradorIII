@@ -52,7 +52,7 @@ services:
     container_name: nginx
     restart: always
     ports:
-      - "8080:8080"  # A porta 80 será mapeada para o frontend (nginx)
+      - "8080:80"  # A porta 808 será mapeada para o frontend (nginx)
     depends_on:
       - backend  # O nginx depende do backend
     volumes:

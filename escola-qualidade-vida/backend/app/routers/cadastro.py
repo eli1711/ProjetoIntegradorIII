@@ -5,7 +5,7 @@ import os
 
 cadastro_bp = Blueprint('cadastro', __name__, url_prefix='/cadastro')
 
-@cadastro_bp.route('/aluno', methods=['POST'])
+@cadastro_bp.route('/alunos', methods=['POST'])
 def cadastrar_aluno():
     data = request.form.to_dict()
 
@@ -25,7 +25,7 @@ def cadastrar_aluno():
         if empregado == 'sim' and not data.get('empresa'):
             return jsonify({'erro': 'Campo empresa é obrigatório se aluno for empregado.'}), 400
 
-        aluno = Aluno(
+        aluno = aluno(
             nome=data['nome'],
             sobrenome=data['sobrenome'],
             cidade=data['cidade'],
