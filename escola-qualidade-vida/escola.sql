@@ -30,7 +30,7 @@ CREATE TABLE usuarios (
     id INT AUTO_INCREMENT PRIMARY KEY,
     nome VARCHAR(255) NOT NULL,
     email VARCHAR(255) NOT NULL UNIQUE,
-    senha VARCHAR(255) NOT NULL
+    senha VARCHAR(512) NOT NULL  -- Aumentado o tamanho para acomodar o hash de senha
 );
 
 -- Tabela Aluno
@@ -44,9 +44,9 @@ CREATE TABLE aluno (
     idade INT NOT NULL,
     empregado ENUM('sim','no') NOT NULL,
     mora_com_quem VARCHAR(255), 
-    comorbidade TEXT,
-    foto VARCHAR(255),
-    descricao_comorbidade TEXT,
+    sobre_aluno TEXT,  -- 'Sobre o Aluno' é o campo principal, antes chamado de 'descricao_comorbidade'
+    comorbidade TEXT,  -- 'Comorbidade' permanece para guardar detalhes relacionados à saúde
+    foto VARCHAR(512),  -- Aumentado o tamanho do campo para acomodar caminhos de fotos maiores
     responsavel_id INT,
     empresa_id INT,
     FOREIGN KEY (responsavel_id) REFERENCES responsavel(id) ON DELETE SET NULL ON UPDATE CASCADE,
@@ -60,10 +60,10 @@ CREATE TABLE ocorrencias (
     tipo VARCHAR(100) NOT NULL,
     descricao TEXT NOT NULL,
     usuario_id INT,
-    FOREIGN KEY (aluno_id) REFERENCES aluno(id) ON DELETE CASCADE ON UPDATE CASCADE
-    -- Você pode adicionar FK para usuario_id se criar a tabela usuários antes
+    FOREIGN KEY (aluno_id) REFERENCES aluno(id) ON DELETE CASCADE ON UPDATE CASCADE,
+    FOREIGN KEY (usuario_id) REFERENCES usuarios(id) ON DELETE SET NULL ON UPDATE CASCADE
 );
 
-
+-- Inserção de dados na tabela usuarios
 INSERT INTO usuarios (id, nome, email, senha) VALUES
 (3, 'Eli', 'teste@teste.com', 'pbkdf2:sha256:1000000$0UEjXz4l8io6nCvF$d8454aec349e258788f491b54d199029ffcd3cecf19d9d8e50bf73ce39ed1e12');
