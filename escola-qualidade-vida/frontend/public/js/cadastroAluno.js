@@ -15,7 +15,8 @@ document.getElementById('cadastroAlunoForm').addEventListener('submit', async fu
     submitButton.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Cadastrando...';
 
     try {
-        const response = await fetch('http://localhost:5000/cadastro/aluno', {
+        const response = await fetch('http://localhost:5000/cadastro/alunos', {
+
             method: 'POST',
             headers: {
                 'Authorization': `Bearer ${localStorage.getItem('access_token')}`
