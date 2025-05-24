@@ -1,110 +1,195 @@
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="./css/cadastroAluno.css">
-    <title>Cadastro de Aluno</title>
-    <script>
-        function verificarCadastroResponsavel() {
-            var idade = document.getElementById("idade").value;
-            var responsavelSection = document.getElementById("responsavelSection");
-            if (idade < 18) {
-                responsavelSection.style.display = "block";  // Exibe a seção do responsável
-            } else {
-                responsavelSection.style.display = "none";  // Esconde a seção do responsável
-            }
-        }
-
-        function verificarCadastroEmpresa() {
-            var empregado = document.querySelector('input[name="empregado"]:checked').value;
-            var empresaSection = document.getElementById("empresaSection");
-            if (empregado === "sim") {
-                empresaSection.style.display = "block";  // Exibe a seção da empresa
-            } else {
-                empresaSection.style.display = "none";  // Esconde a seção da empresa
-            }
-        }
-    </script>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Cadastro de Aluno</title>
+  <link rel="stylesheet" href="./css/cadastroAluno.css" />
 </head>
 <body>
-    <header>
-        <h1>Qualidade de Vida Escolar</h1>
-        <nav>
-            <ul>
-                <li><a href="./principal.html">Home</a></li>
-                <li><a href="./ocorrencias.html">Ocorrências</a></li>
-                <li><a href="./relatorios.html">Relatórios</a></li>
-            </ul>
-        </nav>
-    </header>
+  <header>
+    <h1>Qualidade de Vida Escolar</h1>
+    <nav>
+      <ul>
+        <li><a href="./principal.html">Home</a></li>
+        <li><a href="./ocorrencias.html">Ocorrências</a></li>
+        <li><a href="./relatorios.html">Relatórios</a></li>
+      </ul>
+    </nav>
+  </header>
 
-    <main>
-        <h2>Cadastro de Aluno</h2>
-   <form action="/cadastro/alunos" method="POST" enctype="multipart/form-data" id="cadastroAlunoForm">
-    <label for="nome">Nome:</label>
-    <input type="text" id="nome" name="nome" required>
+  <main>
+    <h2>Cadastro de Aluno</h2>
 
-    <label for="sobrenome">Sobrenome:</label>
-    <input type="text" id="sobrenome" name="sobrenome" required>
+    <div id="alerta" style="display:none;"></div>
 
-    <label for="cidade">Cidade:</label>
-    <input type="text" id="cidade" name="cidade" required>
+    <form id="cadastroAlunoForm" method="POST" enctype="multipart/form-data" action="http://localhost:5000/cadastro/alunos">
+      <!-- Dados do aluno -->
+      <label for="nome">Nome:</label>
+      <input type="text" id="nome" name="nome" required />
 
-    <label for="bairro">Bairro:</label>
-    <input type="text" id="bairro" name="bairro" required>
+      <label for="sobrenome">Sobrenome:</label>
+      <input type="text" id="sobrenome" name="sobrenome" required />
 
-    <label for="rua">Rua:</label>
-    <input type="text" id="rua" name="rua" required>
+      <label for="cidade">Cidade:</label>
+      <input type="text" id="cidade" name="cidade" required />
 
-    <label for="idade">Idade:</label>
-    <input type="number" id="idade" name="idade" required onchange="verificarCadastroResponsavel()">
+      <label for="bairro">Bairro:</label>
+      <input type="text" id="bairro" name="bairro" required />
 
-    <!-- Seção do Responsável -->
-    <div id="responsavelSection" style="display:none;">
-        <h3>Cadastro do Responsável</h3>
+      <label for="rua">Rua:</label>
+      <input type="text" id="rua" name="rua" required />
+
+      <label for="idade">Idade:</label>
+      <input type="number" id="idade" name="idade" required onchange="verificarCadastroResponsavel()" />
+
+      <!-- Responsável -->
+      <div id="responsavelSection" style="display:none;">
+        <h3>Dados do Responsável</h3>
 
         <label for="nomeResponsavel">Nome:</label>
-        <input type="text" id="nomeResponsavel" name="nomeResponsavel">
+        <input type="text" id="nomeResponsavel" name="nomeResponsavel" />
 
         <label for="sobrenomeResponsavel">Sobrenome:</label>
-        <input type="text" id="sobrenomeResponsavel" name="sobrenomeResponsavel">
+        <input type="text" id="sobrenomeResponsavel" name="sobrenomeResponsavel" />
 
         <label for="parentescoResponsavel">Parentesco:</label>
-        <input type="text" id="parentescoResponsavel" name="parentescoResponsavel">
-    </div>
+        <input type="text" id="parentescoResponsavel" name="parentescoResponsavel" />
 
-    <label>Aluno empregado?</label>
-    <input type="radio" name="empregado" value="sim" onchange="verificarCadastroEmpresa()"> Sim
-    <input type="radio" name="empregado" value="nao" onchange="verificarCadastroEmpresa()"> Não
+        <label for="telefone_responsavel">Telefone:</label>
+        <input type="text" id="telefone_responsavel" name="telefone_responsavel" />
 
-    <!-- Seção da Empresa -->
-    <div id="empresaSection" style="display:none;">
-        <h3>Cadastro da Empresa</h3>
+        <label for="cidade_responsavel">Cidade:</label>
+        <input type="text" id="cidade_responsavel" name="cidade_responsavel" />
+
+        <label for="bairro_responsavel">Bairro:</label>
+        <input type="text" id="bairro_responsavel" name="bairro_responsavel" />
+
+        <label for="rua_responsavel">Rua:</label>
+        <input type="text" id="rua_responsavel" name="rua_responsavel" />
+      </div>
+
+      <!-- Empresa -->
+      <label>Aluno empregado?</label>
+      <input type="radio" name="empregado" value="sim" onchange="verificarCadastroEmpresa()" /> Sim
+      <input type="radio" name="empregado" value="nao" onchange="verificarCadastroEmpresa()" checked /> Não
+
+      <div id="empresaSection" style="display:none;">
+        <h3>Dados da Empresa</h3>
 
         <label for="empresa">Nome da Empresa:</label>
-        <input type="text" id="empresa" name="empresa">
+        <input type="text" id="empresa" name="empresa" />
 
         <label for="endereco_empresa">Endereço:</label>
-        <input type="text" id="endereco_empresa" name="endereco_empresa">
+        <input type="text" id="endereco_empresa" name="endereco_empresa" />
 
         <label for="telefone_empresa">Telefone:</label>
-        <input type="text" id="telefone_empresa" name="telefone_empresa">
-    </div>
+        <input type="text" id="telefone_empresa" name="telefone_empresa" />
 
-    <label for="mora_com_quem">Com quem mora:</label>
-    <input type="text" id="mora_com_quem" name="mora_com_quem">
+        <label for="cidade_empresa">Cidade:</label>
+        <input type="text" id="cidade_empresa" name="cidade_empresa" />
 
-    <label for="sobre_aluno">Sobre o Aluno:</label>
-    <textarea id="sobre_aluno" name="sobre_aluno"></textarea>
+        <label for="bairro_empresa">Bairro:</label>
+        <input type="text" id="bairro_empresa" name="bairro_empresa" />
 
-    <label for="foto">Foto:</label>
-    <input type="file" id="foto" name="foto" accept="image/*">
+        <label for="rua_empresa">Rua:</label>
+        <input type="text" id="rua_empresa" name="rua_empresa" />
+      </div>
 
-    <button type="submit">Cadastrar</button>
-</form>
+      <!-- Extras -->
+      <label for="mora_com_quem">Com quem mora:</label>
+      <input type="text" id="mora_com_quem" name="mora_com_quem" />
 
-    </main>
-    <script src="js/cadastroAluno.js"></script>
+      <label for="sobre_aluno">Sobre o Aluno:</label>
+      <textarea id="sobre_aluno" name="sobre_aluno"></textarea>
+
+      <label for="foto">Foto:</label>
+      <input type="file" id="foto" name="foto" accept="image/*" />
+
+      <button type="submit">Cadastrar</button>
+    </form>
+  </main>
+
+  <script>
+    document.addEventListener("DOMContentLoaded", function () {
+      const idadeInput = document.getElementById("idade");
+      const empregadoRadios = document.querySelectorAll('input[name="empregado"]');
+      const responsavelSection = document.getElementById("responsavelSection");
+      const empresaSection = document.getElementById("empresaSection");
+      const alertaDiv = document.getElementById("alerta");
+      const form = document.getElementById("cadastroAlunoForm");
+
+      function verificarCadastroResponsavel() {
+        const idade = parseInt(idadeInput.value);
+        if (!isNaN(idade) && idade < 18) {
+          responsavelSection.style.display = "block";
+        } else {
+          responsavelSection.style.display = "none";
+        }
+      }
+
+      function verificarCadastroEmpresa() {
+        const empregadoSelecionado = document.querySelector('input[name="empregado"]:checked');
+        if (empregadoSelecionado && empregadoSelecionado.value === "sim") {
+          empresaSection.style.display = "block";
+        } else {
+          empresaSection.style.display = "none";
+        }
+      }
+
+      idadeInput.addEventListener("change", verificarCadastroResponsavel);
+      empregadoRadios.forEach((radio) => radio.addEventListener("change", verificarCadastroEmpresa));
+      verificarCadastroResponsavel();
+      verificarCadastroEmpresa();
+
+      form.addEventListener("submit", async function (e) {
+        e.preventDefault();
+        const submitButton = form.querySelector('button[type="submit"]');
+        const originalButtonText = submitButton.textContent;
+
+        submitButton.disabled = true;
+        submitButton.textContent = "Cadastrando...";
+
+        try {
+          const response = await fetch("http://localhost:5000/cadastro/alunos", {
+            method: "POST",
+            body: new FormData(form),
+          });
+
+          const data = await response.json();
+
+          if (response.ok) {
+            showAlert("success", data.mensagem || "Aluno cadastrado com sucesso!");
+            form.reset();
+            verificarCadastroResponsavel();
+            verificarCadastroEmpresa();
+          } else {
+            showAlert("error", data.erro || "Erro ao cadastrar aluno");
+          }
+        } catch (err) {
+          console.error(err);
+          showAlert("error", "Erro inesperado no envio do formulário.");
+        } finally {
+          submitButton.disabled = false;
+          submitButton.textContent = originalButtonText;
+        }
+      });
+
+      function showAlert(tipo, mensagem) {
+        alertaDiv.style.display = "block";
+        alertaDiv.innerText = mensagem;
+        alertaDiv.style.backgroundColor = tipo === "success" ? "#d4edda" : "#f8d7da";
+        alertaDiv.style.color = tipo === "success" ? "#155724" : "#721c24";
+        alertaDiv.style.border = tipo === "success" ? "1px solid #c3e6cb" : "1px solid #f5c6cb";
+        alertaDiv.style.marginTop = "20px";
+        alertaDiv.style.padding = "10px";
+        alertaDiv.style.borderRadius = "4px";
+
+        setTimeout(() => {
+          alertaDiv.style.display = "none";
+        }, 5000);
+      }
+    });
+  </script>
 </body>
 </html>

@@ -1,6 +1,8 @@
 from flask import Blueprint, request, jsonify
 from app import db
 from app.models.aluno import Aluno
+from app.models.empresa import Empresa
+from app.models.responsavel import Responsavel
 import os
 
 cadastro_bp = Blueprint('cadastro', __name__, url_prefix='/cadastro')
@@ -49,8 +51,13 @@ def cadastrar_aluno():
             responsavel = Responsavel(
                 nome=data['nomeResponsavel'],
                 sobrenome=data['sobrenomeResponsavel'],
-                parentesco=data['parentescoResponsavel']
+                parentesco=data.get('parentescoResponsavel'),
+                telefone=data.get('telefone_responsavel'),
+                cidade=data.get('cidade_responsavel'),
+                bairro=data.get('bairro_responsavel'),
+                rua=data.get('rua_responsavel')
             )
+
             db.session.add(responsavel)
             aluno.responsavel_id = responsavel.id
 
@@ -61,7 +68,10 @@ def cadastrar_aluno():
             empresa = Empresa(
                 nome=data['empresa'],
                 endereco=data.get('endereco_empresa'),
-                telefone=data.get('telefone_empresa')
+                telefone=data.get('telefone_empresa'),
+                cidade=data.get('cidade_empresa'),
+                bairro=data.get('bairro_empresa'),
+                rua=data.get('rua_empresa')
             )
             db.session.add(empresa)
             aluno.empresa_id = empresa.id

@@ -6,8 +6,10 @@ class Responsavel(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     nome = db.Column(db.String(255), nullable=False)
     sobrenome = db.Column(db.String(255), nullable=False)
-    telefone = db.Column(db.String(255), nullable=False)
-    endereco = db.Column(db.String(255), nullable=False)
+    parentesco = db.Column(db.String(255))  # ✅ Faltando no seu model atual!
+    telefone = db.Column(db.String(50))
+    cidade = db.Column(db.String(255))
+    bairro = db.Column(db.String(255))
+    rua = db.Column(db.String(255))
 
-    # Correção: Nome da classe com A maiúsculo
     alunos = db.relationship('Aluno', backref='responsavel', lazy=True)

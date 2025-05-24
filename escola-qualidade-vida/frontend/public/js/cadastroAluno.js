@@ -3,6 +3,8 @@ document.addEventListener("DOMContentLoaded", function () {
     const empregadoRadios = document.querySelectorAll('input[name="empregado"]');
     const responsavelSection = document.getElementById("responsavelSection");
     const empresaSection = document.getElementById("empresaSection");
+    const alertaDiv = document.getElementById("alerta");
+    const form = document.getElementById("cadastroAlunoForm");
 
     function verificarCadastroResponsavel() {
         const idade = parseInt(idadeInput.value);
@@ -27,7 +29,55 @@ document.addEventListener("DOMContentLoaded", function () {
         radio.addEventListener("change", verificarCadastroEmpresa);
     });
 
-    // Executa na carga inicial para restaurar o estado (útil em formulários com reenvio automático)
     verificarCadastroResponsavel();
     verificarCadastroEmpresa();
+
+    // Novo comportamento: submissão do formulário
+    form.addEventListener("submit", async function (e) {
+        e.preventDefault();
+        const submitButton = form.querySelector('button[type="submit"]');
+        const originalButtonText = submitButton.textContent;
+
+        submitButton.disabled = true;
+        submitButton.textContent = 'Cadastrando...';
+
+        try {
+            const response = await fetch("http://localhost:5000/cadastro/alunos", {
+                method: "POST",
+                body: new FormData(form),
+            });
+
+            const data = await response.json();
+
+            if (response.ok) {
+                showAlert("success", data.mensagem || "Aluno cadastrado com sucesso!");
+                form.reset();
+                verificarCadastroResponsavel();
+                verificarCadastroEmpresa();
+            } else {
+                showAlert("error", data.erro || "Erro ao cadastrar aluno");
+            }
+        } catch (err) {
+            console.error(err);
+            showAlert("error", "Erro inesperado no envio do formulário.");
+        } finally {
+            submitButton.disabled = false;
+            submitButton.textContent = originalButtonText;
+        }
+    });
+
+    function showAlert(tipo, mensagem) {
+        alertaDiv.style.display = "block";
+        alertaDiv.innerText = mensagem;
+        alertaDiv.style.backgroundColor = tipo === "success" ? "#d4edda" : "#f8d7da";
+        alertaDiv.style.color = tipo === "success" ? "#155724" : "#721c24";
+        alertaDiv.style.border = tipo === "success" ? "1px solid #c3e6cb" : "1px solid #f5c6cb";
+        alertaDiv.style.marginTop = "20px";
+        alertaDiv.style.padding = "10px";
+        alertaDiv.style.borderRadius = "4px";
+
+        setTimeout(() => {
+            alertaDiv.style.display = "none";
+        }, 5000);
+    }
 });
