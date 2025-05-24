@@ -8,6 +8,6 @@ class Responsavel(db.Model):
     sobrenome = db.Column(db.String(255), nullable=False)
     telefone = db.Column(db.String(255), nullable=False)
     endereco = db.Column(db.String(255), nullable=False)
-    
-    # Relacionamento com a tabela Aluno
-    alunos = db.relationship('aluno', backref='responsavel', lazy=True)
+
+    # Correção: Nome da classe com A maiúsculo
+    alunos = db.relationship('Aluno', backref='responsavel', lazy=True)

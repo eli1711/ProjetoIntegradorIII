@@ -1,5 +1,3 @@
-#backend/app/models/aluno.py
-
 from app import db
 
 class Aluno(db.Model):
@@ -12,16 +10,16 @@ class Aluno(db.Model):
     bairro = db.Column(db.String(255), nullable=False)
     rua = db.Column(db.String(255), nullable=False)
     idade = db.Column(db.Integer, nullable=False)
-    empregado = db.Column(db.Enum('sim', 'no'), nullable=False)
+    empregado = db.Column(db.Enum('sim', 'nao'), nullable=False)
     mora_com_quem = db.Column(db.String(255))
     sobre_aluno = db.Column(db.Text)
     foto = db.Column(db.String(255))
-    
-    # Relacionamentos com as tabelas Responsável e Empresa 
+
+    # Foreign Keys
     responsavel_id = db.Column(db.Integer, db.ForeignKey('responsavel.id'))
     empresa_id = db.Column(db.Integer, db.ForeignKey('empresa.id'))
 
-def __init__(self, nome, sobrenome, cidade, bairro, rua, idade, empregado, mora_com_quem, sobre_aluno, foto, responsavel_id, empresa_id):
+    def __init__(self, nome, sobrenome, cidade, bairro, rua, idade, empregado, mora_com_quem, sobre_aluno, foto=None, responsavel_id=None, empresa_id=None):
         self.nome = nome
         self.sobrenome = sobrenome
         self.cidade = cidade
@@ -33,4 +31,4 @@ def __init__(self, nome, sobrenome, cidade, bairro, rua, idade, empregado, mora_
         self.sobre_aluno = sobre_aluno
         self.foto = foto
         self.responsavel_id = responsavel_id 
-        self.empresa_id = empresa_id         
+        self.empresa_id = empresa_id

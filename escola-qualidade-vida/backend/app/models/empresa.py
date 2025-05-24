@@ -1,5 +1,3 @@
-#backend/app/models/empresa.py
-
 from app import db
 
 class Empresa(db.Model):
@@ -10,5 +8,5 @@ class Empresa(db.Model):
     endereco = db.Column(db.String(255), nullable=False)
     telefone = db.Column(db.String(255), nullable=False)
 
-    # Relacionamento com a tabela Aluno
-    alunos = db.relationship('aluno', backref='empresa', lazy=True)
+    # Correção: Nome da classe com A maiúsculo
+    alunos = db.relationship('Aluno', backref='empresa', lazy=True)

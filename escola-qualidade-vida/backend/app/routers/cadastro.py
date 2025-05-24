@@ -36,8 +36,8 @@ def cadastrar_aluno():
             empregado=empregado,  # Empregado vai ser 'sim' ou 'nao' no banco
             mora_com_quem=data.get('mora_com_quem'),
             sobre_aluno=data.get('sobre_aluno'),
-            comorbidade=data.get('comorbidade'),  # Use comorbidade
-            descricao_comorbidade=data.get('sobre_aluno'),  # Refatorado para usar 'sobre_aluno' no campo 'descricao_comorbidade'
+            
+            
             responsavel_id=None,  # Adicione o responsável, se necessário
             empresa_id=None  # Adicione a empresa, se necessário
         )
@@ -84,4 +84,7 @@ def cadastrar_aluno():
 
     except Exception as e:
         db.session.rollback()
+        import traceback
+        traceback.print_exc()  # ← isso vai mostrar o erro real no terminal
         return jsonify({'erro': 'Erro ao cadastrar aluno', 'detalhes': str(e)}), 500
+

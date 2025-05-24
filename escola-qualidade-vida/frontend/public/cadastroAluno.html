@@ -42,73 +42,68 @@
     <main>
         <h2>Cadastro de Aluno</h2>
    <form action="/cadastro/alunos" method="POST" enctype="multipart/form-data" id="cadastroAlunoForm">
+    <label for="nome">Nome:</label>
+    <input type="text" id="nome" name="nome" required>
 
+    <label for="sobrenome">Sobrenome:</label>
+    <input type="text" id="sobrenome" name="sobrenome" required>
 
+    <label for="cidade">Cidade:</label>
+    <input type="text" id="cidade" name="cidade" required>
 
-            <label for="nome">Nome:</label>
-            <input type="text" id="nome" name="nome" required>
+    <label for="bairro">Bairro:</label>
+    <input type="text" id="bairro" name="bairro" required>
 
-            <label for="sobrenome">Sobrenome:</label>
-            <input type="text" id="sobrenome" name="sobrenome" required>
+    <label for="rua">Rua:</label>
+    <input type="text" id="rua" name="rua" required>
 
-            <label for="cidade">Cidade:</label>
-            <input type="text" id="cidade" name="cidade" required>
+    <label for="idade">Idade:</label>
+    <input type="number" id="idade" name="idade" required onchange="verificarCadastroResponsavel()">
 
-            <label for="bairro">Bairro:</label>
-            <input type="text" id="bairro" name="bairro" required>
+    <!-- Seção do Responsável -->
+    <div id="responsavelSection" style="display:none;">
+        <h3>Cadastro do Responsável</h3>
 
-            <label for="rua">Rua:</label>
-            <input type="text" id="rua" name="rua" required>
+        <label for="nomeResponsavel">Nome:</label>
+        <input type="text" id="nomeResponsavel" name="nomeResponsavel">
 
-            <label for="idade">Idade:</label>
-            <input type="number" id="idade" name="idade" required onchange="verificarCadastroResponsavel()">
+        <label for="sobrenomeResponsavel">Sobrenome:</label>
+        <input type="text" id="sobrenomeResponsavel" name="sobrenomeResponsavel">
 
-            <!-- Seção de Responsável (aparece se a idade for menor que 18) -->
-            <div id="responsavelSection" style="display:none;">
-                <h3>Cadastro do Responsável</h3>
-                <label for="nome_responsavel">Nome do Responsável:</label>
-                <input type="text" id="nome_responsavel" name="nome_responsavel">
+        <label for="parentescoResponsavel">Parentesco:</label>
+        <input type="text" id="parentescoResponsavel" name="parentescoResponsavel">
+    </div>
 
-                <label for="sobrenome_responsavel">Sobrenome do Responsável:</label>
-                <input type="text" id="sobrenome_responsavel" name="sobrenome_responsavel">
+    <label>Aluno empregado?</label>
+    <input type="radio" name="empregado" value="sim" onchange="verificarCadastroEmpresa()"> Sim
+    <input type="radio" name="empregado" value="nao" onchange="verificarCadastroEmpresa()"> Não
 
-                <label for="telefone_responsavel">Telefone do Responsável:</label>
-                <input type="text" id="telefone_responsavel" name="telefone_responsavel">
+    <!-- Seção da Empresa -->
+    <div id="empresaSection" style="display:none;">
+        <h3>Cadastro da Empresa</h3>
 
-                <label for="endereco_responsavel">Endereço do Responsável:</label>
-                <input type="text" id="endereco_responsavel" name="endereco_responsavel">
-            </div>
+        <label for="empresa">Nome da Empresa:</label>
+        <input type="text" id="empresa" name="empresa">
 
-            <label>Aluno empregado?</label>
-            <input type="radio" id="empregado_sim" name="empregado" value="sim" onchange="verificarCadastroEmpresa()"> Sim
-            <input type="radio" id="empregado_nao" name="empregado" value="nao" onchange="verificarCadastroEmpresa()"> Não
+        <label for="endereco_empresa">Endereço:</label>
+        <input type="text" id="endereco_empresa" name="endereco_empresa">
 
-            <!-- Seção da Empresa (aparece se o aluno for empregado) -->
-            <div id="empresaSection" style="display:none;">
-                <h3>Cadastro da Empresa</h3>
-                <label for="nome_empresa">Nome da Empresa:</label>
-                <input type="text" id="nome_empresa" name="nome_empresa">
+        <label for="telefone_empresa">Telefone:</label>
+        <input type="text" id="telefone_empresa" name="telefone_empresa">
+    </div>
 
-                <label for="endereco_empresa">Endereço da Empresa:</label>
-                <input type="text" id="endereco_empresa" name="endereco_empresa">
+    <label for="mora_com_quem">Com quem mora:</label>
+    <input type="text" id="mora_com_quem" name="mora_com_quem">
 
-                <label for="telefone_empresa">Telefone da Empresa:</label>
-                <input type="text" id="telefone_empresa" name="telefone_empresa">
-            </div>
+    <label for="sobre_aluno">Sobre o Aluno:</label>
+    <textarea id="sobre_aluno" name="sobre_aluno"></textarea>
 
-            <label for="coma_com_quem">Com quem mora:</label>
-            <input type="text" id="mora_com_quem" name="mora_com_quem">
+    <label for="foto">Foto:</label>
+    <input type="file" id="foto" name="foto" accept="image/*">
 
-            <!-- Alterado de "Comorbidade" para "Sobre o Aluno" -->
-            <label for="sobre_aluno">Sobre o Aluno:</label>
-            <textarea id="sobre_aluno" name="sobre_aluno"></textarea>
+    <button type="submit">Cadastrar</button>
+</form>
 
-            <!-- Campo para Foto com botão de procura -->
-            <label for="foto">Foto:</label>
-            <input type="file" id="foto" name="foto" accept="image/*">
-
-            <button type="submit">Cadastrar</button>
-        </form>
     </main>
     <script src="js/cadastroAluno.js"></script>
 </body>
