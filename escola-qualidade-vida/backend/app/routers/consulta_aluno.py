@@ -1,42 +1,36 @@
-from flask import Flask, jsonify, request
-from app.models.aluno import Aluno, db
+from flask import Blueprint, request, jsonify
+from app.models.aluno import Aluno
+from app.models.ocorrencia import Ocorrencia
 
-app = Flask(__name__)
+consulta_aluno_bp = Blueprint('consulta_aluno', __name__)
 
-@app.route('/consultar/aluno', methods=['GET'])
-def consultar_aluno():
-    try:
-        # Pegando o parâmetro 'id' ou 'nome' da query string
-        aluno_id = request.args.get('id')
-        aluno_nome = request.args.get('nome')
+@consulta_aluno_bp.route('/alunos/buscar', methods=['GET'])
+def buscar_alunos():
+    nome = request.args.get('nome', '')
+    matricula = request.args.get('matricula', '')
+    curso = request.args.get('curso', '')
 
-        # Verificando se o 'id' foi passado
-        if aluno_id:
-            aluno = Aluno.query.filter_by(id=aluno_id).first()
-        elif aluno_nome:
-            aluno = Aluno.query.filter_by(nome=aluno_nome).first()
-        else:
-            return jsonify({"erro": "É necessário informar um 'id' ou 'nome' para consulta."}), 400
+    query = Aluno.query
 
-        # Verifica se o aluno foi encontrado
-        if aluno:
-            return jsonify({
-                "id": aluno.id,
-                "nome": aluno.nome,
-                "sobrenome": aluno.sobrenome,
-                "cidade": aluno.cidade,
-                "bairro": aluno.bairro,
-                "rua": aluno.rua,
-                "idade": aluno.idade,
-                "responsavel_nome": aluno.nome_responsavel,
-                "telefone_responsavel": aluno.telefone_responsavel,
-                "imagem": aluno.imagem
-            }), 200
-        else:
-            return jsonify({"erro": "Aluno não encontrado."}), 404
+    if nome:
+        query = query.filter(Aluno.nome.ilike(f'%{nome}%'))
+    if matricula:
+        query = query.filter(Aluno.matricula.ilike(f'%{matricula}%'))
+    if curso:
+        query = query.filter(Aluno.curso.has(Curso.nome.ilike(f'%{curso}%')))  # Filtro pelo nome do curso
 
-    except Exception as e:
-        return jsonify({"erro": str(e)}), 500
+    alunos = query.all()
 
-if __name__ == "__main__":
-    app.run(debug=True)
+    if alunos:
+        alunos_data = []
+        for aluno in alunos:
+            alunos_data.append({
+                'id': aluno.id,
+                'nome': aluno.nome,
+                'curso': aluno.curso.nome,  # Incluindo o nome do curso
+                'foto': aluno.foto
+            })
+        
+        return jsonify(alunos_data)
+
+    return jsonify({"erro": "Nenhum aluno encontrado."}), 404

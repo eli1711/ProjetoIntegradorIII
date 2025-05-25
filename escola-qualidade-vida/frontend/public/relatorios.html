@@ -1,10 +1,10 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="pt-br">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="./css/relatorios.css">
-    <title>Document</title>
+    <title>Consulta de Alunos</title>
 </head>
 <body>
     <header>
@@ -20,37 +20,34 @@
     </header>
 
     <main>
+        <div class="filtro">
+            <label>
+                Matrícula:
+                <input type="text" id="filtroMatricula" placeholder="Número da Matricula">
+            </label>
 
-    <div class="filtro">
+            <label>
+                Nome:
+                <input type="text" id="filtroAluno" placeholder="Nome do Aluno">
+            </label>
 
-        <label>
-            Matricula:
-            <input type="text" id="filtroMatricula" placeholder="Número da Matricula">
-        </label>
+            <label>
+                Curso:
+                 <input type="text" id="filtroCurso" placeholder="Curso do Aluno">
+            </label>
 
-        <label>
-            Nome:
-            <input type="text" id="filtroAluno" placeholder="Nome do Aluno">
-        </label>
+            <label>
+                Período:
+                <select id="filtroPeriodo">
+                    <option value="">Todos</option>
+                    <option value="Manhã">Manhã</option>
+                    <option value="Tarde">Tarde</option>
+                    <option value="Noite">Noite</option>
+                </select>
+            </label>
 
-        <label>
-            Turma:
-            <input type="text" id="filtroTurma" placeholder="Turma">
-        </label>
-
-        <label>
-            Período:
-            <select id="filtroPeriodo">
-                <option value="">Todos</option>
-                <option value="Manhã">Manhã</option>
-                <option value="Tarde">Tarde</option>
-                <option value="Noite">Noite</option>
-            </select>
-        </label>
-
-        <button onclick="limparFiltros()">Limpar</button>
-
-    </div>
+            <button onclick="limparFiltros()">Limpar</button>
+        </div>
 
         <table id="tabelaAlunos">
             <thead>
@@ -61,16 +58,38 @@
                 </tr>
             </thead>
             <tbody>
-                <!-- Ocorrências serão renderizadas aqui -->
+                <!-- Alunos serão renderizados aqui -->
             </tbody>
         </table>
-        
-    <div class="mensagem" id="mensagem"></div>
 
-</main>
+        <div class="informacoesAluno" id="informacoesAluno" style="display:none;">
+            <h3>Informações do Aluno</h3>
+            <p id="nomeAluno"></p>
+            <p id="enderecoAluno"></p>
+            <p id="idadeAluno"></p>
+            <p id="responsavelAluno"></p>
+            <h4>Ocorrências</h4>
+            <table id="tabelaOcorrencias">
+                <thead>
+                    <tr>
+                        <th>Data</th>
+                        <th>Tipo</th>
+                        <th>Descrição</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <!-- Ocorrências do aluno serão renderizadas aqui -->
+                </tbody>
+            </table>
+            <h4>Contagem de Ocorrências por Data</h4>
+            <div id="ocorrenciasPorData"></div>
+        </div>
+        <div id="alerta" style="display: none;"></div>
 
-<script src="./js/consulta.js"></script>
-    
 
+        <div class="mensagem" id="mensagem"></div>
+    </main>
+
+    <script src="./js/consulta.js"></script>
 </body>
 </html>

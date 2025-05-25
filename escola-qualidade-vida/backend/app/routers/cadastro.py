@@ -38,11 +38,12 @@ def cadastrar_aluno():
 
     try:
         # Validação campos obrigatórios
-        obrigatorios = ['nome', 'sobrenome', 'cidade', 'bairro', 'rua', 'idade']
+        obrigatorios = ['nome', 'sobrenome', 'cidade', 'bairro', 'rua', 'idade', 'curso']
         if not all(data.get(campo) for campo in obrigatorios):
             return jsonify({'erro': 'Campos obrigatórios não preenchidos'}), 400
 
         idade = int(data.get('idade'))
+        curso_id = int(data.get('curso'))  # Novo campo curso_id
         if idade < 18:
             resp_fields = ['nomeResponsavel', 'sobrenomeResponsavel', 'parentescoResponsavel']
             if not all(data.get(f) for f in resp_fields):
@@ -62,6 +63,7 @@ def cadastrar_aluno():
             empregado=empregado,
             mora_com_quem=data.get('mora_com_quem'),
             sobre_aluno=data.get('sobre_aluno'),
+            curso_id=curso_id,  # Adicionando curso_id
             responsavel_id=None,
             empresa_id=None
         )

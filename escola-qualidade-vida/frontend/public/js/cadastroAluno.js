@@ -32,11 +32,25 @@ document.addEventListener("DOMContentLoaded", function () {
     verificarCadastroResponsavel();
     verificarCadastroEmpresa();
 
-    // Novo comportamento: submissão do formulário
     form.addEventListener("submit", async function (e) {
         e.preventDefault();
         const submitButton = form.querySelector('button[type="submit"]');
         const originalButtonText = submitButton.textContent;
+
+        // Verifica se todos os campos obrigatórios estão preenchidos
+        const obrigatorios = ['nome', 'sobrenome', 'cidade', 'bairro', 'rua', 'idade', 'curso'];
+        let erro = false;
+        
+        obrigatorios.forEach(campo => {
+            if (!form[campo].value) {
+                erro = true;
+                showAlert("error", `O campo ${campo} é obrigatório.`);
+            }
+        });
+
+        if (erro) {
+            return; // Evita que o formulário seja enviado se algum campo obrigatório estiver vazio
+        }
 
         submitButton.disabled = true;
         submitButton.textContent = 'Cadastrando...';
