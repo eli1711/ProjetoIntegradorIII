@@ -1,4 +1,5 @@
-from app import db
+from app.extensions import db
+
 
 class Aluno(db.Model):
     __tablename__ = 'aluno'

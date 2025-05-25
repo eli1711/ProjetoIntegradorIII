@@ -1,18 +1,43 @@
+import logging
 from flask import Blueprint, request, jsonify
 from app import db
 from app.models.aluno import Aluno
 from app.models.empresa import Empresa
 from app.models.responsavel import Responsavel
+from werkzeug.utils import secure_filename
 import os
 
 cadastro_bp = Blueprint('cadastro', __name__, url_prefix='/cadastro')
+
+# Configurar logger
+logger = logging.getLogger(__name__)
+logging.basicConfig(level=logging.INFO)
+
+# Função auxiliar para salvar fotos evitando conflitos de nome
+def salvar_foto(foto_file, destino='/app/uploads'):
+    if not os.path.exists(destino):
+        os.makedirs(destino)
+
+    filename = secure_filename(foto_file.filename)
+    caminho = os.path.join(destino, filename)
+
+    contador = 1
+    nome, ext = os.path.splitext(filename)
+    while os.path.exists(caminho):
+        filename = f"{nome}_{contador}{ext}"
+        caminho = os.path.join(destino, filename)
+        contador += 1
+
+    logger.info(f"Salvando foto em: {caminho}")
+    foto_file.save(caminho)
+    return filename
 
 @cadastro_bp.route('/alunos', methods=['POST'])
 def cadastrar_aluno():
     data = request.form.to_dict()
 
     try:
-        # Validar campos obrigatórios
+        # Validação campos obrigatórios
         obrigatorios = ['nome', 'sobrenome', 'cidade', 'bairro', 'rua', 'idade']
         if not all(data.get(campo) for campo in obrigatorios):
             return jsonify({'erro': 'Campos obrigatórios não preenchidos'}), 400
@@ -27,7 +52,6 @@ def cadastrar_aluno():
         if empregado == 'sim' and not data.get('empresa'):
             return jsonify({'erro': 'Campo empresa é obrigatório se aluno for empregado.'}), 400
 
-        # Criar a instância do aluno
         aluno = Aluno(
             nome=data['nome'],
             sobrenome=data['sobrenome'],
@@ -35,19 +59,14 @@ def cadastrar_aluno():
             bairro=data['bairro'],
             rua=data['rua'],
             idade=idade,
-            empregado=empregado,  # Empregado vai ser 'sim' ou 'nao' no banco
+            empregado=empregado,
             mora_com_quem=data.get('mora_com_quem'),
             sobre_aluno=data.get('sobre_aluno'),
-            
-            
-            responsavel_id=None,  # Adicione o responsável, se necessário
-            empresa_id=None  # Adicione a empresa, se necessário
+            responsavel_id=None,
+            empresa_id=None
         )
 
-        # Se o aluno for menor de 18, associe o responsável
         if idade < 18:
-            # Aqui você pode adicionar a lógica para salvar o responsável no banco, caso o responsável seja informado.
-            # Exemplo de adição do responsável:
             responsavel = Responsavel(
                 nome=data['nomeResponsavel'],
                 sobrenome=data['sobrenomeResponsavel'],
@@ -57,14 +76,11 @@ def cadastrar_aluno():
                 bairro=data.get('bairro_responsavel'),
                 rua=data.get('rua_responsavel')
             )
-
             db.session.add(responsavel)
+            db.session.flush()
             aluno.responsavel_id = responsavel.id
 
-        # Se o aluno for empregado, associe a empresa
         if empregado == 'sim':
-            # Aqui você pode adicionar a lógica para salvar a empresa no banco, caso a empresa seja informada.
-            # Exemplo de adição da empresa:
             empresa = Empresa(
                 nome=data['empresa'],
                 endereco=data.get('endereco_empresa'),
@@ -74,19 +90,12 @@ def cadastrar_aluno():
                 rua=data.get('rua_empresa')
             )
             db.session.add(empresa)
+            db.session.flush()
             aluno.empresa_id = empresa.id
 
-        # Se o aluno enviar uma foto, salve-a
         if 'foto' in request.files:
-            foto = request.files['foto']
-            upload_dir = os.path.join(os.getcwd(), 'uploads')
-            if not os.path.exists(upload_dir):
-                os.makedirs(upload_dir)
-            foto_path = os.path.join(upload_dir, foto.filename)
-            foto.save(foto_path)
-            aluno.foto = foto_path
+            aluno.foto = salvar_foto(request.files['foto'])
 
-        # Adicionando e fazendo o commit no banco
         db.session.add(aluno)
         db.session.commit()
 
@@ -95,6 +104,5 @@ def cadastrar_aluno():
     except Exception as e:
         db.session.rollback()
         import traceback
-        traceback.print_exc()  # ← isso vai mostrar o erro real no terminal
+        traceback.print_exc()
         return jsonify({'erro': 'Erro ao cadastrar aluno', 'detalhes': str(e)}), 500
-

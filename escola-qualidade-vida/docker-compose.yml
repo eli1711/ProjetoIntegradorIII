@@ -9,9 +9,9 @@ services:
       MYSQL_ROOT_PASSWORD: password
       MYSQL_DATABASE: escola_db
     ports:
-      - "3307:3306" 
+      - "3307:3306"
     volumes:
-      - ./db_data:/var/lib/mysql  # Persistindo os dados em db_data no host
+      - ./db_data:/var/lib/mysql
     networks:
       - rede-interna
     logging:
@@ -22,8 +22,8 @@ services:
 
   backend:
     build:
-      context: ./backend  # Caminho correto para o backend
-      dockerfile: Dockerfile  # Certifique-se de que o Dockerfile esteja na pasta backend
+      context: ./backend
+      dockerfile: Dockerfile
     container_name: escola-backend
     restart: always
     environment:
@@ -34,9 +34,11 @@ services:
       DB_PASSWORD: password
       SECRET_KEY: uma_chave_super_secreta_32_caracteres_no_minimo
     ports:
-      - "5000:5000"  # A porta 5000 do contêiner será mapeada para a porta 5000 no host
+      - "5000:5000"
     depends_on:
-      - mysql  # O backend depende do banco de dados MySQL
+      - mysql
+    volumes:
+       - ./app/uploads:/app/uploads # Monta uploads no backend container também!
     networks:
       - rede-interna
     logging:
@@ -47,16 +49,17 @@ services:
 
   nginx:
     build:
-      context: ./frontend  # Caminho correto para o frontend
-      dockerfile: Dockerfile  # Dockerfile do Nginx para o frontend
+      context: ./frontend
+      dockerfile: Dockerfile
     container_name: nginx
     restart: always
     ports:
-      - "8080:80"  # A porta 808 será mapeada para o frontend (nginx)
+      - "8080:80"
     depends_on:
-      - backend  # O nginx depende do backend
+      - backend
     volumes:
-      - ./frontend/public:/usr/share/nginx/html  # Serve os arquivos estáticos do frontend
+      - ./frontend/public:/usr/share/nginx/html
+      - ./app/uploads:/app/uploads  # Monta uploads no nginx container
     networks:
       - rede-interna
     logging:
@@ -67,4 +70,4 @@ services:
 
 networks:
   rede-interna:
-    driver: bridge  # Garantindo que todos os contêineres estão na mesma rede interna
+    driver: bridge
