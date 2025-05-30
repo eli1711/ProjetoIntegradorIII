@@ -1,8 +1,6 @@
-// Esperar o carregamento do DOM para garantir que os elementos existam
 document.addEventListener("DOMContentLoaded", function() {
-    const filtroMatricula = document.getElementById("filtroMatricula");
     const filtroAluno = document.getElementById("filtroAluno");
-    const filtroCurso = document.getElementById("filtroCurso");  // Corrigido para filtroCurso
+    const filtroCurso = document.getElementById("filtroCurso");
     const tabela = document.getElementById("tabelaAlunos").getElementsByTagName("tbody")[0];
     const informacoesAluno = document.getElementById("informacoesAluno");
     const nomeAluno = document.getElementById("nomeAluno");
@@ -12,20 +10,17 @@ document.addEventListener("DOMContentLoaded", function() {
     const tabelaOcorrencias = document.getElementById("tabelaOcorrencias").getElementsByTagName("tbody")[0];
     const ocorrenciasPorData = document.getElementById("ocorrenciasPorData");
 
-    // Adiciona eventos de digitação e mudança nos campos de filtro
-    [filtroMatricula, filtroAluno, filtroCurso].forEach(input => {  // Atualizado para usar filtroCurso
+    [filtroAluno, filtroCurso].forEach(input => {
         input.addEventListener("input", aplicarFiltro);
         input.addEventListener("change", aplicarFiltro);
     });
 
-    // Função para aplicar filtro de busca
     async function aplicarFiltro() {
-        const matricula = filtroMatricula.value;
         const nome = filtroAluno.value;
-        const curso = filtroCurso.value;  // Corrigido para buscar por curso
+        const curso = filtroCurso.value;
 
-        const url = new URL('http://localhost:5000/alunos/buscar');  // URL corrigida para /alunos/buscar
-        const params = { matricula, nome, curso };  // Incluindo o parâmetro curso
+        const url = new URL('http://localhost:5000/alunos/buscar');
+        const params = { nome, curso };
 
         Object.keys(params).forEach(key => params[key] && url.searchParams.append(key, params[key]));
 
@@ -41,11 +36,10 @@ document.addEventListener("DOMContentLoaded", function() {
 
         } catch (error) {
             console.error("Erro ao buscar alunos:", error);
-            showAlert("error", "Erro ao buscar alunos");
+            alert("Erro ao buscar alunos");
         }
     }
 
-    // Função para renderizar a tabela com os dados dos alunos
     function renderizarTabela(alunos) {
         tabela.innerHTML = "";
 
@@ -60,13 +54,12 @@ document.addEventListener("DOMContentLoaded", function() {
             const linha = tabela.insertRow();
             linha.innerHTML = `
                 <td><a href="#" onclick="mostrarInformacoesAluno(${aluno.id})">${aluno.nome}</a></td>
-                <td>${aluno.curso}</td>  <!-- Exibindo o curso -->
+                <td>${aluno.curso}</td>
             `;
         });
     }
 
-    // Função para mostrar as informações detalhadas de um aluno
-    async function mostrarInformacoesAluno(alunoId) {
+    window.mostrarInformacoesAluno = async function(alunoId) {
         try {
             const responseAluno = await fetch(`http://localhost:5000/alunos/${alunoId}`);
 
@@ -76,28 +69,24 @@ document.addEventListener("DOMContentLoaded", function() {
 
             const aluno = await responseAluno.json();
 
-            // Exibindo as informações detalhadas
             nomeAluno.textContent = `Nome: ${aluno.nome}`;
             enderecoAluno.textContent = `Endereço: ${aluno.rua}, ${aluno.bairro}, ${aluno.cidade}`;
             idadeAluno.textContent = `Idade: ${aluno.idade}`;
             responsavelAluno.textContent = `Responsável: ${aluno.responsavel_nome || 'Não informado'}`;
 
-            // Renderiza ocorrências
             const responseOcorrencias = await fetch(`http://localhost:5000/ocorrencias?aluno_id=${alunoId}`);
             const ocorrencias = await responseOcorrencias.json();
-            renderizarOcorrencias(ocorrencias);
 
-            // Contabiliza ocorrências por data
+            renderizarOcorrencias(ocorrencias);
             renderizarOcorrenciasPorData(ocorrencias);
 
             informacoesAluno.style.display = "block";
         } catch (error) {
             console.error("Erro ao carregar informações do aluno:", error);
-            showAlert("error", "Erro ao carregar informações do aluno");
+            alert("Erro ao carregar informações do aluno");
         }
     }
 
-    // Função para renderizar as ocorrências do aluno
     function renderizarOcorrencias(ocorrencias) {
         tabelaOcorrencias.innerHTML = "";
 
@@ -115,7 +104,6 @@ document.addEventListener("DOMContentLoaded", function() {
         });
     }
 
-    // Função para renderizar o número de ocorrências por data
     function renderizarOcorrenciasPorData(ocorrencias) {
         const ocorrenciasCount = {};
 
@@ -137,14 +125,17 @@ document.addEventListener("DOMContentLoaded", function() {
         ocorrenciasPorData.innerHTML = html;
     }
 
-    // Função para limpar os filtros
+    window.fecharInformacoesAluno = function() {
+        informacoesAluno.style.display = "none";
+    }
+
     function limparFiltros() {
-        filtroMatricula.value = "";
         filtroAluno.value = "";
-        filtroCurso.value = "";  // Corrigido para limpar filtro de curso
+        filtroCurso.value = "";
         aplicarFiltro();
     }
 
-    // Inicializa a tabela com todos os dados
+    window.limparFiltros = limparFiltros;
+
     aplicarFiltro();
 });
