@@ -1,0 +1,52 @@
+{
+  "type": "MaxHistoryTrackerFeaturizer",
+  "state_featurizer": {
+    "action_texts": [],
+    "entity_tag_specs": [],
+    "feature_states": {
+      "intent": {
+        "back": 0,
+        "cadastro_aluno_empregado": 1,
+        "cumprimentar": 2,
+        "despedir": 3,
+        "inicio_acompanhamento": 4,
+        "inicio_cadastro": 5,
+        "inicio_ocorrencia": 6,
+        "inicio_relatorio": 7,
+        "nlu_fallback": 8,
+        "ocorrencia_descricao": 9,
+        "out_of_scope": 10,
+        "restart": 11,
+        "session_start": 12
+      },
+      "action_name": {
+        "action_listen": 0,
+        "action_restart": 1,
+        "action_session_start": 2,
+        "action_default_fallback": 3,
+        "action_deactivate_loop": 4,
+        "action_revert_fallback_events": 5,
+        "action_default_ask_affirmation": 6,
+        "action_default_ask_rephrase": 7,
+        "action_two_stage_fallback": 8,
+        "action_unlikely_intent": 9,
+        "action_back": 10,
+        "...": 11,
+        "action_extract_slots": 12,
+        "utter_cadastro_aluno_empregado": 13,
+        "utter_cumprimentar": 14,
+        "utter_despedir": 15,
+        "utter_inicio_acompanhamento": 16,
+        "utter_inicio_cadastro": 17,
+        "utter_inicio_ocorrencia": 18,
+        "utter_inicio_relatorio": 19,
+        "utter_ocorrencia_descricao": 20
+      },
+      "entities": {},
+      "slots": {},
+      "active_loop": {}
+    }
+  },
+  "remove_duplicates": true,
+  "max_history": 5
+}
