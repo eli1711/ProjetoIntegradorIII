@@ -253,7 +253,6 @@
 ./binlog.000267
 ./binlog.000268
 ./binlog.000269
-<<<<<<< HEAD
 ./binlog.000270
 ./binlog.000271
 ./binlog.000272
@@ -317,5 +316,4 @@
 ./binlog.000330
 ./binlog.000331
 ./binlog.000332
-=======
->>>>>>> 65fe9cad60afd84141e9ac5506d595e91b5fa62c
+./binlog.000333
