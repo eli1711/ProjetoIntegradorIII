@@ -83,7 +83,7 @@ nav a {
 }
 
 nav a:hover {
-    color: #1abc9c;
+    color: #1a2e7c;
 }
 
 main {
@@ -99,6 +99,37 @@ form label {
     display: block;
     margin-bottom: 5px;
     font-weight: 600;
+}
+
+button,
+input[type="submit"] {
+    background-color: #c40000;
+    color: white;
+    border: none;
+    padding: 12px 25px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 1rem;
+    transition: background-color 0.3s ease;
+}
+
+button:hover,
+input[type="submit"]:hover {
+    background-color: #a30000;
+}
+
+input[type="text"],
+input[type="number"],
+input[type="file"],
+select,
+textarea {
+    width: 100%;
+    padding: 12px 15px;
+    border: 2px solid #ddd;
+    border-radius: 8px;
+    margin-bottom: 20px;
+    font-size: 1rem;
+    transition: border-color 0.3s ease;
 }
 
 input[type="text"],
@@ -118,6 +149,19 @@ input[type="text"]:focus {
 
 input[type="checkbox"] {
     margin-right: 5px;
+}
+
+input[type="file"]::-webkit-file-upload-button {
+    background: #c40000;
+    color: white;
+    border: none;
+    padding: 8px 12px;
+    border-radius: 6px;
+    cursor: pointer;
+}
+
+input[type="file"]::-webkit-file-upload-button:hover {
+    background-color: #a30000;
 }
 
 .checkbox-group {

@@ -1,0 +1,43 @@
+version: "3.1"
+
+intents:
+  - cumprimentar
+  - despedir
+  - inicio_cadastro
+  - inicio_acompanhamento
+  - inicio_ocorrencia
+  - inicio_relatorio
+  - cadastro_aluno_empregado
+  - ocorrencia_tipo
+  - ocorrencia_descricao
+
+responses:
+  utter_cumprimentar:
+    - text: "Olá! Sou o assistente da Qualidade de Vida Escolar. Como posso ajudar?"
+
+  utter_despedir:
+    - text: "Até logo! Se precisar de ajuda com matrículas ou ocorrências, estou à disposição."
+
+  utter_inicio_cadastro:
+    - text: "Primeiro Clicar na opção Cadastro de Aluno 2° Preencher os campos com as informações solicitadas 3° Clicar no botão Cadastrar."
+  
+  utter_inicio_acompanhamento:
+    - text: "Primeiro Clicar na opção Acompanhamento"
+
+  utter_inicio_ocorrencia:
+    - text: "Primeiro Clicar na opção Ocorrências 2° Preencher com o nome do aluno 3° Colocar o tipo da ocorrência (Atraso ou  mal comportamento) 4° Descrever a ocorrência 5° Colocar a data 6° Cadastrar Ocorrência."
+
+  utter_inicio_relatorio:
+    - text: "Primeiro Clicar na opção Relatório"
+
+  utter_cadastro_aluno_empregado:
+    - text: "1° Adicionar as informações da empresa"
+
+  utter_ocorrencia_tipo:
+    - text: "Descreva o tipo de ocorrencia se é mal comportamneto ou atraso"
+  utter_ocorrencia_descricao:
+    - text: "Descreva a ocorrencia no campo sobre atraso ou mal cormportamento do aluno em questão"
+
+session_config:
+  session_expiration_time: 60
+  carry_over_slots_to_new_session: true
