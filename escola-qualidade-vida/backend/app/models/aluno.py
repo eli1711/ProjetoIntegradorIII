@@ -1,4 +1,6 @@
 from app.extensions import db
+from sqlalchemy.orm import relationship
+from sqlalchemy import Enum
 
 class Aluno(db.Model):
     __tablename__ = 'aluno'
@@ -10,16 +12,13 @@ class Aluno(db.Model):
     bairro = db.Column(db.String(255), nullable=False)
     rua = db.Column(db.String(255), nullable=False)
     idade = db.Column(db.Integer, nullable=False)
-    empregado = db.Column(db.Enum('sim', 'nao'), nullable=False)
+    empregado = db.Column(Enum('sim', 'nao'), nullable=False)
     mora_com_quem = db.Column(db.String(255))
     sobre_aluno = db.Column(db.Text)
     foto = db.Column(db.String(255))
 
-    # Chave estrangeira para o curso
     curso_id = db.Column(db.Integer, db.ForeignKey('cursos.id'), nullable=False)
-
-    # Relacionamento com a tabela Curso
-    curso = db.relationship('Curso', backref='alunos')
+    curso = db.relationship('Curso', backref='alunos', lazy=True)  # Verifique se está configurado com lazy=True
 
     responsavel_id = db.Column(db.Integer, db.ForeignKey('responsavel.id'))
     empresa_id = db.Column(db.Integer, db.ForeignKey('empresa.id'))
@@ -37,4 +36,7 @@ class Aluno(db.Model):
         self.foto = foto
         self.responsavel_id = responsavel_id
         self.empresa_id = empresa_id
-        self.curso_id = curso_id  # Inicialização do curso_id
+        self.curso_id = curso_id
+
+    def __repr__(self):
+        return f"<Aluno {self.nome} {self.sobrenome}>"

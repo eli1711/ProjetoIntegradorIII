@@ -24,17 +24,21 @@
     <div class="filtro">
         <label>
             Nome:
-            <input type="text" id="filtroAluno" placeholder="Nome do Aluno">
+            <input type="text" id="filtroAluno" placeholder="Nome do Aluno" />
         </label>
 
         <label>
             Curso:
-            <input type="text" id="filtroCurso" placeholder="Curso do Aluno">
+            <input type="text" id="filtroCurso" placeholder="Curso do Aluno" />
         </label>
 
-        <button onclick="limparFiltros()">Limpar</button>
+        <button id="limparFiltrosBtn">Limpar</button>
     </div>
 
+    <!-- Lista de Sugestões -->
+    <ul id="suggestionsList" style="display: none;"></ul>
+
+    <!-- Tabela de Alunos -->
     <table id="tabelaAlunos">
         <thead>
             <tr>
@@ -43,12 +47,14 @@
             </tr>
         </thead>
         <tbody>
-            <!-- Dados dos alunos -->
+            <!-- Dados dos alunos serão preenchidos aqui -->
         </tbody>
     </table>
 
-    <div id="alerta" style="display: none;"></div>
-    <div class="mensagem" id="mensagem"></div>
+    <!-- Alerta de erro -->
+    <div id="alerta" class="alerta" style="display: none;">
+        <!-- A mensagem de erro será inserida aqui -->
+    </div>
 
     <!-- Modal de informações do aluno -->
     <div class="modal" id="informacoesAluno">
@@ -78,9 +84,9 @@
             <div id="ocorrenciasPorData"></div>
         </div>
     </div>
-</main>
 
+</main>
+<!-- Exemplo de link para acessar as informações do aluno -->
 <script src="./js/consulta.js"></script>
 </body>
 </html>
-

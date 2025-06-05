@@ -1,141 +1,103 @@
-document.addEventListener("DOMContentLoaded", function() {
+document.addEventListener("DOMContentLoaded", function () {
     const filtroAluno = document.getElementById("filtroAluno");
     const filtroCurso = document.getElementById("filtroCurso");
+    const suggestionsList = document.getElementById("suggestionsList");
+    const alerta = document.getElementById("alerta");
     const tabela = document.getElementById("tabelaAlunos").getElementsByTagName("tbody")[0];
-    const informacoesAluno = document.getElementById("informacoesAluno");
-    const nomeAluno = document.getElementById("nomeAluno");
-    const enderecoAluno = document.getElementById("enderecoAluno");
-    const idadeAluno = document.getElementById("idadeAluno");
-    const responsavelAluno = document.getElementById("responsavelAluno");
-    const tabelaOcorrencias = document.getElementById("tabelaOcorrencias").getElementsByTagName("tbody")[0];
-    const ocorrenciasPorData = document.getElementById("ocorrenciasPorData");
+    const limparFiltrosBtn = document.getElementById("limparFiltrosBtn");
 
-    [filtroAluno, filtroCurso].forEach(input => {
-        input.addEventListener("input", aplicarFiltro);
-        input.addEventListener("change", aplicarFiltro);
-    });
+    filtroAluno.addEventListener("input", aplicarFiltro);
+    filtroAluno.addEventListener("change", aplicarFiltro);
+    filtroCurso.addEventListener("input", aplicarFiltro);
+    limparFiltrosBtn.addEventListener("click", limparFiltros);
 
+    // Função para aplicar filtros
     async function aplicarFiltro() {
-        const nome = filtroAluno.value;
-        const curso = filtroCurso.value;
+        const nome = filtroAluno.value.trim();
+        const curso = filtroCurso.value.trim();
 
-        const url = new URL('http://localhost:5000/alunos/buscar');
-        const params = { nome, curso };
-
-        Object.keys(params).forEach(key => params[key] && url.searchParams.append(key, params[key]));
-
-        try {
-            const response = await fetch(url);
-
-            if (!response.ok) {
-                throw new Error(`Erro ao buscar alunos: ${response.statusText}`);
-            }
-
-            const alunos = await response.json();
-            renderizarTabela(alunos);
-
-        } catch (error) {
-            console.error("Erro ao buscar alunos:", error);
-            alert("Erro ao buscar alunos");
-        }
-    }
-
-    function renderizarTabela(alunos) {
-        tabela.innerHTML = "";
-
-        if (alunos.length === 0) {
-            document.getElementById("mensagem").textContent = "Nenhum aluno encontrado.";
+        // Verifica se algum filtro foi preenchido corretamente
+        if (nome.length < 3 && curso.length < 3) {
+            esconderSugestoes();
+            renderizarAlunos([]);  // Exibe tabela vazia se nenhum filtro válido
             return;
         }
 
-        document.getElementById("mensagem").textContent = "";
+        const url = construirUrlComFiltros(nome, curso);
+        try {
+            const alunos = await obterDadosDaApi(url);
+            renderizarAlunos(alunos);
+        } catch (error) {
+            exibirErro("Erro ao buscar alunos, tente novamente mais tarde.");
+        }
+    }
+
+    // Função para construir a URL de requisição com parâmetros
+    function construirUrlComFiltros(nome, curso) {
+        const url = new URL('http://localhost:5000/alunos/buscar');
+        const params = new URLSearchParams();
+
+        // Só adiciona o parâmetro se ele não estiver vazio
+        if (nome) params.append('nome', nome);
+        if (curso) params.append('curso', curso);
+
+        // Se não houver filtros, retorna a URL sem parâmetros (opcional)
+        if (params.toString()) {
+            url.search = params.toString();
+        }
+
+        return url;
+    }
+
+    // Função para fazer a requisição da API e obter os dados
+    async function obterDadosDaApi(url) {
+        const response = await fetch(url);
+        if (!response.ok) throw new Error(`Erro ao buscar alunos: ${response.statusText}`);
+        return response.json();
+    }
+
+    // Função para renderizar os alunos na tabela
+    function renderizarAlunos(alunos) {
+        tabela.innerHTML = ''; // Limpar a tabela antes de adicionar novos dados
+        if (alunos.length === 0) {
+            exibirErro("Nenhum aluno encontrado.");
+            return;
+        }
 
         alunos.forEach(aluno => {
-            const linha = tabela.insertRow();
-            linha.innerHTML = `
-                <td><a href="#" onclick="mostrarInformacoesAluno(${aluno.id})">${aluno.nome}</a></td>
+            const tr = document.createElement("tr");
+
+            // Dividindo o nome completo para separar nome e sobrenome
+            const nomeCompleto = aluno.nome.trim().split(" ");
+            const nome = nomeCompleto[0];  // Primeiro nome
+            const sobrenome = nomeCompleto.slice(1).join(" ");  // O restante é o sobrenome
+
+            // Criando o link com os parâmetros de nome e sobrenome
+            tr.innerHTML = `
+                <td><a href="informacoesAluno.html?nome=${encodeURIComponent(nome)}&sobrenome=${encodeURIComponent(sobrenome)}">${aluno.nome}</a></td>
                 <td>${aluno.curso}</td>
             `;
-        });
-    }
-
-    window.mostrarInformacoesAluno = async function(alunoId) {
-        try {
-            const responseAluno = await fetch(`http://localhost:5000/alunos/${alunoId}`);
-
-            if (!responseAluno.ok) {
-                throw new Error(`Erro ao carregar informações do aluno: ${responseAluno.statusText}`);
-            }
-
-            const aluno = await responseAluno.json();
-
-            nomeAluno.textContent = `Nome: ${aluno.nome}`;
-            enderecoAluno.textContent = `Endereço: ${aluno.rua}, ${aluno.bairro}, ${aluno.cidade}`;
-            idadeAluno.textContent = `Idade: ${aluno.idade}`;
-            responsavelAluno.textContent = `Responsável: ${aluno.responsavel_nome || 'Não informado'}`;
-
-            const responseOcorrencias = await fetch(`http://localhost:5000/ocorrencias?aluno_id=${alunoId}`);
-            const ocorrencias = await responseOcorrencias.json();
-
-            renderizarOcorrencias(ocorrencias);
-            renderizarOcorrenciasPorData(ocorrencias);
-
-            informacoesAluno.style.display = "block";
-        } catch (error) {
-            console.error("Erro ao carregar informações do aluno:", error);
-            alert("Erro ao carregar informações do aluno");
-        }
-    }
-
-    function renderizarOcorrencias(ocorrencias) {
-        tabelaOcorrencias.innerHTML = "";
-
-        if (ocorrencias.length === 0) {
-            return;
-        }
-
-        ocorrencias.forEach(ocorrencia => {
-            const linha = tabelaOcorrencias.insertRow();
-            linha.innerHTML = `
-                <td>${ocorrencia.data_ocorrencia}</td>
-                <td>${ocorrencia.tipo}</td>
-                <td>${ocorrencia.descricao}</td>
-            `;
-        });
-    }
-
-    function renderizarOcorrenciasPorData(ocorrencias) {
-        const ocorrenciasCount = {};
-
-        ocorrencias.forEach(ocorrencia => {
-            const data = ocorrencia.data_ocorrencia;
-            if (ocorrenciasCount[data]) {
-                ocorrenciasCount[data]++;
-            } else {
-                ocorrenciasCount[data] = 1;
-            }
+            tabela.appendChild(tr);
         });
 
-        let html = "<ul>";
-        for (const data in ocorrenciasCount) {
-            html += `<li>${data}: ${ocorrenciasCount[data]} ocorrência(s)</li>`;
-        }
-        html += "</ul>";
-
-        ocorrenciasPorData.innerHTML = html;
+        esconderSugestoes(); // Esconde as sugestões após exibir os resultados
     }
 
-    window.fecharInformacoesAluno = function() {
-        informacoesAluno.style.display = "none";
+    // Função para exibir mensagens de erro
+    function exibirErro(mensagem) {
+        alerta.textContent = mensagem;
+        alerta.style.display = "block";
     }
 
+    // Função para esconder as sugestões
+    function esconderSugestoes() {
+        suggestionsList.style.display = "none";
+    }
+
+    // Função para limpar filtros
     function limparFiltros() {
         filtroAluno.value = "";
         filtroCurso.value = "";
-        aplicarFiltro();
+        aplicarFiltro(); // Atualizar a tabela ao limpar os filtros
     }
-
-    window.limparFiltros = limparFiltros;
-
-    aplicarFiltro();
 });
