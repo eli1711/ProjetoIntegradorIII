@@ -48,7 +48,7 @@ services:
         max-size: "10m"
         max-file: "3"
 
-  nginx:
+  nginx: 
     build:
       context: ./frontend
       dockerfile: Dockerfile
@@ -61,6 +61,24 @@ services:
     volumes:
       - ./frontend/public:/usr/share/nginx/html
       - ./app/uploads:/app/uploads  # Monta uploads no nginx container
+    networks:
+      - rede-interna
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  chatqualidade:
+    build:
+      context: ./chatqualidade
+      dockerfile: Dockerfile
+    container_name: chatqualidade
+    restart: always
+    ports:
+      - "5005:5005"
+    depends_on:
+      - nginx  # Espera o frontend subir
     networks:
       - rede-interna
     logging:
