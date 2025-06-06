@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Principal - Qualidade de Vida Escolar</title>
     <link rel="stylesheet" href="css/styles.css">
+    <link rel="stylesheet" href="css/chatbot.css">
     <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600&display=swap" rel="stylesheet">
 </head>
 <body>
@@ -34,6 +35,92 @@
             <p>Monitoramento do progresso e bem-estar dos alunos.</p>
         </a>
     </main>
+
+        <!-- Chatbot Container -->
+<!-- Botão Flutuante de Chat -->
+<div id="chatToggle" onclick="toggleChatbot()">💬</div>
+
+<!-- Janela do Chatbot -->
+<div id="chatbotContainer" class="chatbot-container hidden">
+    <div class="chat-header">
+        Assistente Virtual
+        <span id="chatClose" onclick="toggleChatbot()">✖</span>
+    </div>
+    
+    <div class="chat-messages" id="chatMessages">
+        <div class="bot-message">Olá! Como posso te ajudar hoje?</div>
+    </div>
+
+    <div class="chat-input-area">
+        <textarea id="messageInput" placeholder="Digite sua mensagem..."></textarea>
+        <button onclick="sendMessage()">Enviar</button>
+    </div>
+</div>
+    
+    <script>
+    function toggleChatbot() {
+        const chatbot = document.getElementById('chatbotContainer');
+        chatbot.classList.toggle('hidden');
+    }
+
+    function speak(text) {
+        if ('speechSynthesis' in window) {
+            const utter = new SpeechSynthesisUtterance(text);
+            utter.lang = 'pt-BR';
+            window.speechSynthesis.speak(utter);
+        }
+    }
+
+    async function sendMessage() {
+        const messageInput = document.getElementById('messageInput');
+        const chatMessages = document.getElementById('chatMessages');
+        const message = messageInput.value.trim();
+
+        if (!message) return;
+
+        // Exibe mensagem do usuário
+        const userMsg = document.createElement('div');
+        userMsg.className = 'user-message';
+        userMsg.textContent = message;
+        chatMessages.appendChild(userMsg);
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+
+        messageInput.value = '';
+
+        try {
+            const response = await fetch('http://localhost:5005/webhooks/rest/webhook', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ message: message })
+            });
+
+            const data = await response.json();
+
+            data.forEach(res => {
+                const botMsg = document.createElement('div');
+                botMsg.className = 'bot-message';
+                botMsg.textContent = res.text;
+                chatMessages.appendChild(botMsg);
+                chatMessages.scrollTop = chatMessages.scrollHeight;
+
+                speak(res.text); // Fala a resposta
+            });
+        } catch (error) {
+            const errorMsg = document.createElement('div');
+            errorMsg.className = 'bot-message';
+            errorMsg.textContent = 'Erro ao conectar com o servidor.';
+            chatMessages.appendChild(errorMsg);
+        }
+    }
+</script>
+
+
+
+
+
+
 
     <!-- Botão Sair -->
     <button id="logoutBtn" class="logout-btn">SAIR</button>

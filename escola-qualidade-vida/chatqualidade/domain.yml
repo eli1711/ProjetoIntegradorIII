@@ -19,19 +19,19 @@ responses:
     - text: "Até logo! Se precisar de ajuda com matrículas ou ocorrências, estou à disposição."
 
   utter_inicio_cadastro:
-    - text: "Primeiro Clicar na opção Cadastro de Aluno 2° Preencher os campos com as informações solicitadas 3° Clicar no botão Cadastrar."
+    - text: "Primeiro Clicar na opção Cadastro de Aluno Segundo  Preencher os campos com as informações solicitadas. Terceiro Clicar no botão Cadastrar."
   
   utter_inicio_acompanhamento:
     - text: "Primeiro Clicar na opção Acompanhamento"
 
   utter_inicio_ocorrencia:
-    - text: "Primeiro Clicar na opção Ocorrências 2° Preencher com o nome do aluno 3° Colocar o tipo da ocorrência (Atraso ou  mal comportamento) 4° Descrever a ocorrência 5° Colocar a data 6° Cadastrar Ocorrência."
+    - text: "Primeiro Clicar na opção Ocorrências. Segundo Preencher com o nome do aluno. Terceiro Colocar o tipo da ocorrência (Atraso ou  mal comportamento). Quarto Descrever a ocorrência. Quinto Colocar a data. Sexto Cadastrar Ocorrência."
 
   utter_inicio_relatorio:
     - text: "Primeiro Clicar na opção Relatório"
 
   utter_cadastro_aluno_empregado:
-    - text: "1° Adicionar as informações da empresa"
+    - text: "Primeiro Adicionar as informações da empresa"
 
   utter_ocorrencia_tipo:
     - text: "Descreva o tipo de ocorrencia se é mal comportamneto ou atraso"
