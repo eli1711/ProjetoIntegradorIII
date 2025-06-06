@@ -24,12 +24,16 @@ document.addEventListener("DOMContentLoaded", function () {
 
             const alunoEncontrado = aluno[0];
 
-            // Preenche os campos com as informações do aluno
-            document.getElementById('nomeAluno').textContent = `Nome: ${alunoEncontrado.nome} ${alunoEncontrado.sobrenome || 'Sobrenome não informado'}`;
+            // ✅ Correção: mostra somente o nome completo se o sobrenome existir
+            let nomeCompleto = alunoEncontrado.nome;
+            if (alunoEncontrado.sobrenome && alunoEncontrado.sobrenome.trim() !== "") {
+                nomeCompleto += ` ${alunoEncontrado.sobrenome}`;
+            }
+            document.getElementById('nomeAluno').textContent = `Nome: ${nomeCompleto}`;
+
             document.getElementById('enderecoAluno').textContent = `Endereço: ${alunoEncontrado.endereco || 'Não informado'}`;
             document.getElementById('idadeAluno').textContent = `Idade: ${alunoEncontrado.idade || 'Não informado'}`;
             document.getElementById('responsavelAluno').textContent = `Responsável: ${alunoEncontrado.responsavel_nome || 'Não informado'}`;
-
             document.getElementById('mora_com_quem').textContent = `Mora com: ${alunoEncontrado.mora_com_quem || 'Não informado'}`;
             document.getElementById('sobreAluno').textContent = `Sobre o aluno: ${alunoEncontrado.sobre_aluno || 'Não informado'}`;
             document.getElementById('empregado').textContent = `Empregado: ${alunoEncontrado.empregado === 'sim' ? 'Sim' : 'Não'}`;

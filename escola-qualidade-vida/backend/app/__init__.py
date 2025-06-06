@@ -2,6 +2,8 @@ import os
 from flask import Flask, send_from_directory
 from flask_cors import CORS
 from app.extensions import db, jwt
+
+# Blueprints das rotas
 from app.routers.auth_routes import auth_bp
 from app.routers.cadastro import cadastro_bp
 from app.routers.curso_routes import curso_bp
@@ -9,7 +11,8 @@ from app.routers.turma_routes import turma_bp
 from app.routers.ocorrencia_routes import ocorrencia_bp
 from app.routers.test_routes import test_bp
 from app.routers.aluno import aluno_bp
-from app.routers.consulta_aluno import consulta_aluno_bp 
+from app.routers.consulta_aluno import consulta_aluno_bp
+from app.routers.uploads_routes import upload_bp  # Rota de upload
 
 def create_app():
     """
@@ -32,14 +35,15 @@ def create_app():
     # Habilitar CORS para permitir chamadas da API de domínios diferentes
     CORS(app)
 
+    # Configuração da pasta de uploads
+    upload_folder = os.path.join(base_dir, 'uploads')
+    os.makedirs(upload_folder, exist_ok=True)
+    _configure_uploads(app, upload_folder)
+
     # Registrar Blueprints
     _register_blueprints(app)
 
-    # Configuração da pasta de uploads
-    UPLOAD_FOLDER = '/app/app/uploads'
-    _configure_uploads(app, UPLOAD_FOLDER)
-
-    # Definindo a rota principal
+    # Rota principal que serve o index.html do frontend
     @app.route('/')
     def index():
         return app.send_static_file('index.html')
@@ -57,11 +61,9 @@ def _configure_database(app):
     db_port = os.environ.get('DB_PORT', '3306')
     db_name = os.environ.get('DB_NAME', 'escola_db')
 
-    # Construir a URI de conexão com o banco de dados
     app.config['SQLALCHEMY_DATABASE_URI'] = f"mysql+pymysql://{db_user}:{db_password}@{db_host}:{db_port}/{db_name}"
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
-    # Inicializa a conexão do banco de dados
     db.init_app(app)
 
 
@@ -77,7 +79,6 @@ def _register_blueprints(app):
     """
     Registra todos os blueprints necessários para as rotas da API.
     """
-    # Registra os blueprints com seus respectivos prefixos
     app.register_blueprint(auth_bp, url_prefix='/auth')
     app.register_blueprint(cadastro_bp, url_prefix='/cadastro')
     app.register_blueprint(curso_bp, url_prefix='/cursos')
@@ -86,8 +87,7 @@ def _register_blueprints(app):
     app.register_blueprint(test_bp, url_prefix='/api')
     app.register_blueprint(aluno_bp, url_prefix='/alunos')
     app.register_blueprint(consulta_aluno_bp, url_prefix='/alunos')
-
-    # Você pode adicionar mais blueprints conforme necessário
+    app.register_blueprint(upload_bp, url_prefix='/files')  # Upload de arquivos
 
 
 def _configure_uploads(app, upload_folder):
@@ -97,8 +97,5 @@ def _configure_uploads(app, upload_folder):
     app.config['UPLOAD_FOLDER'] = upload_folder
 
     @app.route('/uploads/<filename>')
-    def uploads(filename):
-        """
-        Rota para servir arquivos da pasta de uploads.
-        """
+    def serve_uploaded_file(filename):
         return send_from_directory(upload_folder, filename)
