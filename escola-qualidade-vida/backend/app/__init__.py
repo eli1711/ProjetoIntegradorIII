@@ -2,7 +2,7 @@ import os
 from flask import Flask, send_from_directory
 from flask_cors import CORS
 from app.extensions import db, jwt
-
+import logging
 # Blueprints das rotas
 from app.routers.auth_routes import auth_bp
 from app.routers.cadastro import cadastro_bp
@@ -20,8 +20,11 @@ def create_app():
     registra todos os blueprints necessários para as rotas da API.
     """
     # Caminho base da aplicação
-    base_dir = os.path.abspath(os.path.dirname(__file__))
-    static_path = os.path.join(base_dir, os.pardir, os.pardir, 'frontend', 'public')
+    base_dir = os.path.abspath(os.path.dirname(__file__))  # Obtém o diretório atual onde o arquivo __init__.py está localizado
+    static_path = os.path.join(base_dir, os.pardir, os.pardir, 'frontend', 'public')  # Caminho estático para o frontend
+    
+    # Caminho correto para o diretório de uploads
+    upload_folder = os.path.join(base_dir, 'uploads')  # Cria o caminho para a pasta 'uploads' na raiz do seu projeto
     
     # Criação da aplicação Flask
     app = Flask(__name__, static_folder=static_path, static_url_path='')
@@ -36,8 +39,7 @@ def create_app():
     CORS(app)
 
     # Configuração da pasta de uploads
-    upload_folder = os.path.join(base_dir, 'uploads')
-    os.makedirs(upload_folder, exist_ok=True)
+    os.makedirs(upload_folder, exist_ok=True)  # Cria a pasta uploads, se ela não existir
     _configure_uploads(app, upload_folder)
 
     # Registrar Blueprints
@@ -94,8 +96,9 @@ def _configure_uploads(app, upload_folder):
     """
     Configura o diretório de uploads para armazenar arquivos.
     """
-    app.config['UPLOAD_FOLDER'] = upload_folder
+    app.config['UPLOAD_FOLDER'] = upload_folder  # Configura o diretório de uploads para ser usado no Flask
 
     @app.route('/uploads/<filename>')
     def serve_uploaded_file(filename):
-        return send_from_directory(upload_folder, filename)
+        app.logger.debug(f"Buscando arquivo em: {os.path.join(app.config['UPLOAD_FOLDER'], filename)}")
+        return send_from_directory(app.config['UPLOAD_FOLDER'], filename)

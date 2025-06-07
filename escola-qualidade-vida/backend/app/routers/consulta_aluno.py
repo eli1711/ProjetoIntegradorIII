@@ -1,6 +1,7 @@
-from sqlalchemy.orm import joinedload
 from flask import Blueprint, request, jsonify
+from sqlalchemy.orm import joinedload
 from app.models.aluno import Aluno
+from app.models.ocorrencia import Ocorrencia  # Importando o modelo Ocorrencia
 from app.models.curso import Curso
 
 consulta_aluno_bp = Blueprint('consulta_aluno', __name__)

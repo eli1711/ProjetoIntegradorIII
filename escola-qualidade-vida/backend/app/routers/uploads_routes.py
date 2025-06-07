@@ -8,7 +8,6 @@ upload_bp = Blueprint('upload', __name__)
 def upload_file():
     if 'file' not in request.files:
         return jsonify({'error': 'Nenhum arquivo enviado'}), 400
-    
     file = request.files['file']
     
     if file.filename == '':
