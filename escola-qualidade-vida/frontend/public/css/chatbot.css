@@ -184,10 +184,16 @@ body {
 /* Área de entrada */
 .chat-input-area {
     display: flex;
+    flex-direction: column; /* empilha os elementos verticalmente */
     border-top: 1px solid #ddd;
     padding: 10px;
     gap: 10px;
     background-color: #ffffff;
+}
+
+.input-top {
+    display: flex;
+    gap: 10px;
 }
 
 .chat-input-area textarea {
@@ -195,7 +201,7 @@ body {
     resize: none;
     height: 40px;
     padding: 8px;
-    font-size: 14px;
+    font-size: 16px;
     border-radius: 8px;
     border: 1px solid #ccc;
     font-family: 'Open Sans', sans-serif;
@@ -209,8 +215,12 @@ body {
     border-radius: 8px;
     cursor: pointer;
     font-weight: bold;
+    font-family: 'Open Sans', sans-serif;
 }
 
 .chat-input-area button:hover {
     background-color: #003366;
 }
+
+
+

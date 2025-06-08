@@ -43,28 +43,41 @@
 <!-- Janela do Chatbot -->
 <div id="chatbotContainer" class="chatbot-container hidden">
     <div class="chat-header">
-        Assistente Virtual
-        <span id="chatClose" onclick="toggleChatbot()">✖</span>
-    </div>
+    <span id="chatClose" onclick="toggleChatbot()">✖</span>
+    <span style="display: block; text-align: center;">Assistente Virtual</span>
+</div>
     
+
     <div class="chat-messages" id="chatMessages">
         <div class="bot-message">Olá! Como posso te ajudar hoje?</div>
     </div>
 
-    <div class="chat-input-area">
+ <div class="chat-input-area">
+    <div class="input-top">
         <textarea id="messageInput" placeholder="Digite sua mensagem..."></textarea>
         <button onclick="sendMessage()">Enviar</button>
     </div>
+    <button id="toggleNarratorBtn" onclick="toggleNarrator()">Narrador: Ligado</button>
 </div>
-    
-    <script>
+
+
+</div>
+
+<script>
+    let narradorLigado = true;
+
     function toggleChatbot() {
         const chatbot = document.getElementById('chatbotContainer');
         chatbot.classList.toggle('hidden');
     }
 
+    function toggleNarrator() {
+        narradorLigado = !narradorLigado;
+        document.getElementById('toggleNarratorBtn').textContent = narradorLigado ? 'Narrador: Ligado' : 'Narrador: Desligado';
+    }
+
     function speak(text) {
-        if ('speechSynthesis' in window) {
+        if (narradorLigado && 'speechSynthesis' in window) {
             const utter = new SpeechSynthesisUtterance(text);
             utter.lang = 'pt-BR';
             window.speechSynthesis.speak(utter);
@@ -105,7 +118,7 @@
                 chatMessages.appendChild(botMsg);
                 chatMessages.scrollTop = chatMessages.scrollHeight;
 
-                speak(res.text); // Fala a resposta
+                speak(res.text); // Fala a resposta, se o narrador estiver ligado
             });
         } catch (error) {
             const errorMsg = document.createElement('div');
@@ -115,6 +128,7 @@
         }
     }
 </script>
+
 
 
 
