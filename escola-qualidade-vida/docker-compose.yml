@@ -38,7 +38,7 @@ services:
     depends_on:
       - mysql
     volumes:
-      - ./app/uploads:/app/uploads  # Monta a pasta de uploads no container do backend
+      - ./app/uploads:/backend/app/uploads  # Monta a pasta de uploads no container do backend
     networks:
       - rede-interna
     logging:
@@ -59,7 +59,7 @@ services:
       - backend
     volumes:
       - ./frontend/public:/usr/share/nginx/html
-      - ./app/uploads:/usr/share/nginx/html/uploads  # Monta uploads no diretório correto do Nginx
+      -  ./app/uploads:/usr/share/nginx/html/uploads # Monta uploads no diretório correto do Nginx
     networks:
       - rede-interna
     logging:

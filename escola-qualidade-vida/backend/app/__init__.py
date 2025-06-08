@@ -21,13 +21,12 @@ def create_app():
     """
     # Caminho base da aplicação
     base_dir = os.path.abspath(os.path.dirname(__file__))  # Obtém o diretório atual onde o arquivo __init__.py está localizado
-    static_path = os.path.join(base_dir, os.pardir, os.pardir, 'frontend', 'public')  # Caminho estático para o frontend
     
-    # Caminho correto para o diretório de uploads
-    upload_folder = os.path.join(base_dir, 'uploads')  # Cria o caminho para a pasta 'uploads' na raiz do seu projeto
-    
+    # Caminho correto para o diretório de uploads (dentro do container, em /backend/app/uploads)
+    upload_folder = os.path.join(base_dir, 'backend', 'app', 'uploads')  # Configuração correta
+
     # Criação da aplicação Flask
-    app = Flask(__name__, static_folder=static_path, static_url_path='')
+    app = Flask(__name__, static_folder=os.path.join(base_dir, 'frontend', 'public'), static_url_path='')
 
     # Configuração do banco de dados (MySQL)
     _configure_database(app)
@@ -100,5 +99,8 @@ def _configure_uploads(app, upload_folder):
 
     @app.route('/uploads/<filename>')
     def serve_uploaded_file(filename):
+        """
+        Serve o arquivo de upload a partir do diretório de uploads.
+        """
         app.logger.debug(f"Buscando arquivo em: {os.path.join(app.config['UPLOAD_FOLDER'], filename)}")
         return send_from_directory(app.config['UPLOAD_FOLDER'], filename)

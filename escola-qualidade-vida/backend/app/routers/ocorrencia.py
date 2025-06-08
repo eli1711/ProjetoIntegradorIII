@@ -10,12 +10,15 @@ def listar_ocorrencias():
     aluno_id = request.args.get('aluno_id')
 
     try:
+        # Se o 'aluno_id' for fornecido, filtra as ocorrências por aluno
         if aluno_id:
             ocorrencias = Ocorrencia.query.filter_by(aluno_id=aluno_id).all()
         else:
+            # Caso contrário, retorna todas as ocorrências
             ocorrencias = Ocorrencia.query.all()
 
         resultado = []
+        # Itera sobre as ocorrências para formatar a resposta
         for oc in ocorrencias:
             resultado.append({
                 'id': oc.id,
