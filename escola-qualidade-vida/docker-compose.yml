@@ -75,7 +75,7 @@ services:
     container_name: chatqualidade
     restart: always
     ports:
-      - "5005:5005"
+      - "5013:5005"
     depends_on:
       - nginx  # Espera o frontend subir
     networks:
