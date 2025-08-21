@@ -8,6 +8,7 @@ class Aluno(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     nome = db.Column(db.String(255), nullable=False)
     sobrenome = db.Column(db.String(255), nullable=False)
+    cpf = db.Column(db.String(14), unique=True, nullable=False)
     cidade = db.Column(db.String(255), nullable=False)
     bairro = db.Column(db.String(255), nullable=False)
     rua = db.Column(db.String(255), nullable=False)
@@ -18,14 +19,16 @@ class Aluno(db.Model):
     foto = db.Column(db.String(255))
 
     curso_id = db.Column(db.Integer, db.ForeignKey('cursos.id'), nullable=False)
-    curso = db.relationship('Curso', backref='alunos', lazy=True)  # Verifique se está configurado com lazy=True
+    curso = db.relationship('Curso', backref='alunos', lazy=True)
 
     responsavel_id = db.Column(db.Integer, db.ForeignKey('responsavel.id'))
     empresa_id = db.Column(db.Integer, db.ForeignKey('empresa.id'))
 
-    def __init__(self, nome, sobrenome, cidade, bairro, rua, idade, empregado, mora_com_quem, sobre_aluno, foto=None, responsavel_id=None, empresa_id=None, curso_id=None):
+   
+    def __init__(self, nome, sobrenome, cpf, cidade, bairro, rua, idade, empregado, mora_com_quem, sobre_aluno, foto=None, responsavel_id=None, empresa_id=None, curso_id=None):
         self.nome = nome
         self.sobrenome = sobrenome
+        self.cpf = cpf
         self.cidade = cidade
         self.bairro = bairro
         self.rua = rua
@@ -40,3 +43,4 @@ class Aluno(db.Model):
 
     def __repr__(self):
         return f"<Aluno {self.nome} {self.sobrenome}>"
+
