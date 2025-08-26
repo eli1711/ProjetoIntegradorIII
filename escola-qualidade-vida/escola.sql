@@ -31,6 +31,7 @@ CREATE TABLE usuarios (
     nome VARCHAR(255) NOT NULL,
     email VARCHAR(255) NOT NULL UNIQUE,
     senha VARCHAR(512) NOT NULL  -- Aumentado o tamanho para acomodar o hash de senha
+    ALTER TABLE usuarios ADD COLUMN cargo VARCHAR(50) NOT NULL DEFAULT 'coordenador';
 );
 
 -- Tabela Aluno
