@@ -13,7 +13,7 @@ from app.routers.test_routes import test_bp
 from app.routers.aluno import aluno_bp
 from app.routers.consulta_aluno import consulta_aluno_bp
 from app.routers.uploads_routes import upload_bp  # Rota de upload
-
+from app.routers.usuario_routes import usuario_bp
 def create_app():
     """
     Função de criação da aplicação Flask. Realiza configurações iniciais e
@@ -89,7 +89,7 @@ def _register_blueprints(app):
     app.register_blueprint(aluno_bp, url_prefix='/alunos')
     app.register_blueprint(consulta_aluno_bp, url_prefix='/alunos')
     app.register_blueprint(upload_bp, url_prefix='/files')  # Upload de arquivos
-
+    app.register_blueprint(usuario_bp)
 
 def _configure_uploads(app, upload_folder):
     """

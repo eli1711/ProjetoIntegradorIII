@@ -73,43 +73,8 @@
         <button type="submit">Cadastrar</button>
     </form>
     <div id="message" class="message"></div>
-
-    <script>
-        document.getElementById('userForm').addEventListener('submit', async function(e) {
-            e.preventDefault();
-            
-            const formData = {
-                nome: document.getElementById('nome').value,
-                email: document.getElementById('email').value,
-                senha: document.getElementById('senha').value,
-                cargo: document.getElementById('cargo').value
-            };
-
-            try {
-                const response = await fetch('api/criar_usuario', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify(formData)
-                });
-
-                const data = await response.json();
-                
-                const messageDiv = document.getElementById('message');
-                if (data.success) {
-                    messageDiv.className = 'message success';
-                    document.getElementById('userForm').reset();
-                } else {
-                    messageDiv.className = 'message error';
-                }
-                messageDiv.textContent = data.message;
-                
-            } catch (error) {
-                document.getElementById('message').className = 'message error';
-                document.getElementById('message').textContent = 'Erro ao conectar com o servidor';
-            }
-        });
-    </script>
+ <!-- Altere a linha do script para: -->
+<script src="./js/cadastro_usuario.js"></script>
+    
 </body>
 </html>
