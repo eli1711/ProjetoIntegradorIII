@@ -40,7 +40,7 @@ def create_app():
     app.register_blueprint(turma_bp, url_prefix='/turmas')
     app.register_blueprint(ocorrencia_bp, url_prefix='/ocorrencias')
     app.register_blueprint(test_bp, url_prefix='/api')
-    app.register_blueprint(usuario_bp, url_prefix='/api')
+    app.register_blueprint(usuario_bp)
 
     @app.route('/')
     def index():

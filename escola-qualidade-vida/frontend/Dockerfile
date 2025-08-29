@@ -11,3 +11,5 @@ COPY public /usr/share/nginx/html
 
 # Expondo a porta padrão do Nginx
 EXPOSE 80
+
+CMD ["nginx", "-g", "daemon off;"]

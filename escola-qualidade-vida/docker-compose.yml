@@ -60,6 +60,7 @@ services:
     volumes:
       - ./frontend/public:/usr/share/nginx/html
       -  ./app/uploads:/usr/share/nginx/html/uploads # Monta uploads no diretório correto do Nginx
+      - ./frontend/nginx.conf:/etc/nginx/conf.d/default.conf:ro
     networks:
       - rede-interna
     logging:
@@ -75,7 +76,7 @@ services:
     container_name: chatqualidade
     restart: always
     ports:
-      - "5013:5005"
+      - "5015:5005"
     depends_on:
       - nginx  # Espera o frontend subir
     networks:
