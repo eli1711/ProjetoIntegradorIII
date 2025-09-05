@@ -1,11 +1,13 @@
 <!DOCTYPE html>
 <html lang="pt-br">
+
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Cadastro de Ocorrência</title>
   <link rel="stylesheet" href="./css/ocorrencias.css" />
 </head>
+
 <body>
   <header>
     <h1>Ocorrências de Alunos</h1>
@@ -36,7 +38,12 @@
       <input type="hidden" id="aluno_id" name="aluno_id" required />
 
       <label for="tipo">Tipo de Ocorrência:</label>
-      <input type="text" id="tipo" name="tipo" required />
+      <select id="tipo" name="tipo" required>
+        <option value="" selected disabled>Selecione uma opção...</option>
+        <option value="atraso">Atraso</option>
+        <option value="atestado">Atestado Médico</option>
+        <option value="saude">Problema de saude</option>
+      </select>
 
       <label for="descricao">Descrição:</label>
       <textarea id="descricao" name="descricao" required></textarea>
@@ -50,4 +57,5 @@
 
   <script src="./js/ocorrencias.js"></script>
 </body>
+
 </html>
