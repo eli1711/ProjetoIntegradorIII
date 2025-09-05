@@ -45,6 +45,23 @@
                 <div class="alert" id="loginAlert" role="alert"></div>
             </div>
         </form>
+
+        <!-- Adicione após o formulário de login -->
+<div id="forgotPasswordModal" class="modal">
+    <div class="modal-content">
+        <span class="close">&times;</span>
+        <h2>Recuperar Senha</h2>
+        <form id="forgotPasswordForm">
+            <div class="form-group">
+                <label for="recoveryEmail">E-mail Institucional</label>
+                <input type="email" id="recoveryEmail" name="email" required 
+                       placeholder="seu.email@escola.edu.br">
+            </div>
+            <button type="submit" class="login-button">Enviar Link de Recuperação</button>
+        </form>
+        <div id="recoveryMessage" class="alert"></div>
+    </div>
+</div>
         
         <!-- Informações de segurança -->
         <div class="security-info">

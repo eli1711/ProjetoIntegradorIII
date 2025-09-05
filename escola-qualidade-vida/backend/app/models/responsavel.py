@@ -6,7 +6,7 @@ class Responsavel(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     nome = db.Column(db.String(255), nullable=False)
     sobrenome = db.Column(db.String(255), nullable=False)
-    parentesco = db.Column(db.String(255))  # ✅ Faltando no seu model atual!
+    parentesco = db.Column(db.String(255)) 
     telefone = db.Column(db.String(50))
     cidade = db.Column(db.String(255))
     bairro = db.Column(db.String(255))

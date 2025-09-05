@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <title>Redefinir Senha</title>
+    <link rel="stylesheet" href="./css/styles.css">
+</head>
+<body>
+    <div class="login-container">
+        <h2>Redefinir Senha</h2>
+        <form id="resetPasswordForm">
+            <input type="hidden" id="resetToken">
+            <div class="form-group">
+                <label for="novaSenha">Nova Senha</label>
+                <input type="password" id="novaSenha" required>
+            </div>
+            <div class="form-group">
+                <label for="confirmarSenha">Confirmar Senha</label>
+                <input type="password" id="confirmarSenha" required>
+            </div>
+            <button type="submit" class="login-button">Redefinir Senha</button>
+        </form>
+        <div id="resetMessage" class="alert"></div>
+    </div>
+
+    <script>
+        // Obter token da URL
+        const urlParams = new URLSearchParams(window.location.search);
+        const token = urlParams.get('token');
+        document.getElementById('resetToken').value = token;
+
+        document.getElementById('resetPasswordForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const novaSenha = document.getElementById('novaSenha').value;
+            const confirmarSenha = document.getElementById('confirmarSenha').value;
+            
+            if (novaSenha !== confirmarSenha) {
+                document.getElementById('resetMessage').innerHTML = 
+                    '<div class="error">Senhas não coincidem</div>';
+                return;
+            }
+            
+            fetch('/auth/redefinir_senha/' + token, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    nova_senha: novaSenha,
+                    confirmar_senha: confirmarSenha
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                const messageElement = document.getElementById('resetMessage');
+                if (data.success) {
+                    messageElement.innerHTML = `<div class="success">${data.message}</div>`;
+                    setTimeout(() => {
+                        window.location.href = '/';
+                    }, 3000);
+                } else {
+                    messageElement.innerHTML = `<div class="error">${data.message}</div>`;
+                }
+            });
+        });
+    </script>
+</body>
+</html>

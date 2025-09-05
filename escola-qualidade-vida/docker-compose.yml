@@ -89,3 +89,8 @@ services:
 networks:
   rede-interna:
     driver: bridge
+environment:
+  - SMTP_SERVER=smtp.gmail.com
+  - SMTP_PORT=587
+  - EMAIL_FROM=seu.email@gmail.com
+  - EMAIL_PASSWORD=sua_senha_app
