@@ -38,8 +38,8 @@ services:
       # Variáveis de Email (SMTP)
       SMTP_SERVER: smtp.gmail.com
       SMTP_PORT: 587
-      EMAIL_FROM: seu.email@gmail.com
-      EMAIL_PASSWORD: sua_senha_de_app_gmail
+      EMAIL_FROM: elihofnimariano996@gmail.com
+      EMAIL_PASSWORD: x j g g i x w a m a v l w r m d
       
       # URL do Frontend para os links de recuperação
       FRONTEND_URL: http://localhost:8080
