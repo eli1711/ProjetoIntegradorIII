@@ -31,6 +31,9 @@ def create_app():
     # Configuração do banco de dados (MySQL)
     _configure_database(app)
 
+    #permite enviar para o email a recuperacao de senha
+    _configure_email(app)
+
     # Configuração de JWT para autenticação
     _configure_jwt(app)
 
@@ -104,3 +107,14 @@ def _configure_uploads(app, upload_folder):
         """
         app.logger.debug(f"Buscando arquivo em: {os.path.join(app.config['UPLOAD_FOLDER'], filename)}")
         return send_from_directory(app.config['UPLOAD_FOLDER'], filename)
+
+
+def _configure_email(app):
+    """
+    Configurações de e-mail (SMTP) para envio de notificações e recuperação de senha.
+    """
+    app.config['SMTP_SERVER'] = os.environ.get('SMTP_SERVER', 'smtp.gmail.com')
+    app.config['SMTP_PORT'] = int(os.environ.get('SMTP_PORT', 587))
+    app.config['EMAIL_FROM'] = os.environ.get('EMAIL_FROM', 'guifavero10@gmail.com')
+    app.config['EMAIL_PASSWORD'] = os.environ.get('EMAIL_PASSWORD', 'xhfs wgey gede jdce')
+    app.config['FRONTEND_URL'] = os.environ.get('FRONTEND_URL', 'http://localhost:8080')
