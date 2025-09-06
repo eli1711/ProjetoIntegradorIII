@@ -27,12 +27,27 @@ services:
     container_name: escola-backend
     restart: always
     environment:
+      # Variáveis do Banco de Dados
       DB_HOST: mysql
       DB_PORT: 3306
       DB_NAME: escola_db
       DB_USER: root
       DB_PASSWORD: password
       SECRET_KEY: uma_chave_super_secreta_32_caracteres_no_minimo
+      
+      # Variáveis de Email (SMTP)
+      SMTP_SERVER: smtp.gmail.com
+      SMTP_PORT: 587
+      EMAIL_FROM: seu.email@gmail.com
+      EMAIL_PASSWORD: sua_senha_de_app_gmail
+      
+      # URL do Frontend para os links de recuperação
+      FRONTEND_URL: http://localhost:8080
+      
+      # Configurações adicionais (opcionais)
+      DEBUG: "False"
+      ENVIRONMENT: production
+      
     ports:
       - "5000:5000"
     depends_on:
@@ -89,8 +104,3 @@ services:
 networks:
   rede-interna:
     driver: bridge
-environment:
-  - SMTP_SERVER=smtp.gmail.com
-  - SMTP_PORT=587
-  - EMAIL_FROM=seu.email@gmail.com
-  - EMAIL_PASSWORD=sua_senha_app

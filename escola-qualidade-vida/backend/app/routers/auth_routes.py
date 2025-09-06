@@ -1,18 +1,17 @@
 from flask import Blueprint, request, jsonify, current_app
 from werkzeug.security import check_password_hash, generate_password_hash
-from flask_jwt_extended import create_access_token, jwt_required
+from flask_jwt_extended import create_access_token
 from app.models.usuario import Usuario
 from app.extensions import db
 import secrets
-import smtplib
-from email.mime.text import MIMEText
-from email.mime.multipart import MIMEMultipart
 from datetime import datetime, timedelta
+from flask_cors import cross_origin
 
-# Use apenas UM blueprint para todas as rotas de autenticação
+# Blueprint para autenticação
 auth_bp = Blueprint('auth', __name__)
 
 @auth_bp.route('/login', methods=['POST'])
+@cross_origin()
 def login():
     data = request.get_json()
     if not data:
@@ -36,10 +35,20 @@ def login():
     access_token = create_access_token(identity=usuario.id)
     return jsonify(access_token=access_token), 200
 
-@auth_bp.route('/recuperar_senha', methods=['POST'])
+@auth_bp.route('/recuperar_senha', methods=['POST', 'OPTIONS'])
+@cross_origin()
 def recuperar_senha():
     try:
+        current_app.logger.info("Rota /recuperar_senha acessada")
+        
+        # Verificar se há dados JSON
+        if not request.is_json:
+            return jsonify({'success': False, 'message': 'Dados JSON necessários'}), 400
+            
         data = request.get_json()
+        if not data:
+            return jsonify({'success': False, 'message': 'Dados não fornecidos'}), 400
+        
         email = data.get('email')
         
         if not email:
@@ -63,8 +72,9 @@ def recuperar_senha():
         usuario.token_expiracao = expiracao
         db.session.commit()
         
-        # Enviar email
-        enviar_email_recuperacao(email, token)
+        # Em desenvolvimento, apenas logue o token
+        current_app.logger.info(f"Token de recuperação para {email}: {token}")
+        current_app.logger.info(f"Link: http://localhost:8080/redefinir_senha.html?token={token}")
         
         return jsonify({
             'success': True, 
@@ -75,10 +85,21 @@ def recuperar_senha():
         current_app.logger.error(f"Erro em recuperar_senha: {str(e)}")
         return jsonify({'success': False, 'message': 'Erro interno do servidor'}), 500
 
-@auth_bp.route('/redefinir_senha/<token>', methods=['POST'])
+# ROTA QUE ESTAVA FALTANDO - ADICIONE ESTA ROTA
+@auth_bp.route('/redefinir_senha/<token>', methods=['PUT', 'OPTIONS'])
+@cross_origin()
 def redefinir_senha(token):
     try:
+        current_app.logger.info(f"Tentativa de redefinir senha com token: {token}")
+        
+        # Verificar se há dados JSON
+        if not request.is_json:
+            return jsonify({'success': False, 'message': 'Dados JSON necessários'}), 400
+            
         data = request.get_json()
+        if not data:
+            return jsonify({'success': False, 'message': 'Dados não fornecidos'}), 400
+        
         nova_senha = data.get('nova_senha')
         confirmar_senha = data.get('confirmar_senha')
         
@@ -88,10 +109,16 @@ def redefinir_senha(token):
         if nova_senha != confirmar_senha:
             return jsonify({'success': False, 'message': 'Senhas não coincidem'}), 400
         
+        # Buscar usuário pelo token
         usuario = Usuario.query.filter_by(token_recuperacao=token).first()
         
-        if not usuario or usuario.token_expiracao < datetime.utcnow():
+        if not usuario:
+            current_app.logger.warning(f"Token não encontrado: {token}")
             return jsonify({'success': False, 'message': 'Token inválido ou expirado'}), 400
+        
+        if usuario.token_expiracao < datetime.utcnow():
+            current_app.logger.warning(f"Token expirado: {token}")
+            return jsonify({'success': False, 'message': 'Token expirado'}), 400
         
         # Hash da nova senha
         usuario.senha = generate_password_hash(nova_senha)
@@ -99,55 +126,41 @@ def redefinir_senha(token):
         usuario.token_expiracao = None
         db.session.commit()
         
+        current_app.logger.info(f"Senha redefinida com sucesso para: {usuario.email}")
         return jsonify({'success': True, 'message': 'Senha redefinida com sucesso'}), 200
         
     except Exception as e:
         current_app.logger.error(f"Erro em redefinir_senha: {str(e)}")
         return jsonify({'success': False, 'message': 'Erro interno do servidor'}), 500
 
-def enviar_email_recuperacao(email, token):
-    """Função para enviar email de recuperação (modo desenvolvimento)"""
+# Rota simplificada para teste
+@auth_bp.route('/recuperar_senha_test', methods=['POST'])
+@cross_origin()
+def recuperar_senha_test():
+    """Rota simplificada para testar se o backend está funcionando"""
     try:
-        # Em desenvolvimento, apenas logue o token
-        current_app.logger.info(f"🔐 Token de recuperação para {email}: {token}")
-        current_app.logger.info(f"🌐 Link: http://localhost:8080/redefinir_senha?token={token}")
-        
-        # Verifica se as configurações de email existem
-        smtp_server = current_app.config.get('SMTP_SERVER')
-        if not smtp_server:
-            # Modo desenvolvimento - não envia email real
-            return
-        
-        # Modo produção - envia email real
-        smtp_port = current_app.config.get('SMTP_PORT', 587)
-        email_from = current_app.config.get('EMAIL_FROM')
-        email_password = current_app.config.get('EMAIL_PASSWORD')
-        
-        msg = MIMEMultipart()
-        msg['From'] = email_from
-        msg['To'] = email
-        msg['Subject'] = 'Recuperação de Senha - Sistema Escolar'
-        
-        link = f"http://localhost:8080/redefinir_senha?token={token}"
-        body = f"""
-        Olá,
-        
-        Você solicitou a recuperação de senha. Clique no link abaixo para redefinir sua senha:
-        
-        {link}
-        
-        Este link expira em 1 hora.
-        
-        Se você não solicitou esta recuperação, ignore este email.
-        """
-        
-        msg.attach(MIMEText(body, 'plain'))
-        
-        server = smtplib.SMTP(smtp_server, smtp_port)
-        server.starttls()
-        server.login(email_from, email_password)
-        server.send_message(msg)
-        server.quit()
-        
+        return jsonify({
+            'success': True, 
+            'message': 'Rota de teste funcionando!'
+        }), 200
     except Exception as e:
-        current_app.logger.error(f"Erro ao enviar email: {e}")
+        return jsonify({'success': False, 'message': str(e)}), 500
+
+@auth_bp.route('/test', methods=['GET'])
+@cross_origin()
+def test_route():
+    """Rota de teste para verificar se o blueprint está funcionando"""
+    return jsonify({'message': 'Rota de autenticação funcionando!', 'status': 'success'}), 200
+
+# Rotas adicionais para teste das novas funcionalidades
+@auth_bp.route('/test_redefinir', methods=['GET'])
+@cross_origin()
+def test_redefinir():
+    """Rota de teste para verificar se o endpoint está acessível"""
+    return jsonify({'message': 'Rota de redefinição está funcionando!', 'method': 'GET'}), 200
+
+@auth_bp.route('/test_redefinir_post', methods=['POST'])
+@cross_origin()
+def test_redefinir_post():
+    """Rota de teste para verificar POST"""
+    return jsonify({'message': 'Rota POST de redefinição está funcionando!', 'method': 'POST'}), 200

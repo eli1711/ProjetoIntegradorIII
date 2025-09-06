@@ -4,7 +4,6 @@ document.addEventListener('DOMContentLoaded', function () {
 
     // Verificar se já existe um token de autenticação
     if (localStorage.getItem('access_token')) {
-        // Se o token existir, redireciona diretamente para a página principal
         window.location.href = 'principal.html';
         return;
     }
@@ -20,6 +19,9 @@ document.addEventListener('DOMContentLoaded', function () {
 
     // Inicializar funcionalidade de recuperação de senha
     initPasswordRecovery();
+    
+    // Testar conexão com o backend
+    testBackendConnection();
 });
 
 // Função para inicializar a recuperação de senha
@@ -70,40 +72,80 @@ function initPasswordRecovery() {
             return;
         }
         
-        // URL CORRIGIDA - use a mesma base do login
-        fetch('http://localhost:5000/auth/recuperar_senha', {
+        console.log('📤 Enviando requisição para recuperação de senha...');
+        console.log('📧 Email:', email);
+        
+        // Primeiro teste com a rota simplificada
+        testRecoveryRoute().then(() => {
+            // Se a rota de teste funcionar, então envia para a rota real
+            sendRecoveryRequest(email, modal, messageElement, recoveryForm);
+        }).catch(error => {
+            console.error('❌ Rota de teste falhou:', error);
+            messageElement.innerHTML = '<div class="error">Servidor indisponível. Tente novamente mais tarde.</div>';
+        });
+    });
+}
+
+// Função para testar a rota de recuperação
+async function testRecoveryRoute() {
+    try {
+        const response = await fetch('http://localhost:5000/auth/recuperar_senha_test', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ email: 'test@example.com' })
+        });
+        
+        if (!response.ok) {
+            throw new Error('Erro na rota de teste: ' + response.status);
+        }
+        
+        const data = await response.json();
+        console.log('✅ Rota de teste funcionando:', data);
+        return data;
+    } catch (error) {
+        console.error('❌ Erro na rota de teste:', error);
+        throw error;
+    }
+}
+
+// Função para enviar a requisição real
+async function sendRecoveryRequest(email, modal, messageElement, recoveryForm) {
+    try {
+        const response = await fetch('http://localhost:5000/auth/recuperar_senha', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
             },
             body: JSON.stringify({ email: email })
-        })
-        .then(response => {
-            if (!response.ok) {
-                throw new Error('Erro na resposta do servidor: ' + response.status);
-            }
-            return response.json();
-        })
-        .then(data => {
-            if (data.success) {
-                messageElement.innerHTML = `<div class="success">${data.message}</div>`;
-                // Limpar formulário após sucesso
-                recoveryForm.reset();
-                
-                // Fechar modal após 3 segundos
-                setTimeout(() => {
-                    modal.style.display = "none";
-                    messageElement.innerHTML = ''; // Limpar mensagem
-                }, 3000);
-            } else {
-                messageElement.innerHTML = `<div class="error">${data.message}</div>`;
-            }
-        })
-        .catch(error => {
-            console.error('Erro:', error);
-            messageElement.innerHTML = '<div class="error">Erro ao processar solicitação. Tente novamente.</div>';
         });
-    });
+        
+        console.log('📥 Resposta recebida:', response.status, response.statusText);
+        
+        if (!response.ok) {
+            const errorText = await response.text();
+            throw new Error(`Erro ${response.status}: ${errorText}`);
+        }
+        
+        const data = await response.json();
+        console.log('📊 Dados recebidos:', data);
+        
+        if (data.success) {
+            messageElement.innerHTML = `<div class="success">${data.message}</div>`;
+            recoveryForm.reset();
+            
+            setTimeout(() => {
+                modal.style.display = "none";
+                messageElement.innerHTML = '';
+            }, 3000);
+        } else {
+            messageElement.innerHTML = `<div class="error">${data.message}</div>`;
+        }
+    } catch (error) {
+        console.error('❌ Erro completo:', error);
+        messageElement.innerHTML = '<div class="error">Erro ao processar solicitação. Verifique o console para detalhes.</div>';
+    }
 }
 
 async function handleLogin(event, loginAlert) {
@@ -135,7 +177,6 @@ async function handleLogin(event, loginAlert) {
             body: JSON.stringify(loginData)
         });
 
-        // Verifica se a resposta é OK antes de tentar parsear JSON
         if (!response.ok) {
             const errorText = await response.text();
             throw new Error(`Erro HTTP ${response.status}: ${errorText}`);
@@ -144,7 +185,6 @@ async function handleLogin(event, loginAlert) {
         const data = await response.json();
 
         if (data.access_token) {
-            // Armazena o token no localStorage
             localStorage.setItem('access_token', data.access_token);
             exibirMensagem(loginAlert, "✅ Login bem-sucedido! Redirecionando...", "success");
             setTimeout(() => {
@@ -166,18 +206,28 @@ function exibirMensagem(elemento, mensagem, tipo) {
         return;
     }
     
-    elemento.innerHTML = ''; // Limpar conteúdo anterior
+    elemento.innerHTML = '';
     const messageDiv = document.createElement('div');
     messageDiv.textContent = mensagem;
     messageDiv.className = tipo;
     elemento.appendChild(messageDiv);
     elemento.style.display = "block";
     
-    // Auto-esconder mensagens de erro após 5 segundos
     if (tipo === 'error') {
         setTimeout(() => {
             elemento.style.display = "none";
             elemento.innerHTML = '';
         }, 5000);
+    }
+}
+
+// Função para testar a conexão com o backend
+async function testBackendConnection() {
+    try {
+        const response = await fetch('http://localhost:5000/auth/test');
+        const data = await response.json();
+        console.log('✅ Teste de conexão com backend:', data);
+    } catch (error) {
+        console.error('❌ Erro na conexão com backend:', error);
     }
 }
