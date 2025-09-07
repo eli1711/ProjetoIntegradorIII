@@ -111,6 +111,7 @@ async function testRecoveryRoute() {
 }
 
 // Função para enviar a requisição real
+// Função para enviar a requisição real
 async function sendRecoveryRequest(email, modal, messageElement, recoveryForm) {
     try {
         const response = await fetch('http://localhost:5000/auth/recuperar_senha', {
@@ -132,7 +133,8 @@ async function sendRecoveryRequest(email, modal, messageElement, recoveryForm) {
         console.log('📊 Dados recebidos:', data);
         
         if (data.success) {
-            messageElement.innerHTML = `<div class="success">${data.message}</div>`;
+            // ALERTA DE E-MAIL ENCONTRADO E ENVIADO
+            messageElement.innerHTML = `<div class="success">✅ ${data.message || 'E-mail encontrado! Link de recuperação enviado com sucesso.'}</div>`;
             recoveryForm.reset();
             
             setTimeout(() => {
@@ -140,11 +142,13 @@ async function sendRecoveryRequest(email, modal, messageElement, recoveryForm) {
                 messageElement.innerHTML = '';
             }, 3000);
         } else {
-            messageElement.innerHTML = `<div class="error">${data.message}</div>`;
+            // ALERTA DE E-MAIL NÃO ENCONTRADO
+            messageElement.innerHTML = `<div class="error">❌ ${data.message || 'Este e-mail não está cadastrado em nosso sistema.'}</div>`;
         }
     } catch (error) {
         console.error('❌ Erro completo:', error);
-        messageElement.innerHTML = '<div class="error">Erro ao processar solicitação. Verifique o console para detalhes.</div>';
+        // ALERTA DE ERRO NO PROCESSAMENTO
+        messageElement.innerHTML = '<div class="error">❌ Erro ao processar solicitação. Verifique o console para detalhes.</div>';
     }
 }
 
