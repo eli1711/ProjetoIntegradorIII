@@ -12,7 +12,7 @@ body {
     width: 350px;
     height: 450px;
     background-color: #ffffff;
-    border: 2px solid #004080;
+    border: 2px solid #941414;
     border-radius: 15px;
     box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
     display: flex;
@@ -23,7 +23,7 @@ body {
 }
 
 .chat-header {
-    background-color: #004080;
+    background-color: #9b0909;
     color: white;
     padding: 10px;
     text-align: center;
@@ -76,7 +76,7 @@ body {
 }
 
 .chat-input-area button {
-    background-color: #004080;
+    background-color: #b40a0a;
     color: white;
     border: none;
     padding: 8px 12px;
@@ -86,7 +86,7 @@ body {
 }
 
 .chat-input-area button:hover {
-    background-color: #003366;
+    background-color: #ac0c0c;
 }
 
 /* Botão flutuante */
@@ -94,7 +94,7 @@ body {
     position: fixed;
     bottom: 25px;
     right: 25px;
-    background-color: #004080;
+    background-color: #9d0a0a;
     color: white;
     font-size: 28px;
     width: 60px;
@@ -110,7 +110,7 @@ body {
 }
 
 #chatToggle:hover {
-    background-color: #003366;
+    background-color: #b00c12;
 }
 
 /* Container do chatbot */
@@ -121,7 +121,7 @@ body {
     width: 350px;
     height: 450px;
     background-color: #ffffff;
-    border: 2px solid #004080;
+    border: 2px solid #b70811;
     border-radius: 15px;
     box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
     display: flex;
@@ -138,7 +138,7 @@ body {
 
 /* Cabeçalho */
 .chat-header {
-    background-color: #004080;
+    background-color: #bd0303;
     color: white;
     padding: 10px;
     text-align: center;
@@ -208,7 +208,7 @@ body {
 }
 
 .chat-input-area button {
-    background-color: #004080;
+    background-color: #b90202;
     color: white;
     border: none;
     padding: 8px 12px;
@@ -219,7 +219,7 @@ body {
 }
 
 .chat-input-area button:hover {
-    background-color: #003366;
+    background-color: #b10101;
 }
 
 

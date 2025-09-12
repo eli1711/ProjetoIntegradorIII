@@ -153,35 +153,38 @@ footer {
 }
 
 /* Estilos do botão SAIR */
+/* Botão SAIR */
 .logout-btn {
-    position: fixed;
+    position: fixed;          
     top: 20px;
     right: 20px;
-    background-color: #ff0000;
-    color: #fff;
-    font-size: 1.2rem;
+    background: linear-gradient(135deg, #d62828, #a30000);
+    color: white;
+    font-weight: bold;
+    font-size: 16px;
     border: none;
-    border-radius: 50%; /* Tornando o botão redondo */
-    padding: 15px 20px;
+    border-radius: 10px;   /* deixa quadrado com cantos arredondados */
+    padding: 10px 25px;    /* espaço interno para caber bem o texto */
     cursor: pointer;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-    transition: all 0.3s ease-in-out;
-    z-index: 10; /* Garante que o botão fique acima de outros elementos */
+    text-align: center;    /* centraliza o texto */
+    box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+    transition: all 0.3s ease;
+    z-index: 10;
 }
 
 .logout-btn:hover {
-    background-color: #c40000;
-    transform: scale(1.1);
-    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3);
+    background: linear-gradient(135deg, #ff4741, #c40000);
+    transform: scale(1.05);
+    box-shadow: 0 6px 14px rgba(0,0,0,0.3);
 }
 
+
 .logout-btn:active {
-    transform: scale(1);
-    box-shadow: inset 0 4px 8px rgba(0, 0, 0, 0.2);
+    transform: scale(0.95); /* valor corrigido */
 }
 
 /* Ajustes responsivos para o botão */
-@media (max-width: 768px) {
+@media screen and (max-width: 768px) {
     .logout-btn {
         top: 10px;
         right: 10px;
@@ -189,23 +192,20 @@ footer {
         font-size: 1rem;
     }
 }
-.logout-btn {
-    position: fixed;
-    top: 20px;
-    right: 20px;
-    background-color: #c40000;
-    color: white;
-    border: none;
-    border-radius: 50%;
-    width: 50px;
-    height: 50px;
-    font-size: 1.2rem;
-    cursor: pointer;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-    transition: all 0.3s;
+
+/* garante que qualquer body::before antigo não atrapalhe */
+body::before { display: none !important; }
+
+/* elemento de fundo com a imagem (ajuste o caminho da imagem abaixo) */
+.page-bg {
+  position: fixed;
+  inset: 0; /* top:0; right:0; bottom:0; left:0; */
+  background-image: url("plano de fundo.jpg"); 
+  background-position: center;
+  background-size: cover;
+  background-repeat: no-repeat;
+  opacity: 0.12;         
+  pointer-events: none;   
 }
 
-.logout-btn:hover {
-    background-color: #a30000;
-    transform: scale(1.1);
-}
+

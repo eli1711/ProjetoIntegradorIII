@@ -6,7 +6,7 @@
 
 body {
     font-family: 'Open Sans', sans-serif;
-    background-color: #c40000;
+    background: linear-gradient(135deg, #c40000, #860000, #c32a2a);
     background-size: cover;
     background-repeat: no-repeat;
     background-attachment: fixed;
@@ -16,16 +16,23 @@ body {
     line-height: 1.6;
 }
 
+
 /* Container principal do login */
 .login-container {
     max-width: 480px;
     margin: 5% auto;
     padding: 3rem 2rem;
-    background: rgba(255, 255, 255, 0.95);
+    background: rgba(255, 255, 255, 0.85); 
     border: 2px solid #000283;
     border-radius: 15px;
-    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.15);
+
+    /* sombra 3D reforçada */
+    box-shadow: 
+        0 8px 20px rgba(0, 0, 0, 0.3), 
+        0 12px 40px rgba(0, 0, 0, 0.25); 
 }
+
+
 
 .login-header {
     text-align: center;
