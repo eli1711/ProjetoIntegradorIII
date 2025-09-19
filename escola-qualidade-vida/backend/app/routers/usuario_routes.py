@@ -39,3 +39,32 @@ def criar_usuario():
 @usuario_bp.route('/api/test', methods=['GET', 'POST'])
 def test_route():
     return jsonify({'message': 'Rota de teste funcionando!', 'method': request.method}), 200
+
+
+
+@usuario_bp.route('/api/usuarios', methods=['GET'])
+def listar_usuarios():
+    # Aqui você pode validar o token de autenticação e verificar se é coordenador
+    usuarios = Usuario.query.all()
+    resultado = [
+        {'id': u.id, 'nome': u.nome, 'email': u.email, 'cargo': u.cargo}
+        for u in usuarios
+    ]
+    return jsonify({'usuarios': resultado}), 200
+
+# Rota para atualizar cargo do usuário (somente coordenador)
+@usuario_bp.route('/api/usuarios/<int:user_id>', methods=['PUT'])
+def atualizar_usuario(user_id):
+    data = request.get_json()
+    novo_cargo = data.get('cargo')
+
+    if novo_cargo not in ['coordenador', 'administrador']:
+        return jsonify({'success': False, 'message': 'Cargo inválido'}), 400
+
+    usuario = Usuario.query.get(user_id)
+    if not usuario:
+        return jsonify({'success': False, 'message': 'Usuário não encontrado'}), 404
+
+    usuario.cargo = novo_cargo
+    db.session.commit()
+    return jsonify({'success': True, 'message': 'Cargo atualizado com sucesso'}), 200
