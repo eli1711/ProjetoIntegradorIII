@@ -1,103 +1,101 @@
 document.addEventListener("DOMContentLoaded", function () {
     const filtroAluno = document.getElementById("filtroAluno");
     const filtroCurso = document.getElementById("filtroCurso");
-    const suggestionsList = document.getElementById("suggestionsList");
-    const alerta = document.getElementById("alerta");
-    const tabela = document.getElementById("tabelaAlunos").getElementsByTagName("tbody")[0];
+    const filtroOcorrencia = document.getElementById("filtroTipoOcorrencia");
+    const filtroTurma = document.getElementById("filtroTurma");
+    const tabelaBody = document.getElementById("tabelaAlunos").getElementsByTagName("tbody")[0];
     const limparFiltrosBtn = document.getElementById("limparFiltrosBtn");
+    const alerta = document.getElementById("alerta");
 
-    filtroAluno.addEventListener("input", aplicarFiltro);
-    filtroAluno.addEventListener("change", aplicarFiltro);
-    filtroCurso.addEventListener("input", aplicarFiltro);
+    // Função "debounce" para evitar chamadas excessivas à API enquanto o usuário digita
+    function debounce(func, delay = 300) {
+        let timeout;
+        return function(...args) {
+            clearTimeout(timeout);
+            timeout = setTimeout(() => { func.apply(this, args); }, delay);
+        };
+    }
+
+    const debouncedAplicarFiltro = debounce(aplicarFiltro);
+
+    // Eventos que disparam a busca
+    filtroAluno.addEventListener("input", debouncedAplicarFiltro);
+    filtroCurso.addEventListener("input", debouncedAplicarFiltro);
+    filtroOcorrencia.addEventListener("change", aplicarFiltro); // 'change' é melhor para select
+    filtroTurma.addEventListener("input", debouncedAplicarFiltro);
     limparFiltrosBtn.addEventListener("click", limparFiltros);
 
-    // Função para aplicar filtros
+    // Função para aplicar os filtros e chamar a API
     async function aplicarFiltro() {
         const nome = filtroAluno.value.trim();
         const curso = filtroCurso.value.trim();
+        const ocorrencia = filtroOcorrencia.value.trim();
+        const turma = filtroTurma.value.trim();
 
-        // Verifica se algum filtro foi preenchido corretamente
-        if (nome.length < 3 && curso.length < 3) {
-            esconderSugestoes();
-            renderizarAlunos([]);  // Exibe tabela vazia se nenhum filtro válido
-            return;
-        }
+        const url = construirUrlComFiltros(nome, curso, ocorrencia, turma);
 
-        const url = construirUrlComFiltros(nome, curso);
         try {
-            const alunos = await obterDadosDaApi(url);
+            const response = await fetch(url);
+            if (!response.ok) {
+                throw new Error(`Erro na rede: ${response.statusText}`);
+            }
+            const alunos = await response.json();
             renderizarAlunos(alunos);
         } catch (error) {
-            exibirErro("Erro ao buscar alunos, tente novamente mais tarde.");
+            console.error("Falha ao buscar alunos:", error);
+            exibirErro("Erro ao se comunicar com o servidor.");
         }
     }
 
-    // Função para construir a URL de requisição com parâmetros
-    function construirUrlComFiltros(nome, curso) {
-        const url = new URL('http://localhost:5000/alunos/buscar');
+    // Constrói a URL da API garantindo que parâmetros vazios não sejam enviados
+    function construirUrlComFiltros(nome, curso, ocorrencia, turma) {
+        const baseUrl = 'http://localhost:5000/alunos/buscar';
         const params = new URLSearchParams();
 
-        // Só adiciona o parâmetro se ele não estiver vazio
         if (nome) params.append('nome', nome);
         if (curso) params.append('curso', curso);
+        if (ocorrencia) params.append('ocorrencia', ocorrencia);
+        if (turma) params.append('turma', turma);
 
-        // Se não houver filtros, retorna a URL sem parâmetros (opcional)
-        if (params.toString()) {
-            url.search = params.toString();
-        }
-
-        return url;
+        return `${baseUrl}?${params.toString()}`;
     }
 
-    // Função para fazer a requisição da API e obter os dados
-    async function obterDadosDaApi(url) {
-        const response = await fetch(url);
-        if (!response.ok) throw new Error(`Erro ao buscar alunos: ${response.statusText}`);
-        return response.json();
-    }
-
-    // Função para renderizar os alunos na tabela
+    // Renderiza os dados na tabela
     function renderizarAlunos(alunos) {
-        tabela.innerHTML = ''; // Limpar a tabela antes de adicionar novos dados
-        if (alunos.length === 0) {
-            exibirErro("Nenhum aluno encontrado.");
+        tabelaBody.innerHTML = '';
+        alerta.style.display = "none";
+
+        if (!alunos || alunos.length === 0) {
+            exibirErro("Nenhum aluno encontrado para os filtros informados.");
             return;
         }
 
         alunos.forEach(aluno => {
             const tr = document.createElement("tr");
-
-            // Dividindo o nome completo para separar nome e sobrenome
-            const nomeCompleto = aluno.nome.trim().split(" ");
-            const nome = nomeCompleto[0];  // Primeiro nome
-            const sobrenome = nomeCompleto.slice(1).join(" ");  // O restante é o sobrenome
-
-            // Criando o link com os parâmetros de nome e sobrenome
             tr.innerHTML = `
-                <td><a href="informacoesAluno.html?nome=${encodeURIComponent(nome)}&sobrenome=${encodeURIComponent(sobrenome)}">${aluno.nome}</a></td>
+                <td>${aluno.nome}</td>
                 <td>${aluno.curso}</td>
+                <td>${aluno.ocorrencia || 'N/A'}</td>
+                <td>${aluno.turma || 'N/A'}</td>
             `;
-            tabela.appendChild(tr);
+            tabelaBody.appendChild(tr);
         });
-
-        esconderSugestoes(); // Esconde as sugestões após exibir os resultados
     }
 
-    // Função para exibir mensagens de erro
     function exibirErro(mensagem) {
+        tabelaBody.innerHTML = '';
         alerta.textContent = mensagem;
         alerta.style.display = "block";
     }
 
-    // Função para esconder as sugestões
-    function esconderSugestoes() {
-        suggestionsList.style.display = "none";
-    }
-
-    // Função para limpar filtros
     function limparFiltros() {
         filtroAluno.value = "";
         filtroCurso.value = "";
-        aplicarFiltro(); // Atualizar a tabela ao limpar os filtros
+        filtroOcorrencia.value = "";
+        filtroTurma.value = "";
+        aplicarFiltro();
     }
+
+    // Carrega todos os alunos na primeira vez que a página abre
+    aplicarFiltro();
 });
