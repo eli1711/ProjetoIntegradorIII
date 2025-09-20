@@ -22,3 +22,20 @@ function logout() {
     // Redireciona para a página de login
     window.location.href = 'index.html';  // Redirecionamento para a página de login
 }
+
+document.addEventListener("DOMContentLoaded", async () => {
+  const userId = localStorage.getItem("user_id"); // salvo no login
+  const cargo = localStorage.getItem("cargo");
+
+  if (cargo === "administrador") {
+    const res = await fetch(`http://localhost:5000/usuarios/${userId}/permissoes`);
+    const permissoes = await res.json();
+
+    document.querySelectorAll("main .a").forEach(link => {
+      const id = link.id;
+      if (permissoes[id] === false) {
+        link.style.display = "none"; // 🔒 oculta link bloqueado
+      }
+    });
+  }
+});

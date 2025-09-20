@@ -68,3 +68,26 @@ def atualizar_usuario(user_id):
     usuario.cargo = novo_cargo
     db.session.commit()
     return jsonify({'success': True, 'message': 'Cargo atualizado com sucesso'}), 200
+
+
+@usuario_bp.route("/usuarios/<int:user_id>/permissoes", methods=["PUT"])
+def atualizar_permissoes(user_id):
+    data = request.json
+    usuario = Usuario.query.get(user_id)
+
+    if not usuario:
+        return jsonify({"error": "Usuário não encontrado"}), 404
+
+    usuario.permissoes = data.get("permissoes", {})
+    db.session.commit()
+
+    return jsonify({"message": "Permissões atualizadas com sucesso"}), 200
+
+
+# Rota para pegar permissões do usuário
+@usuario_bp.route("/usuarios/<int:user_id>/permissoes", methods=["GET"])
+def get_permissoes(user_id):
+    usuario = Usuario.query.get(user_id)
+    if not usuario:
+        return jsonify({"error": "Usuário não encontrado"}), 404
+    return jsonify(usuario.permissoes or {})

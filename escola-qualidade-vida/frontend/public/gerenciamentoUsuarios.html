@@ -19,6 +19,15 @@
                 <th>Cargo</th>
                 <th>Ações</th>
             </tr>
+            <td>
+  <div class="permissoes" data-user-id="${user.id}">
+    <label><input type="checkbox" data-link="cadastro-aluno"> Cadastro de Aluno</label>
+    <label><input type="checkbox" data-link="ocorrencias"> Ocorrências</label>
+    <label><input type="checkbox" data-link="relatorios"> Relatórios</label>
+    <label><input type="checkbox" data-link="historico"> Histórico</label>
+  </div>
+  <button class="salvarPermissoesBtn" data-user-id="${user.id}">Salvar</button>
+</td>
         </thead>
         <tbody>
             <!-- Usuários serão carregados aqui via JS -->

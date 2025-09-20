@@ -66,5 +66,5 @@ CREATE TABLE ocorrencias (
 );
 
 -- Inserção de dados na tabela usuarios
-INSERT INTO usuarios (id, nome, email, senha) VALUES
-(3, 'Eli', 'teste@teste.com', 'pbkdf2:sha256:1000000$0UEjXz4l8io6nCvF$d8454aec349e258788f491b54d199029ffcd3cecf19d9d8e50bf73ce39ed1e12');
+INSERT INTO usuarios (id, nome, email, senha, cargo) VALUES
+(3, 'Eli', 'teste@teste.com', 'pbkdf2:sha256:1000000$0UEjXz4l8io6nCvF$d8454aec349e258788f491b54d199029ffcd3cecf19d9d8e50bf73ce39ed1e12', 'coordenador');

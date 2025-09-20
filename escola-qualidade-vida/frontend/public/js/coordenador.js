@@ -87,3 +87,28 @@ document.addEventListener('DOMContentLoaded', function () {
     // Carregar usuários ao abrir a página
     carregarUsuarios();
 });
+
+
+document.addEventListener("DOMContentLoaded", () => {
+  const tabela = document.getElementById("usuariosTable");
+
+  tabela.addEventListener("click", async (e) => {
+    if (e.target.classList.contains("salvarPermissoesBtn")) {
+      const userId = e.target.getAttribute("data-user-id");
+      const container = document.querySelector(`.permissoes[data-user-id="${userId}"]`);
+      
+      const permissoes = {};
+      container.querySelectorAll("input[type=checkbox]").forEach(cb => {
+        permissoes[cb.dataset.link] = cb.checked;
+      });
+
+      await fetch(`http://localhost:5000/usuarios/${userId}/permissoes`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ permissoes })
+      });
+
+      alert("Permissões atualizadas!");
+    }
+  });
+});
