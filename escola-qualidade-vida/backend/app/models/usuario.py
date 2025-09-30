@@ -9,7 +9,7 @@ class Usuario(db.Model):
     email = db.Column(db.String(120), unique=True, nullable=False)
     senha = db.Column(db.String(255), nullable=False)
     cargo = db.Column(db.String(50), nullable=False, default='coordenador')
-    permissoes = db.Column(db.String(255))
+    permissoes = db.Column(db.Text, nullable=True)
 
     # Campos para recuperação de senha
     token_recuperacao = db.Column(db.String(255), nullable=True)

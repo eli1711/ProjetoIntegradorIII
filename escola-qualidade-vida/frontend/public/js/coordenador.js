@@ -1,3 +1,4 @@
+// js/coordenador.js
 document.addEventListener('DOMContentLoaded', function () {
 
     // Função para carregar usuários do backend
@@ -7,7 +8,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 method: 'GET',
                 headers: {
                     'Content-Type': 'application/json',
-                    'Cargo': 'coordenador' // 🔹 ADICIONADO: necessário para backend liberar a lista
+                    'Cargo': 'coordenador'
                 }
             });
 
@@ -28,9 +29,10 @@ document.addEventListener('DOMContentLoaded', function () {
         usuarios.forEach(user => {
             const tr = document.createElement('tr');
 
-            // 🔹 ADICIONADO: Preencher checkboxes de permissões com valores do usuário
-            const permissoes = user.permissoes || {};
-            
+            const permissoes = (typeof user.permissoes === 'string')
+                               ? JSON.parse(user.permissoes || "{}")
+                               : (user.permissoes || {});
+
             tr.innerHTML = `
                 <td>${user.id}</td>
                 <td>${user.nome}</td>
@@ -53,7 +55,7 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 
-    // Função para atualizar cargo do usuário
+    // Função para atualizar cargo do usuário (se necessário)
     async function atualizarCargo(event) {
         const userId = event.target.getAttribute('data-user-id');
         const select = document.querySelector(`select[data-user-id="${userId}"]`);
@@ -89,36 +91,47 @@ document.addEventListener('DOMContentLoaded', function () {
 
     // Carregar usuários ao abrir a página
     carregarUsuarios();
-});
 
+    // ---------------- PERMISSÕES -----------------
+    const tabela = document.getElementById("usuariosTable");
 
-// ---------------- PERMISSÕES -----------------
-document.addEventListener("DOMContentLoaded", () => {
-  const tabela = document.getElementById("usuariosTable");
+    tabela.addEventListener("click", async (e) => {
+        if (e.target.classList.contains("salvarPermissoesBtn")) {
+            const userId = e.target.getAttribute("data-user-id");
+            const container = document.querySelector(`.permissoes[data-user-id="${userId}"]`);
+            
+            const permissoes = {};
+            container.querySelectorAll("input[type=checkbox]").forEach(cb => {
+                permissoes[cb.dataset.link] = cb.checked;
+                console.log(`Permissão ${cb.dataset.link}: ${cb.checked}`); // DEBUG
+            });
 
-  tabela.addEventListener("click", async (e) => {
-    if (e.target.classList.contains("salvarPermissoesBtn")) {
-      const userId = e.target.getAttribute("data-user-id");
-      const container = document.querySelector(`.permissoes[data-user-id="${userId}"]`);
-      
-      const permissoes = {};
-      container.querySelectorAll("input[type=checkbox]").forEach(cb => {
-        permissoes[cb.dataset.link] = cb.checked;
-      });
+            try {
+                console.log('Enviando permissões:', permissoes); // DEBUG
+                const response = await fetch(`http://localhost:5000/usuarios/${userId}/permissoes`, {
+                    method: "PUT",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ permissoes })
+                });
 
-      try {
-        const response = await fetch(`http://localhost:5000/usuarios/${userId}/permissoes`, {
-          method: "PUT",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ permissoes })
-        });
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    throw new Error("Erro ao salvar permissões: " + errorText);
+                }
 
-        if (!response.ok) throw new Error("Erro ao salvar permissões");
+                const result = await response.json();
+                console.log('Resposta do servidor:', result); // DEBUG
+                exibirMensagem("Permissões atualizadas com sucesso!", "success");
+                
+                // Recarrega a página após 2 segundos para aplicar as mudanças
+                setTimeout(() => {
+                    carregarUsuarios();
+                }, 2000);
 
-        alert("Permissões atualizadas!");
-      } catch (err) {
-        alert("Erro: " + err.message);
-      }
-    }
-  });
+            } catch (err) {
+                console.error('Erro detalhado:', err);
+                exibirMensagem("Erro ao salvar permissões: " + err.message, "error");
+            }
+        }
+    });
 });
