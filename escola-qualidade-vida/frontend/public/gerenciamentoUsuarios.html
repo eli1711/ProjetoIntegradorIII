@@ -7,34 +7,27 @@
     <link rel="stylesheet" href="./css/coordenador.css">
 </head>
 <body>
-    <h1>Painel do Coordenador</h1>
-    <p>Visualize todos os usuários e gerencie seus acessos.</p>
+    <div class="container">
+        <h1>Painel do Coordenador</h1>
+        <p>Visualize os administradores e gerencie suas permissões.</p>
 
-    <table id="usuariosTable">
-        <thead>
-            <tr>
-                <th>ID</th>
-                <th>Nome</th>
-                <th>Email</th>
-                <th>Cargo</th>
-                <th>Ações</th>
-            </tr>
-            <td>
-  <div class="permissoes" data-user-id="${user.id}">
-    <label><input type="checkbox" data-link="cadastro-aluno"> Cadastro de Aluno</label>
-    <label><input type="checkbox" data-link="ocorrencias"> Ocorrências</label>
-    <label><input type="checkbox" data-link="relatorios"> Relatórios</label>
-    <label><input type="checkbox" data-link="historico"> Histórico</label>
-  </div>
-  <button class="salvarPermissoesBtn" data-user-id="${user.id}">Salvar</button>
-</td>
-        </thead>
-        <tbody>
-            <!-- Usuários serão carregados aqui via JS -->
-        </tbody>
-    </table>
+        <table id="usuariosTable">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Nome</th>
+                    <th>Email</th>
+                    <th>Cargo</th>
+                    <th>Permissões</th>
+                </tr>
+            </thead>
+            <tbody>
+                <!-- Usuários via JS -->
+            </tbody>
+        </table>
 
-    <div id="message" class="message"></div>
+        <div id="message" class="message"></div>
+    </div>
 
     <script src="./js/coordenador.js"></script>
 </body>

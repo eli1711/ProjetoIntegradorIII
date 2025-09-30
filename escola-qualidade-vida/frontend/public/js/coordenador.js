@@ -6,7 +6,8 @@ document.addEventListener('DOMContentLoaded', function () {
             const response = await fetch('http://localhost:5000/api/usuarios', {
                 method: 'GET',
                 headers: {
-                    'Content-Type': 'application/json'
+                    'Content-Type': 'application/json',
+                    'Cargo': 'coordenador' // 🔹 ADICIONADO: necessário para backend liberar a lista
                 }
             });
 
@@ -19,7 +20,7 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     }
 
-    // Função para preencher a tabela com os usuários
+    // Função para preencher a tabela com os usuários (somente administradores)
     function preencherTabela(usuarios) {
         const tbody = document.querySelector('#usuariosTable tbody');
         tbody.innerHTML = '';
@@ -27,26 +28,28 @@ document.addEventListener('DOMContentLoaded', function () {
         usuarios.forEach(user => {
             const tr = document.createElement('tr');
 
+            // 🔹 ADICIONADO: Preencher checkboxes de permissões com valores do usuário
+            const permissoes = user.permissoes || {};
+            
             tr.innerHTML = `
                 <td>${user.id}</td>
                 <td>${user.nome}</td>
                 <td>${user.email}</td>
                 <td>${user.cargo}</td>
                 <td>
-                    <select data-user-id="${user.id}" class="cargoSelect">
-                        <option value="coordenador" ${user.cargo === 'coordenador' ? 'selected' : ''}>Coordenador</option>
-                        <option value="administrador" ${user.cargo === 'administrador' ? 'selected' : ''}>Administrador</option>
-                    </select>
-                    <button data-user-id="${user.id}" class="atualizarBtn">Atualizar</button>
+                    <div class="permissoes" data-user-id="${user.id}">
+                        <label><input type="checkbox" data-link="cadastro-aluno" ${permissoes['cadastro-aluno'] ? 'checked' : ''}> Cadastro de Aluno</label>
+                        <label><input type="checkbox" data-link="ocorrencias" ${permissoes['ocorrencias'] ? 'checked' : ''}> Ocorrências</label>
+                        <label><input type="checkbox" data-link="relatorios" ${permissoes['relatorios'] ? 'checked' : ''}> Relatórios</label>
+                        <label><input type="checkbox" data-link="historico" ${permissoes['historico'] ? 'checked' : ''}> Histórico</label>
+                    </div>
+                    <button class="salvarPermissoesBtn btn btn-sm btn-primary" data-user-id="${user.id}">
+                        Salvar Permissões
+                    </button>
                 </td>
             `;
 
             tbody.appendChild(tr);
-        });
-
-        // Adicionar evento aos botões atualizar
-        document.querySelectorAll('.atualizarBtn').forEach(btn => {
-            btn.addEventListener('click', atualizarCargo);
         });
     }
 
@@ -89,6 +92,7 @@ document.addEventListener('DOMContentLoaded', function () {
 });
 
 
+// ---------------- PERMISSÕES -----------------
 document.addEventListener("DOMContentLoaded", () => {
   const tabela = document.getElementById("usuariosTable");
 
@@ -102,13 +106,19 @@ document.addEventListener("DOMContentLoaded", () => {
         permissoes[cb.dataset.link] = cb.checked;
       });
 
-      await fetch(`http://localhost:5000/usuarios/${userId}/permissoes`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ permissoes })
-      });
+      try {
+        const response = await fetch(`http://localhost:5000/usuarios/${userId}/permissoes`, {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ permissoes })
+        });
 
-      alert("Permissões atualizadas!");
+        if (!response.ok) throw new Error("Erro ao salvar permissões");
+
+        alert("Permissões atualizadas!");
+      } catch (err) {
+        alert("Erro: " + err.message);
+      }
     }
   });
 });

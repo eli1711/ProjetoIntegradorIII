@@ -5,8 +5,8 @@ from app.models.usuario import Usuario
 
 usuario_bp = Blueprint('usuario_bp', __name__)
 
-# VERIFIQUE se esta rota está EXATAMENTE assim:
-@usuario_bp.route('/api/criar_usuario', methods=['POST'])  # methods=['POST'] é CRÍTICO
+# Criar usuário
+@usuario_bp.route('/api/criar_usuario', methods=['POST'])
 def criar_usuario():
     try:
         data = request.get_json()
@@ -35,24 +35,36 @@ def criar_usuario():
     except Exception as e:
         return jsonify({'success': False, 'message': str(e)}), 500
 
-# ADICIONE esta rota de teste para verificar se o blueprint está registrado
+
+# Rota de teste
 @usuario_bp.route('/api/test', methods=['GET', 'POST'])
 def test_route():
     return jsonify({'message': 'Rota de teste funcionando!', 'method': request.method}), 200
 
 
-
+# Listar usuários (somente coordenador pode ver)
 @usuario_bp.route('/api/usuarios', methods=['GET'])
 def listar_usuarios():
-    # Aqui você pode validar o token de autenticação e verificar se é coordenador
+    cargo_usuario = request.headers.get("Cargo")  # <- Simples checagem
+
+    if cargo_usuario != "coordenador":
+        return jsonify({'success': False, 'message': 'Acesso negado'}), 403
+
     usuarios = Usuario.query.all()
     resultado = [
-        {'id': u.id, 'nome': u.nome, 'email': u.email, 'cargo': u.cargo}
-        for u in usuarios
+        {
+            'id': u.id,
+            'nome': u.nome,
+            'email': u.email,
+            'cargo': u.cargo,
+            'permissoes': u.permissoes or {}  # 🔹 ADICIONADO: retorna permissões
+        }
+        for u in usuarios if u.cargo != 'coordenador'  # 🔹 Não mostra coordenadores
     ]
     return jsonify({'usuarios': resultado}), 200
 
-# Rota para atualizar cargo do usuário (somente coordenador)
+
+# Atualizar cargo
 @usuario_bp.route('/api/usuarios/<int:user_id>', methods=['PUT'])
 def atualizar_usuario(user_id):
     data = request.get_json()
@@ -70,6 +82,7 @@ def atualizar_usuario(user_id):
     return jsonify({'success': True, 'message': 'Cargo atualizado com sucesso'}), 200
 
 
+# Atualizar permissões
 @usuario_bp.route("/usuarios/<int:user_id>/permissoes", methods=["PUT"])
 def atualizar_permissoes(user_id):
     data = request.json
@@ -84,7 +97,7 @@ def atualizar_permissoes(user_id):
     return jsonify({"message": "Permissões atualizadas com sucesso"}), 200
 
 
-# Rota para pegar permissões do usuário
+# Obter permissões
 @usuario_bp.route("/usuarios/<int:user_id>/permissoes", methods=["GET"])
 def get_permissoes(user_id):
     usuario = Usuario.query.get(user_id)
