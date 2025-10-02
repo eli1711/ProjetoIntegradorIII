@@ -1,73 +1,73 @@
-from flask import Blueprint, request, jsonify
-from sqlalchemy.orm import joinedload
-from app.models.aluno import Aluno
-from app.models.ocorrencia import Ocorrencia  # Importando o modelo Ocorrencia
-from app.models.curso import Curso
+# consulta_aluno.py
 
-consulta_aluno_bp = Blueprint('consulta_aluno', __name__)
+from flask import Blueprint, request, jsonify
+from sqlalchemy import func
+from app.models.aluno import Aluno
+from app.models.ocorrencia import Ocorrencia
+from app.models.curso import Curso
+from app.models.turma import Turma # Supondo que você tenha um modelo Turma
+
+consulta_aluno_bp = Blueprint('consulta_aluno', __name__, url_prefix='/alunos')
 
 @consulta_aluno_bp.route('/buscar', methods=['GET'])
-def buscar_alunos():
-    aluno_id = request.args.get('id', None)
+def buscar_alunos_com_filtros():
+    # 1. Captura todos os parâmetros da URL
     nome = request.args.get('nome', '').strip()
+    curso_nome = request.args.get('curso', '').strip()
+    ocorrencia_tipo = request.args.get('ocorrencia', '').strip()
+    turma_nome = request.args.get('turma', '').strip()
 
-    # Se o ID do aluno for fornecido, busca por ID
-    if aluno_id:
-        aluno = Aluno.query.options(joinedload(Aluno.curso)).get(aluno_id)  # Usando joinedload para otimizar
-        if not aluno:
-            return jsonify({"erro": "Aluno não encontrado."}), 404
+    try:
+        # 2. Inicia a query base. Usamos 'distinct' para evitar duplicatas 
+        #    quando um aluno tem múltiplas ocorrências do mesmo tipo.
+        query = Aluno.query.distinct(Aluno.id)
 
-        # Coleta as ocorrências do aluno
-        ocorrencias = Ocorrencia.query.filter_by(aluno_id=aluno.id).all()
+        # 3. Adiciona os filtros dinamicamente
+        
+        # Filtro por Nome do Aluno
+        if nome:
+            # ilike faz a busca ser "case-insensitive" (não diferencia maiúsculas de minúsculas)
+            query = query.filter(func.concat(Aluno.nome, ' ', Aluno.sobrenome).ilike(f'%{nome}%'))
 
-        aluno_data = {
-            'id': aluno.id,
-            'nome': f'{aluno.nome} {aluno.sobrenome}',
-            'endereco': f'{aluno.rua}, {aluno.bairro}, {aluno.cidade}',
-            'idade': aluno.idade,
-            'empregado': aluno.empregado,
-            'mora_com_quem': aluno.mora_com_quem,
-            'sobre_aluno': aluno.sobre_aluno,
-            'foto': aluno.foto if aluno.foto else 'Foto não disponível',
-            'responsavel_nome': aluno.responsavel_nome or 'Não informado',
-            'curso': aluno.curso.nome if aluno.curso else 'Curso não informado',
-            'ocorrencias': [{
-                'data_ocorrencia': ocorrencia.data_ocorrencia,
-                'tipo': ocorrencia.tipo,
-                'descricao': ocorrencia.descricao
-            } for ocorrencia in ocorrencias]
-        }
-        return jsonify(aluno_data)
+        # Filtro por Curso
+        if curso_nome:
+            # Usa 'join' para conectar Aluno com Curso e filtrar pelo nome do curso
+            query = query.join(Curso).filter(Curso.nome.ilike(f'%{curso_nome}%'))
+        
+        # Filtro por Turma
+        if turma_nome:
+            # Usa 'join' para conectar Aluno com Turma e filtrar pelo nome da turma
+            # Nota: Isso assume que você tem um modelo 'Turma' e uma relação em 'Aluno'
+            query = query.join(Turma).filter(Turma.nome.ilike(f'%{turma_nome}%'))
 
-    # Se o nome for fornecido, busca por nome
-    if nome:
-        alunos = Aluno.query.filter(Aluno.nome.ilike(f'%{nome}%')).all()
+        # Filtro por Tipo de Ocorrência
+        if ocorrencia_tipo:
+            # Usa 'join' para conectar Aluno com Ocorrencia e filtrar pelo tipo
+            query = query.join(Ocorrencia).filter(Ocorrencia.tipo.ilike(f'%{ocorrencia_tipo}%'))
+
+        # 4. Executa a query final
+        alunos_filtrados = query.all()
+
+        # 5. Formata o resultado para enviar como JSON
         resultado = []
-
-        for a in alunos:
-            # Coleta as ocorrências do aluno
-            ocorrencias = Ocorrencia.query.filter_by(aluno_id=a.id).all()
-
-            aluno_data = {
-                'id': a.id,
-                'nome': f'{a.nome} {a.sobrenome}',
-                'endereco': f'{a.rua}, {a.bairro}, {a.cidade}',
-                'idade': a.idade,
-                'empregado': a.empregado,
-                'mora_com_quem': a.mora_com_quem,
-                'sobre_aluno': a.sobre_aluno,
-                'foto': a.foto if a.foto else 'Foto não disponível',
-                'responsavel_nome': a.responsavel_nome or 'Não informado',
-                'curso': a.curso.nome if a.curso else 'Curso não informado',
-                'ocorrencias': [{
-                    'data_ocorrencia': ocorrencia.data_ocorrencia,
-                    'tipo': ocorrencia.tipo,
-                    'descricao': ocorrencia.descricao
-                } for ocorrencia in ocorrencias]
-            }
-            resultado.append(aluno_data)
+        for aluno in alunos_filtrados:
+            ocorrencias_do_aluno = [{
+                'data_ocorrencia': oc.data_ocorrencia.isoformat() if oc.data_ocorrencia else None,
+                'tipo': oc.tipo,
+                'descricao': oc.descricao
+            } for oc in aluno.ocorrencias]
+            
+            resultado.append({
+                'id': aluno.id,
+                'nome': f'{aluno.nome} {aluno.sobrenome}',
+                'curso': aluno.curso.nome if aluno.curso else 'N/A',
+                'turma': aluno.turma.nome if hasattr(aluno, 'turma') and aluno.turma else 'N/A', # Exemplo
+                'ocorrencias': ocorrencias_do_aluno, # Retorna a lista de ocorrências
+            })
 
         return jsonify(resultado)
 
-    # Se nenhum parâmetro for fornecido, retorna uma lista vazia
-    return jsonify([])
+    except Exception as e:
+        # Em caso de erro, retorna uma mensagem clara
+        print(f"Erro na busca: {e}") # Log do erro no console do servidor
+        return jsonify({"erro": "Ocorreu um erro ao processar a busca.", "detalhes": str(e)}), 500

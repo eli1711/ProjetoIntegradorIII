@@ -60,7 +60,7 @@ document.addEventListener("DOMContentLoaded", function () {
         return `${baseUrl}?${params.toString()}`;
     }
 
-    // Renderiza os dados na tabela
+     // Renderiza os dados na tabela
     function renderizarAlunos(alunos) {
         tabelaBody.innerHTML = '';
         alerta.style.display = "none";
@@ -72,12 +72,25 @@ document.addEventListener("DOMContentLoaded", function () {
 
         alunos.forEach(aluno => {
             const tr = document.createElement("tr");
+            
+            // AJUSTE AQUI: Mostra a contagem de ocorrências
+            const totalOcorrencias = aluno.ocorrencias ? aluno.ocorrencias.length : 0;
+
             tr.innerHTML = `
                 <td>${aluno.nome}</td>
-                <td>${aluno.curso}</td>
-                <td>${aluno.ocorrencia || 'N/A'}</td>
+                <td>${aluno.curso || 'N/A'}</td>
+                <td>${totalOcorrencias}</td> 
                 <td>${aluno.turma || 'N/A'}</td>
             `;
+            
+            // Adicione um evento de clique para abrir o modal com detalhes
+            tr.addEventListener('click', () => {
+                // Aqui você pode chamar uma função para buscar os detalhes completos do aluno
+                // e preencher aquele modal que você já tem no HTML.
+                console.log('Abrir detalhes para o aluno ID:', aluno.id);
+                // Exemplo: abrirModalComDetalhes(aluno.id);
+            });
+
             tabelaBody.appendChild(tr);
         });
     }
