@@ -1,21 +1,15 @@
-// @ts-nocheck
-
-// Aguarda o DOM carregar completamente
 document.addEventListener('DOMContentLoaded', function() {
-    // Função que será chamada quando o formulário for enviado
     const form = document.getElementById("userForm");
     
     if (form) {
         form.addEventListener("submit", function(event) {
-            event.preventDefault(); // Impede o envio tradicional do formulário
+            event.preventDefault();
 
-            // Coleta os valores dos campos
             const nome = document.getElementById("nome").value;
             const email = document.getElementById("email").value;
             const senha = document.getElementById("senha").value;
             const cargo = document.getElementById("cargo").value;
 
-            // Fazendo a requisição para o backend Flask
             fetch('http://localhost:5000/api/criar_usuario', {
                 method: 'POST',
                 headers: {
@@ -25,16 +19,14 @@ document.addEventListener('DOMContentLoaded', function() {
                     nome: nome,
                     email: email,
                     senha: senha,
-                    cargo: cargo // Campo cargo adicionado
+                    cargo: cargo
                 })
             })
             .then(response => response.json())
             .then(data => {
-                // Exibe a mensagem de sucesso ou erro
                 const messageElement = document.getElementById('message');
                 if (data.success) {
                     messageElement.innerHTML = `<div class="success">${data.message}</div>`;
-                    // Limpa o formulário após sucesso
                     form.reset();
                 } else {
                     messageElement.innerHTML = `<div class="error">${data.message}</div>`;
