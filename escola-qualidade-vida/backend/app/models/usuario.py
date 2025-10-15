@@ -13,13 +13,5 @@ class Usuario(db.Model):
     token_recuperacao = db.Column(db.String(255), nullable=True)
     token_expiracao = db.Column(db.DateTime, nullable=True)
 
-    # Permissões
-    criar_aluno = db.Column(db.Boolean, nullable=False, default=False)
-    ocorrencias = db.Column(db.Boolean, nullable=False, default=False)
-    relatorios = db.Column(db.Boolean, nullable=False, default=False)
-    historico = db.Column(db.Boolean, nullable=False, default=False)
-    criar_usuario = db.Column(db.Boolean, nullable=False, default=False)
-    gerenciamento_usuarios = db.Column(db.Boolean, nullable=False, default=False)
-
     def __repr__(self):
         return f'<Usuario {self.nome}>'

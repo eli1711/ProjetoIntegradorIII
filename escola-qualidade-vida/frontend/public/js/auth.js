@@ -111,7 +111,6 @@ async function testRecoveryRoute() {
 }
 
 // Função para enviar a requisição real
-// Função para enviar a requisição real
 async function sendRecoveryRequest(email, modal, messageElement, recoveryForm) {
     try {
         const response = await fetch('http://localhost:5000/auth/recuperar_senha', {
@@ -190,6 +189,9 @@ async function handleLogin(event, loginAlert) {
 
         if (data.access_token) {
             localStorage.setItem('access_token', data.access_token);
+            localStorage.setItem('user_id', data.user_id);
+            localStorage.setItem('cargo', data.cargo);
+            
             exibirMensagem(loginAlert, "✅ Login bem-sucedido! Redirecionando...", "success");
             setTimeout(() => {
                 window.location.href = 'principal.html';

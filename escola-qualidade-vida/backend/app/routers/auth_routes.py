@@ -34,9 +34,13 @@ def login():
     if not check_password_hash(usuario.senha, senha):
         return jsonify({"erro": "Credenciais inválidas"}), 401
 
-    # Gera token JWT de acesso
+    # Gera token JWT de acesso e retorna cargo
     access_token = create_access_token(identity=usuario.id)
-    return jsonify(access_token=access_token), 200
+    return jsonify({
+        'access_token': access_token,
+        'user_id': usuario.id,
+        'cargo': usuario.cargo
+    }), 200
 
 @auth_bp.route('/recuperar_senha', methods=['POST', 'OPTIONS'])
 @cross_origin()

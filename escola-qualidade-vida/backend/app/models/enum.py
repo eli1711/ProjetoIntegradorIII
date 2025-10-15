@@ -5,6 +5,9 @@ class Cargo(Enum):
     COORDENADOR = "coordenador"
     ANALISTA = "analista"
 
-# Exemplo de uso:
-usuario_cargo = Cargo.ADMINISTRADOR
-print(usuario_cargo.value)  # saída: administrador
+    @classmethod
+    def from_str(cls, valor):
+        for cargo in cls:
+            if cargo.value == valor:
+                return cargo
+        raise ValueError(f"Cargo inválido: {valor}")
