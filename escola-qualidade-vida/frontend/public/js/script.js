@@ -1,62 +1,50 @@
-document.addEventListener('DOMContentLoaded', async function () {
+document.addEventListener('DOMContentLoaded', function () {
+
     const logoutBtn = document.getElementById('logoutBtn');
 
-    // Verifica se o usuário está logado
-    if (!localStorage.getItem('access_token')) {
+    // ------------------- CHECA LOGIN E CARGO -------------------
+    const token = localStorage.getItem('access_token');
+    const cargo = localStorage.getItem('cargo');
+
+    if (!token || !cargo) {
+        // Usuário não logado, redireciona para login
         window.location.href = 'index.html';
         return;
     }
 
-    // Função de logout
+    // ------------------- LOGOUT -------------------
     logoutBtn && logoutBtn.addEventListener('click', logout);
 
+    // ------------------- MAPA DE LINKS -------------------
+    // IDs dos botões ou links na página principal
+    const mapeamento_links = {
+        'link-cadastro-aluno': 'cadastro_aluno',
+        'link-ocorrencias': 'ocorrencias', 
+        'link-relatorios': 'relatorios',
+        'link-historico': 'historico',
+        'link-criar-usuario': 'criar_usuario',
+        'link-gerenciar-usuarios': 'gerenciar_usuarios'
+    };
+
     // ------------------- BLOQUEIO DE LINKS POR CARGO -------------------
-    try {
-        const cargo = localStorage.getItem('cargo');
-        console.log('Cargo do usuário:', cargo); // DEBUG
+    Object.keys(mapeamento_links).forEach(linkId => {
+        const link = document.getElementById(linkId);
+        if (link) {
+            const pagina = mapeamento_links[linkId];
+            const temAcesso = verificarAcessoLocal(cargo, pagina);
 
-        if (!cargo) {
-            console.error('Cargo não encontrado no localStorage');
-            return;
-        }
-
-        // Mapeamento de IDs dos links para as páginas
-        const mapeamento_links = {
-            'link-cadastro-aluno': 'cadastro_aluno',
-            'link-ocorrencias': 'ocorrencias', 
-            'link-relatorios': 'relatorios',
-            'link-historico': 'historico',
-            'link-criar-usuario': 'criar_usuario',
-            'link-gerenciar-usuarios': 'gerenciar_usuarios'
-        };
-
-        console.log('Aplicando restrições para cargo:', cargo);
-
-        // Para cada link, verificar se o cargo tem permissão
-        Object.keys(mapeamento_links).forEach(linkId => {
-            const link = document.getElementById(linkId);
-            if (link) {
-                const pagina = mapeamento_links[linkId];
-                const temAcesso = verificarAcessoLocal(cargo, pagina);
-                
-                console.log(`Link ${linkId} (${pagina}): ${temAcesso ? 'PERMITIDO' : 'BLOQUEADO'}`);
-                
-                if (!temAcesso) {
-                    link.style.display = 'none';
-                } else {
-                    link.style.display = 'block'; // Garante que está visível se tem acesso
-                }
-            } else {
-                console.warn(`Link não encontrado: ${linkId}`);
+            if (!temAcesso) {
+                // Bloqueia clique e avisa o usuário
+                link.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    alert('Você não tem permissão para acessar esta página!');
+                });
             }
-        });
-
-    } catch (err) {
-        console.error('Erro verificando permissões:', err);
-    }
+        }
+    });
 });
 
-// Função local para verificar acesso
+// ------------------- FUNÇÃO DE VERIFICAÇÃO DE PERMISSÕES -------------------
 function verificarAcessoLocal(cargo, pagina) {
     const permissoes = {
         'administrador': {
@@ -69,7 +57,7 @@ function verificarAcessoLocal(cargo, pagina) {
         },
         'coordenador': {
             'cadastro_aluno': false,
-            'ocorrencias': false, 
+            'ocorrencias': true, 
             'relatorios': true,
             'historico': true,
             'criar_usuario': false,
@@ -85,7 +73,6 @@ function verificarAcessoLocal(cargo, pagina) {
         }
     };
     
-    // Verifica se o cargo existe e se a página tem permissão definida
     if (permissoes[cargo] && permissoes[cargo].hasOwnProperty(pagina)) {
         return permissoes[cargo][pagina];
     }
@@ -94,7 +81,7 @@ function verificarAcessoLocal(cargo, pagina) {
     return false;
 }
 
-// Função de logout
+// ------------------- FUNÇÃO DE LOGOUT -------------------
 function logout() {
     localStorage.removeItem('access_token');
     localStorage.removeItem('user_id');

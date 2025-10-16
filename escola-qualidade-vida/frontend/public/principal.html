@@ -14,139 +14,58 @@
         <h1>Qualidade de Vida Escolar</h1>
     </header>
 
-
     <main class="container">
-    <a class="a" id="cadastro-aluno" href="./cadastroAluno.html">
-        <h2>Cadastro de Aluno</h2>
-        <p>Formulário para cadastro de novos alunos no sistema do departamento.</p>
-    </a>
+        <!-- IDs ajustados para combinar com o script.js -->
+        <a class="a" id="link-cadastro-aluno" href="./cadastroAluno.html">
+            <h2>Cadastro de Aluno</h2>
+            <p>Formulário para cadastro de novos alunos no sistema do departamento.</p>
+        </a>
 
-    <a class="a" id="ocorrencias" href="./ocorrencias.html">
-        <h2>Ocorrências</h2>
-        <p>Registro e acompanhamento de ocorrências envolvendo alunos.</p>
-    </a>
+        <a class="a" id="link-ocorrencias" href="./ocorrencias.html">
+            <h2>Ocorrências</h2>
+            <p>Registro e acompanhamento de ocorrências envolvendo alunos.</p>
+        </a>
 
-    <a class="a" id="relatorios" href="./relatorios.html">
-        <h2>Relatórios</h2>
-        <p>Visualização e geração de relatórios sobre atividades e ocorrências.</p>
-    </a>
+        <a class="a" id="link-relatorios" href="./relatorios.html">
+            <h2>Relatórios</h2>
+            <p>Visualização e geração de relatórios sobre atividades e ocorrências.</p>
+        </a>
 
-    <a class="a" id="historico" href="./historico.html">
-        <h2>Histórico</h2>
-        <p>Monitoramento do progresso e bem-estar dos alunos.</p>
-    </a>
+        <a class="a" id="link-historico" href="./historico.html">
+            <h2>Histórico</h2>
+            <p>Monitoramento do progresso e bem-estar dos alunos.</p>
+        </a>
 
-    <a class="a" id="criar-usuario" href="./criar_usuario.html">
-        <h2>Criar Usuario</h2>
-        <p>Monitoramento do progresso e bem-estar dos alunos.</p>
-    </a>
+        <a class="a" id="link-criar-usuario" href="./criar_usuario.html">
+            <h2>Criar Usuario</h2>
+            <p>Monitoramento do progresso e bem-estar dos alunos.</p>
+        </a>
 
-    <a class="a" id="gerenciamento-usuarios" href="./gerenciamentoUsuarios.html">
-        <h2>Gerenciamento de Usuarios</h2>
-        <p>Gerencie permissões dos administradores (somente coordenador).</p>
-    </a>
-</main>
+        <a class="a" id="link-gerenciar-usuarios" href="./gerenciamentoUsuarios.html">
+            <h2>Gerenciamento de Usuarios</h2>
+            <p>Gerencie permissões dos administradores (somente coordenador).</p>
+        </a>
+    </main>
 
+    <!-- Chatbot Container -->
+    <div id="chatToggle" onclick="toggleChatbot()">💬</div>
 
-        <!-- Chatbot Container -->
-<!-- Botão Flutuante de Chat -->
-<div id="chatToggle" onclick="toggleChatbot()">💬</div>
-
-<!-- Janela do Chatbot -->
-<div id="chatbotContainer" class="chatbot-container hidden">
-    <div class="chat-header">
-    <span id="chatClose" onclick="toggleChatbot()">✖</span>
-    <span style="display: block; text-align: center;">Assistente Virtual</span>
-</div>
-    
-
-    <div class="chat-messages" id="chatMessages">
-        <div class="bot-message">Olá! Como posso te ajudar hoje?</div>
+    <div id="chatbotContainer" class="chatbot-container hidden">
+        <div class="chat-header">
+            <span id="chatClose" onclick="toggleChatbot()">✖</span>
+            <span style="display: block; text-align: center;">Assistente Virtual</span>
+        </div>
+        <div class="chat-messages" id="chatMessages">
+            <div class="bot-message">Olá! Como posso te ajudar hoje?</div>
+        </div>
+        <div class="chat-input-area">
+            <div class="input-top">
+                <textarea id="messageInput" placeholder="Digite sua mensagem..."></textarea>
+                <button onclick="sendMessage()">Enviar</button>
+            </div>
+            <button id="toggleNarratorBtn" onclick="toggleNarrator()">Narrador: Ligado</button>
+        </div>
     </div>
-
- <div class="chat-input-area">
-    <div class="input-top">
-        <textarea id="messageInput" placeholder="Digite sua mensagem..."></textarea>
-        <button onclick="sendMessage()">Enviar</button>
-    </div>
-    <button id="toggleNarratorBtn" onclick="toggleNarrator()">Narrador: Ligado</button>
-</div>
-
-
-</div>
-
-<script>
-    let narradorLigado = true;
-
-    function toggleChatbot() {
-        const chatbot = document.getElementById('chatbotContainer');
-        chatbot.classList.toggle('hidden');
-    }
-
-    function toggleNarrator() {
-        narradorLigado = !narradorLigado;
-        document.getElementById('toggleNarratorBtn').textContent = narradorLigado ? 'Narrador: Ligado' : 'Narrador: Desligado';
-    }
-
-    function speak(text) {
-        if (narradorLigado && 'speechSynthesis' in window) {
-            const utter = new SpeechSynthesisUtterance(text);
-            utter.lang = 'pt-BR';
-            window.speechSynthesis.speak(utter);
-        }
-    }
-
-    async function sendMessage() {
-        const messageInput = document.getElementById('messageInput');
-        const chatMessages = document.getElementById('chatMessages');
-        const message = messageInput.value.trim();
-
-        if (!message) return;
-
-        // Exibe mensagem do usuário
-        const userMsg = document.createElement('div');
-        userMsg.className = 'user-message';
-        userMsg.textContent = message;
-        chatMessages.appendChild(userMsg);
-        chatMessages.scrollTop = chatMessages.scrollHeight;
-
-        messageInput.value = '';
-
-        try {
-            const response = await fetch('http://localhost:5005/webhooks/rest/webhook', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({ message: message })
-            });
-
-            const data = await response.json();
-
-            data.forEach(res => {
-                const botMsg = document.createElement('div');
-                botMsg.className = 'bot-message';
-                botMsg.textContent = res.text;
-                chatMessages.appendChild(botMsg);
-                chatMessages.scrollTop = chatMessages.scrollHeight;
-
-                speak(res.text); // Fala a resposta, se o narrador estiver ligado
-            });
-        } catch (error) {
-            const errorMsg = document.createElement('div');
-            errorMsg.className = 'bot-message';
-            errorMsg.textContent = 'Erro ao conectar com o servidor.';
-            chatMessages.appendChild(errorMsg);
-        }
-    }
-</script>
-
-
-
-
-
-
-
 
     <!-- Botão Sair -->
     <button id="logoutBtn" class="logout-btn">SAIR</button>
@@ -155,19 +74,68 @@
         <p>&copy; 2024 Departamento de Qualidade de Vida - Todos os direitos reservados.</p>
     </footer>
 
+    <script>
+        let narradorLigado = true;
+
+        function toggleChatbot() {
+            const chatbot = document.getElementById('chatbotContainer');
+            chatbot.classList.toggle('hidden');
+        }
+
+        function toggleNarrator() {
+            narradorLigado = !narradorLigado;
+            document.getElementById('toggleNarratorBtn').textContent = narradorLigado ? 'Narrador: Ligado' : 'Narrador: Desligado';
+        }
+
+        function speak(text) {
+            if (narradorLigado && 'speechSynthesis' in window) {
+                const utter = new SpeechSynthesisUtterance(text);
+                utter.lang = 'pt-BR';
+                window.speechSynthesis.speak(utter);
+            }
+        }
+
+        async function sendMessage() {
+            const messageInput = document.getElementById('messageInput');
+            const chatMessages = document.getElementById('chatMessages');
+            const message = messageInput.value.trim();
+
+            if (!message) return;
+
+            const userMsg = document.createElement('div');
+            userMsg.className = 'user-message';
+            userMsg.textContent = message;
+            chatMessages.appendChild(userMsg);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+
+            messageInput.value = '';
+
+            try {
+                const response = await fetch('http://localhost:5005/webhooks/rest/webhook', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ message: message })
+                });
+
+                const data = await response.json();
+
+                data.forEach(res => {
+                    const botMsg = document.createElement('div');
+                    botMsg.className = 'bot-message';
+                    botMsg.textContent = res.text;
+                    chatMessages.appendChild(botMsg);
+                    chatMessages.scrollTop = chatMessages.scrollHeight;
+                    speak(res.text);
+                });
+            } catch (error) {
+                const errorMsg = document.createElement('div');
+                errorMsg.className = 'bot-message';
+                errorMsg.textContent = 'Erro ao conectar com o servidor.';
+                chatMessages.appendChild(errorMsg);
+            }
+        }
+    </script>
+
     <script src="js/script.js"></script>
-
-
-    
 </body>
-
-<body>
-  <div class="page-bg" aria-hidden="true"></div>
-
-  <!-- Se possível: envolva TODO o resto do seu conteúdo com esta div -->
-  <div class="content">
-    <!-- aqui fica o seu header, container, footer, etc (copie tudo para dentro) -->
-  </div>
-</body>
-
 </html>
