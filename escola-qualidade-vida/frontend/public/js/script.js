@@ -23,7 +23,7 @@ document.addEventListener('DOMContentLoaded', function () {
         'link-relatorios': 'relatorios',
         'link-historico': 'historico',
         'link-criar-usuario': 'criar_usuario',
-        'link-gerenciar-usuarios': 'gerenciar_usuarios'
+        
     };
 
     // ------------------- BLOQUEIO DE LINKS POR CARGO -------------------
@@ -53,7 +53,7 @@ function verificarAcessoLocal(cargo, pagina) {
             'relatorios': true,
             'historico': true,
             'criar_usuario': true,
-            'gerenciar_usuarios': true
+            
         },
         'coordenador': {
             'cadastro_aluno': false,
@@ -61,7 +61,7 @@ function verificarAcessoLocal(cargo, pagina) {
             'relatorios': true,
             'historico': true,
             'criar_usuario': false,
-            'gerenciar_usuarios': false
+            
         },
         'analista': {
             'cadastro_aluno': true,
@@ -69,7 +69,7 @@ function verificarAcessoLocal(cargo, pagina) {
             'relatorios': false,
             'historico': true,
             'criar_usuario': false,
-            'gerenciar_usuarios': false
+            
         }
     };
     
