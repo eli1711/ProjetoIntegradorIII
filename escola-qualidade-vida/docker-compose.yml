@@ -83,23 +83,6 @@ services:
         max-size: "10m"
         max-file: "3"
 
-  chatqualidade:
-    build:
-      context: ./chatqualidade
-      dockerfile: Dockerfile
-    container_name: chatqualidade
-    restart: always
-    ports:
-      - "5015:5005"
-    depends_on:
-      - nginx  # Espera o frontend subir
-    networks:
-      - rede-interna
-    logging:
-      driver: "json-file"
-      options:
-        max-size: "10m"
-        max-file: "3"
 
 networks:
   rede-interna:
