@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Principal - Qualidade de Vida Escolar</title>
+    <link rel="stylesheet" href="css/styles.css">
+    <link rel="stylesheet" href="css/chatbot.css">
+    <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600&display=swap" rel="stylesheet">
+</head>
+<body>
+    <header>
+        <img src="img/senai-logo.png" class="logo" alt="Logo Qualidade de Vida">
+        <h1>Qualidade de Vida Escolar</h1>
+    </header>
+
+    <main class="container">
+        <!-- IDs ajustados para combinar com o script.js -->
+        <a class="a" id="link-cadastro-aluno" href="./cadastroAluno.html">
+            <h2>Cadastro de Aluno</h2>
+            <p>Formulário para cadastro de novos alunos no sistema do departamento.</p>
+        </a>
+
+        <a class="a" id="link-ocorrencias" href="./ocorrencias.html">
+            <h2>Ocorrências</h2>
+            <p>Registro e acompanhamento de ocorrências envolvendo alunos.</p>
+        </a>
+
+        <a class="a" id="link-relatorios" href="./relatorios.html">
+            <h2>Relatórios</h2>
+            <p>Visualização e geração de relatórios sobre atividades e ocorrências.</p>
+        </a>
+
+        <a class="a" id="link-historico" href="./historico.html">
+            <h2>Histórico</h2>
+            <p>Monitoramento do progresso e bem-estar dos alunos.</p>
+        </a>
+
+        <a class="a" id="link-criar-usuario" href="./criar_usuario.html">
+            <h2>Criar Usuario</h2>
+            <p>Monitoramento do progresso e bem-estar dos alunos.</p>
+        </a>
+
+       
+    </main>
+    
+
+    <!-- Botão Sair -->
+    <button id="logoutBtn" class="logout-btn">SAIR</button>
+
+    <footer>
+        <p>&copy; 2024 Departamento de Qualidade de Vida - Todos os direitos reservados.</p>
+    </footer>
+
+    <script>
+        let narradorLigado = true;
+
+        function toggleChatbot() {
+            const chatbot = document.getElementById('chatbotContainer');
+            chatbot.classList.toggle('hidden');
+        }
+
+        function toggleNarrator() {
+            narradorLigado = !narradorLigado;
+            document.getElementById('toggleNarratorBtn').textContent = narradorLigado ? 'Narrador: Ligado' : 'Narrador: Desligado';
+        }
+
+        function speak(text) {
+            if (narradorLigado && 'speechSynthesis' in window) {
+                const utter = new SpeechSynthesisUtterance(text);
+                utter.lang = 'pt-BR';
+                window.speechSynthesis.speak(utter);
+            }
+        }
+
+        async function sendMessage() {
+            const messageInput = document.getElementById('messageInput');
+            const chatMessages = document.getElementById('chatMessages');
+            const message = messageInput.value.trim();
+
+            if (!message) return;
+
+            const userMsg = document.createElement('div');
+            userMsg.className = 'user-message';
+            userMsg.textContent = message;
+            chatMessages.appendChild(userMsg);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+
+            messageInput.value = '';
+
+            try {
+                const response = await fetch('http://localhost:5005/webhooks/rest/webhook', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ message: message })
+                });
+
+                const data = await response.json();
+
+                data.forEach(res => {
+                    const botMsg = document.createElement('div');
+                    botMsg.className = 'bot-message';
+                    botMsg.textContent = res.text;
+                    chatMessages.appendChild(botMsg);
+                    chatMessages.scrollTop = chatMessages.scrollHeight;
+                    speak(res.text);
+                });
+            } catch (error) {
+                const errorMsg = document.createElement('div');
+                errorMsg.className = 'bot-message';
+                errorMsg.textContent = 'Erro ao conectar com o servidor.';
+                chatMessages.appendChild(errorMsg);
+            }
+        }
+    </script>
+
+    <script src="js/script.js"></script>
+</body>
+</html>

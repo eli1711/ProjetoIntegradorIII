@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Redefinir Senha - Qualidade de Vida Escolar</title>
+    <link rel="stylesheet" href="./css/styles.css">
+    <link rel="stylesheet" href="./css/login.css">
+</head>
+<body>
+
+    <!-- Logo do sistema -->
+    <div class="logo-container">
+        <img src="img/senai-logo.png" alt="Logo Qualidade de Vida" class="logo">
+    </div>
+
+    <!-- Container principal -->
+    <div class="login-container">
+        <div class="login-header">
+            <h1>Redefinir Senha</h1>
+            <p>Digite sua nova senha</p>
+        </div>
+        
+        <!-- Formulário de redefinição -->
+        <form id="resetPasswordForm" class="login-form">
+            <div class="form-group">
+                <label for="novaSenha">Nova Senha</label>
+                <input type="password" id="novaSenha" name="novaSenha" required minlength="6" placeholder="••••••••">
+            </div>
+            
+            <div class="form-group">
+                <label for="confirmarSenha">Confirmar Senha</label>
+                <input type="password" id="confirmarSenha" name="confirmarSenha" required minlength="6" placeholder="••••••••">
+            </div>
+            
+            <button type="submit" class="login-button">Redefinir Senha</button>
+            
+            <div class="form-footer">
+                <div class="alert" id="resetMessage" role="alert"></div>
+            </div>
+        </form>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const form = document.getElementById('resetPasswordForm');
+            const messageElement = document.getElementById('resetMessage');
+            
+            // Obter token da URL
+            const urlParams = new URLSearchParams(window.location.search);
+            const token = urlParams.get('token');
+            
+            if (!token) {
+                exibirMensagem(messageElement, "Token inválido ou expirado", "error");
+                form.style.display = 'none';
+                return;
+            }
+            
+            form.addEventListener('submit', function(e) {
+                e.preventDefault();
+                
+                const novaSenha = document.getElementById('novaSenha').value;
+                const confirmarSenha = document.getElementById('confirmarSenha').value;
+                
+                if (novaSenha !== confirmarSenha) {
+                    exibirMensagem(messageElement, "As senhas não coincidem", "error");
+                    return;
+                }
+                
+                if (novaSenha.length < 6) {
+                    exibirMensagem(messageElement, "A senha deve ter pelo menos 6 caracteres", "error");
+                    return;
+                }
+                
+                fetch(`http://localhost:5000/auth/redefinir_senha/${token}`, {
+                    method: 'PUT', 
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        nova_senha: novaSenha,
+                        confirmar_senha: confirmarSenha
+                    })
+                })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Erro no servidor: ' + response.status);
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    if (data.success) {
+                        exibirMensagem(messageElement, data.message, "success");
+                        form.reset();
+                        
+                        setTimeout(() => {
+                            window.location.href = 'index.html';
+                        }, 3000);
+                    } else {
+                        exibirMensagem(messageElement, data.message, "error");
+                    }
+                })
+                .catch(error => {
+                    console.error('Erro:', error);
+                    exibirMensagem(messageElement, "Erro ao redefinir senha. Tente novamente.", "error");
+                });
+            });
+            
+            function exibirMensagem(elemento, mensagem, tipo) {
+                elemento.innerHTML = '';
+                const messageDiv = document.createElement('div');
+                messageDiv.textContent = mensagem;
+                messageDiv.className = tipo;
+                elemento.appendChild(messageDiv);
+                elemento.style.display = "block";
+            }
+        });
+    </script>
+</body>
+</html>

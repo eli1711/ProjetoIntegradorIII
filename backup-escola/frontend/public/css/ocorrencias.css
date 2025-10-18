@@ -1,0 +1,225 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: #f4f6f8;
+    color: #333;
+    line-height: 1.6;
+    padding: 20px;
+}
+
+header {
+    position: relative;
+    background: linear-gradient(145deg, #902c2c, #ff0000);
+    color: #fff;
+    padding: 30px 40px;
+    border-radius: 12px;
+    margin: 20px auto;
+    max-width: 1200px;
+    box-shadow: 0 8px 30px rgba(196, 0, 0, 0.3);
+    transform: translateY(0);
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    overflow: hidden;
+    border: 2px solid rgba(255, 255, 255, 0.1);
+    text-align: center; 
+    display: flex; 
+    flex-direction: column; 
+    align-items: center; 
+  }
+    
+  header h1 {
+    font-size: 2.5rem;
+    margin-bottom: 15px;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+    transition: letter-spacing 0.3s ease;
+  }
+  
+  header p {
+    font-size: 1.1rem;
+    opacity: 0;
+    margin: 0 auto; 
+    max-width: 80%; 
+    animation: subtitleAppear 0.5s ease forwards 0.4s;
+    text-align: center; 
+  }
+  
+  @keyframes subtitleAppear {
+    to {
+      opacity: 0.9;
+      transform: translateY(0); 
+    }
+  }
+  
+  /* Ajustes responsivos */
+  @media (max-width: 768px) {
+    header {
+      padding: 25px 20px; 
+    }
+    
+    header h1 {
+      font-size: 1.8rem;
+      line-height: 1.3; 
+    }
+    
+    header p {
+      max-width: 100%; 
+    }
+  }
+
+nav ul {
+    list-style: none;
+    display: flex;
+    gap: 15px;
+}
+
+nav a {
+    color: #ecf0f1;
+    text-decoration: none;
+    font-weight: bold;
+    transition: color 0.3s;
+}
+
+nav a:hover {
+    color: #1a2e7c;
+}
+
+main {
+    background-color: #fff;
+    padding: 30px;
+    border-radius: 10px;
+    max-width: 600px;
+    margin: auto;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05);
+}
+
+form label {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: 600;
+}
+
+button {
+  position: relative;
+  padding: 10px 20px;
+  width: 120px; 
+  border: none;
+  border-radius: 8px;
+  background: linear-gradient(45deg, #ff0000, #ff6b6b);
+  color: white;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  overflow: hidden;
+  text-transform: uppercase;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+button:hover {
+  background: linear-gradient(45deg, #ff6b6b, #ff0000);
+  box-shadow: 0 6px 8px rgba(0, 0, 0, 0.2);
+  transform: translateY(-2px);
+}
+
+button:active {
+  transform: translateY(1px);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+button::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    120deg,
+    transparent,
+    rgba(255, 255, 255, 0.3),
+    transparent
+  );
+  transition: all 0.5s ease;
+}
+
+button:hover::before {
+  left: 100%;
+}
+
+/* Efeito de pulso ao carregar */
+@keyframes pulse {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+  100% { transform: scale(1); }
+}
+
+button:focus {
+  animation: pulse 0.5s ease;
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(255, 107, 107, 0.4);
+}
+
+/* Estado desabilitado */
+button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  background: linear-gradient(45deg, #cccccc, #999999);
+}
+
+input[type="text"],
+input[type="file"] {
+    width: 100%;
+    padding: 10px;
+    margin-bottom: 20px;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    transition: border-color 0.3s;
+}
+
+input[type="text"]:focus {
+    border-color: #3498db;
+    outline: none;
+}
+
+input[type="checkbox"] {
+    margin-right: 5px;
+}
+
+.checkbox-group {
+    margin-bottom: 20px;
+}
+
+.checkbox-group label {
+    display: inline-block;
+    margin-right: 20px;
+    font-weight: normal;
+}
+
+@media (max-width: 600px) {
+    nav ul {
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    main {
+        padding: 20px;
+    }
+}
+
+footer {
+    text-align: center;
+    padding: 20px;
+    background-color: #d1d1d1;
+    margin-top: 15%;
+  }
+
+
+  
+  textarea {
+  resize: none;   
+  width: 100%;    
+  height: 120px;  
+}

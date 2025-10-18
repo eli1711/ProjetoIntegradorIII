@@ -1,0 +1,58 @@
+{
+  "type": "MaxHistoryTrackerFeaturizer",
+  "state_featurizer": {
+    "action_texts": [],
+    "entity_tag_specs": [],
+    "feature_states": {
+      "intent": {
+        "back": 0,
+        "cadastro_aluno_empregado": 1,
+        "cadastro_aluno_foto": 2,
+        "cadastro_aluno_sobre": 3,
+        "cumprimentar": 4,
+        "despedir": 5,
+        "inicio_acompanhamento": 6,
+        "inicio_cadastro": 7,
+        "inicio_ocorrencia": 8,
+        "inicio_relatorio": 9,
+        "nlu_fallback": 10,
+        "ocorrencia_descricao": 11,
+        "ocorrencia_tipo": 12,
+        "out_of_scope": 13,
+        "restart": 14,
+        "session_start": 15
+      },
+      "action_name": {
+        "action_listen": 0,
+        "action_restart": 1,
+        "action_session_start": 2,
+        "action_default_fallback": 3,
+        "action_deactivate_loop": 4,
+        "action_revert_fallback_events": 5,
+        "action_default_ask_affirmation": 6,
+        "action_default_ask_rephrase": 7,
+        "action_two_stage_fallback": 8,
+        "action_unlikely_intent": 9,
+        "action_back": 10,
+        "...": 11,
+        "action_extract_slots": 12,
+        "utter_cadastro_aluno_empregado": 13,
+        "utter_cadastro_aluno_foto": 14,
+        "utter_cadastro_aluno_sobre": 15,
+        "utter_cumprimentar": 16,
+        "utter_despedir": 17,
+        "utter_inicio_acompanhamento": 18,
+        "utter_inicio_cadastro": 19,
+        "utter_inicio_ocorrencia": 20,
+        "utter_inicio_relatorio": 21,
+        "utter_ocorrencia_descricao": 22,
+        "utter_ocorrencia_tipo": 23
+      },
+      "entities": {},
+      "slots": {},
+      "active_loop": {}
+    }
+  },
+  "remove_duplicates": true,
+  "max_history": 5
+}

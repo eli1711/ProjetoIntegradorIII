@@ -1,0 +1,73 @@
+version: "3.1"
+
+stories:
+
+- story: cuprimentar e despedir
+  steps:
+  - intent: cumprimentar
+  - action: utter_cumprimentar
+  - intent: despedir
+  - action: utter_despedir
+
+- story: cumprimentar inicio cadastro e despedir
+  steps:
+  - intent: cumprimentar
+  - action: utter_cumprimentar
+  - intent: inicio_cadastro
+  - action: utter_inicio_cadastro
+  - intent: despedir
+  - action: utter_despedir
+
+- story: cumprimentar inicio acompanhamento e despedir
+  steps:
+  - intent: cumprimentar
+  - action: utter_cumprimentar
+  - intent: inicio_acompanhamento
+  - action: utter_inicio_acompanhamento
+  - intent: despedir
+  - action: utter_despedir
+
+- story: cumprimentar inicio ocorrencia e despedir
+  steps:
+  - intent: cumprimentar
+  - action: utter_cumprimentar
+  - intent: inicio_ocorrencia
+  - action: utter_inicio_ocorrencia
+  - intent: despedir
+  - action: utter_despedir
+
+- story: cumprimentar inicio relatorio e despedir
+  steps:
+  - intent: cumprimentar
+  - action: utter_cumprimentar
+  - intent: inicio_relatorio
+  - action: utter_inicio_relatorio
+  - intent: despedir
+  - action: utter_despedir
+
+- story: cumprimentar cadastro aluno emprego e despedir
+  steps:
+  - intent: cumprimentar
+  - action: utter_cumprimentar
+  - intent: cadastro_aluno_empregado
+  - action: utter_cadastro_aluno_empregado
+  - intent: despedir
+  - action: utter_despedir
+
+- story: cumprimentar inicio e despedir
+  steps:
+  - intent: cumprimentar
+  - action: utter_cumprimentar
+  - intent: ocorrencia_tipo
+  - action: utter_ocorrencia_tipo
+  - intent: despedir
+  - action: utter_despedir
+
+- story: cumprimentar ocorrencia descrição e despedir
+  steps:
+  - intent: cumprimentar
+  - action: utter_cumprimentar
+  - intent: ocorrencia_descricao
+  - action: utter_ocorrencia_descricao
+  - intent: despedir
+  - action: utter_despedir

@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - Qualidade de Vida Escolar</title>
+    <link rel="stylesheet" href="./css/styles.css">
+    <link rel="stylesheet" href="./css/login.css">
+</head>
+<body>
+
+    <!-- Logo do sistema -->
+    <div class="logo-container">
+        <img src="img/senai-logo.png" alt="Logo Qualidade de Vida" class="logo">
+    </div>
+
+    <!-- Container principal de login -->
+    <div class="login-container">
+        <div class="login-header">
+            <h1>Acesso Restrito</h1>
+            <p>Área exclusiva para profissionais</p>
+        </div>
+        
+        <!-- Formulário de login -->
+        <form id="loginForm" class="login-form">
+
+            <!-- Campo de email -->
+            <div class="form-group">
+                <label for="email">E-mail Institucional</label>
+                <input type="email" id="email" name="email" required placeholder="seu.email@escola.edu.br">
+            </div>
+            
+            <!-- Campo de senha -->
+            <div class="form-group">
+                <label for="password">Senha</label>
+                <input type="password" id="password" name="senha" required placeholder="••••••••">
+                <a href="#forgot-password" class="forgot-password">Esqueci minha senha</a>
+            </div>
+            
+            <!-- Botão de login -->
+            <button type="submit" class="login-button">Acessar Sistema</button>
+            
+            <!-- Mensagem de alerta -->
+            <div class="form-footer">
+                <div class="alert" id="loginAlert" role="alert"></div>
+            </div>
+        </form>
+
+        <!-- Adicione após o formulário de login -->
+<div id="forgotPasswordModal" class="modal">
+    <div class="modal-content">
+        <span class="close">&times;</span>
+        <h2>Recuperar Senha</h2>
+        <form id="forgotPasswordForm">
+            <div class="form-group">
+                <label for="recoveryEmail">E-mail Institucional</label>
+                <input type="email" id="recoveryEmail" name="email" required 
+                       placeholder="seu.email@escola.edu.br">
+            </div>
+            <button type="submit" class="login-button">Enviar Link de Recuperação</button>
+        </form>
+        <div id="recoveryMessage" class="alert"></div>
+    </div>
+</div>
+        
+        <!-- Informações de segurança -->
+        <div class="security-info">
+            <p><i class="icon-lock"></i> Sua sessão será encerrada automaticamente após 30 minutos de inatividade.</p>
+        </div>
+    </div>
+
+    <!-- Script de login -->
+    <script src="js/auth.obf.js"></script>
+</body>
+</html>

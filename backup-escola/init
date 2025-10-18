@@ -1,0 +1,9 @@
+-- Criar usuário administrativo padrão
+INSERT IGNORE INTO usuarios (nome, email, senha, cargo) 
+VALUES (
+    'Administrador', 
+    'admin@escola.com', 
+    -- Senha: "admin123" hasheada com bcrypt
+    '$2b$12$LQv3c1yqBWVHxkd0L6k0O.F4L4XoR7cB5nL7N9tL6bY8tZzQ6dK1a', 
+    'administrador'
+);

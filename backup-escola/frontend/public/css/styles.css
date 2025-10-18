@@ -1,0 +1,211 @@
+/* Estilos globais */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'Open Sans', sans-serif;
+  background-size: cover;
+  background-repeat: no-repeat;
+  background-attachment: fixed;
+  background-position: center;
+  color: #000283;
+  min-height: 100vh;
+  line-height: 1.6;
+}
+
+/* Cabeçalho */
+header {
+  position: relative;
+  background: linear-gradient(145deg, #902c2c, #ff0000);
+  color: #fff;
+  padding: 30px 40px;
+  border-radius: 12px;
+  margin: 20px auto;
+  max-width: 1200px;
+  box-shadow: 0 8px 30px rgba(196, 0, 0, 0.3);
+  transform: translateY(0);
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  overflow: hidden;
+  border: 2px solid rgba(255, 255, 255, 0.1);
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+  
+header h1 {
+  font-size: 2.5rem;
+  margin-bottom: 15px;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+  transition: letter-spacing 0.3s ease;
+}
+
+header p {
+  font-size: 1.1rem;
+  opacity: 0;
+  margin: 0 auto; 
+  max-width: 80%; 
+  animation: subtitleAppear 0.5s ease forwards 0.4s;
+  text-align: center;
+}
+
+@keyframes subtitleAppear {
+  to {
+    opacity: 0.9;
+    transform: translateY(0); 
+  }
+}
+
+/* Ajustes responsivos */
+@media (max-width: 768px) {
+  header {
+    padding: 25px 20px; 
+  }
+
+  header h1 {
+    font-size: 1.8rem;
+    line-height: 1.3; 
+  }
+
+  header p {
+    max-width: 100%; 
+  }
+}
+
+.logo {
+  width: 200px;
+  position: absolute;
+  top: 40px;
+  left: 100px;
+}
+
+@media (max-width: 768px) {
+  .logo {
+    position: static;
+    display: block;
+    margin: 0 auto 20px;
+    width: 40vw;
+  }
+}
+
+/* Container */
+.container {
+  padding: 50px 20px;
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 30px;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+@media (min-width: 768px) {
+  .container {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (min-width: 1024px) {
+  .container {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+.a {
+  background-color: rgba(255, 255, 255, 0.95);
+  padding: 25px 30px;
+  border-radius: 15px;
+  border: 2px solid transparent;
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+  color: #000283;
+  text-decoration: none;
+  transition: all 0.3s ease-in-out;
+}
+
+.a h2 {
+  margin-bottom: 10px;
+  font-size: 1.6rem;
+  color: #c40000;
+}
+
+.a:hover {
+  background-color: #fff;
+  border-color: #c40000;
+  color: #c40000;
+  transform: translateY(-5px);
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.15);
+}
+
+.a:active {
+  transform: translateY(2px);
+  box-shadow: inset 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+footer {
+  text-align: center;
+  padding: 20px;
+  background-color: #f0f0f0;
+  color: #333;
+  margin-top: 300px;
+  font-size: 0.9rem;
+}
+
+/* Estilos do botão SAIR */
+/* Botão SAIR */
+.logout-btn {
+    position: fixed;          
+    top: 20px;
+    right: 20px;
+    background: linear-gradient(135deg, #d62828, #a30000);
+    color: white;
+    font-weight: bold;
+    font-size: 16px;
+    border: none;
+    border-radius: 10px;   /* deixa quadrado com cantos arredondados */
+    padding: 10px 25px;    /* espaço interno para caber bem o texto */
+    cursor: pointer;
+    text-align: center;    /* centraliza o texto */
+    box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+    transition: all 0.3s ease;
+    z-index: 10;
+}
+
+.logout-btn:hover {
+    background: linear-gradient(135deg, #ff4741, #c40000);
+    transform: scale(1.05);
+    box-shadow: 0 6px 14px rgba(0,0,0,0.3);
+}
+
+
+.logout-btn:active {
+    transform: scale(0.95); /* valor corrigido */
+}
+
+/* Ajustes responsivos para o botão */
+@media screen and (max-width: 768px) {
+    .logout-btn {
+        top: 10px;
+        right: 10px;
+        padding: 12px 18px;
+        font-size: 1rem;
+    }
+}
+
+/* garante que qualquer body::before antigo não atrapalhe */
+body::before { display: none !important; }
+
+/* elemento de fundo com a imagem (ajuste o caminho da imagem abaixo) */
+.page-bg {
+  position: fixed;
+  inset: 0; /* top:0; right:0; bottom:0; left:0; */
+  background-image: url("plano de fundo.jpg"); 
+  background-position: center;
+  background-size: cover;
+  background-repeat: no-repeat;
+  opacity: 0.12;         
+  pointer-events: none;   
+}
+
+
