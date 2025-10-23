@@ -11,7 +11,7 @@ def cadastrar_ocorrencia():
 
     required_fields = ['aluno_id', 'tipo', 'descricao']
     if not all(field in data and data[field] for field in required_fields):
-        return jsonify({'erro': 'Preencha todos os campos obrigatórios'}), 400
+        return jsonify({'erro':  'Preencha todos os campos obrigatórios'}), 400
 
     data_ocorrencia = None
     data_recebida = data.get('data_ocorrencia')

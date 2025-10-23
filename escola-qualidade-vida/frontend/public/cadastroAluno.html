@@ -20,16 +20,19 @@
   </header>
 
   <main>
-
     <div id="alerta" style="display:none;"></div>
 
     <form id="cadastroAlunoForm" method="POST" enctype="multipart/form-data" action="http://localhost:5000/cadastro/alunos">
-      <!-- Dados do aluno -->
+      
+      <h3>Dados Pessoais</h3>
       <label for="nome">Nome:</label>
       <input type="text" id="nome" name="nome" required />
 
       <label for="sobrenome">Sobrenome:</label>
       <input type="text" id="sobrenome" name="sobrenome" required />
+
+      <label for="matricula">Matrícula:</label>
+      <input type="text" id="matricula" name="matricula" required />
 
       <label for="cidade">Cidade:</label>
       <input type="text" id="cidade" name="cidade" required />
@@ -40,13 +43,17 @@
       <label for="rua">Rua:</label>
       <input type="text" id="rua" name="rua" required />
 
+      <label for="telefone">Telefone:</label>
+      <input type="text" id="telefone" name="telefone" />
+
       <label for="idade">Idade:</label>
       <input type="number" id="idade" name="idade" required onchange="verificarCadastroResponsavel()" />
 
-      <!-- Responsável -->
+      <label for="data_nascimento">Data de Nascimento:</label>
+      <input type="date" id="data_nascimento" name="data_nascimento" required />
+
       <div id="responsavelSection" style="display:none;">
         <h3>Dados do Responsável</h3>
-
         <label for="nomeResponsavel">Nome:</label>
         <input type="text" id="nomeResponsavel" name="nomeResponsavel" />
 
@@ -69,16 +76,18 @@
         <input type="text" id="rua_responsavel" name="rua_responsavel" />
       </div>
 
-      <!-- Empresa -->
+      <h3>Vínculo Empregatício</h3>
       <label>Aluno empregado?</label>
       <input type="radio" name="empregado" value="sim" onchange="verificarCadastroEmpresa()" /> Sim
       <input type="radio" name="empregado" value="nao" onchange="verificarCadastroEmpresa()" checked /> Não
 
       <div id="empresaSection" style="display:none;">
         <h3>Dados da Empresa</h3>
-
         <label for="empresa">Nome da Empresa:</label>
         <input type="text" id="empresa" name="empresa" />
+
+        <label for="empresa_contratante">Empresa Contratante:</label>
+        <input type="text" id="empresa_contratante" name="empresa_contratante" />
 
         <label for="endereco_empresa">Endereço:</label>
         <input type="text" id="endereco_empresa" name="endereco_empresa" />
@@ -96,15 +105,10 @@
         <input type="text" id="rua_empresa" name="rua_empresa" />
       </div>
 
-      <!-- Extras -->
-      <label for="mora_com_quem">Com quem mora:</label>
-      <input type="text" id="mora_com_quem" name="mora_com_quem" />
-
-      <label for="sobre_aluno">Sobre o Aluno:</label>
-      <textarea id="sobre_aluno" name="sobre_aluno"></textarea>
-      <label for="curso">Curso:</label>
+      <h3>Dados Acadêmicos</h3>
+      <label for="curso">Curso (ID):</label>
       <select id="curso" name="curso" required>
-        <option value="">Selecione um curso</option>
+        <option value="">Selecione</option>
         <option value="1">Técnico em Mecânica</option>
         <option value="2">Técnico em Eletrotécnica</option>
         <option value="3">Técnico em Automação Industrial</option>
@@ -117,6 +121,46 @@
         <option value="10">Técnico em Segurança do Trabalho</option>
       </select>
 
+      <label for="turma">Turma:</label>
+      <input type="text" id="turma" name="turma" />
+
+      <label for="data_inicio_curso">Data de Início do Curso:</label>
+      <input type="date" id="data_inicio_curso" name="data_inicio_curso" />
+
+      <label for="linha_atendimento">Linha de Atendimento:</label>
+      <select id="linha_atendimento" name="linha_atendimento" required>
+        <option value="">Selecione</option>
+        <option value="CAI">CAI</option>
+        <option value="CT">CT</option>
+        <option value="CST">CST</option>
+      </select>
+
+      <label for="escola_integrada">Escola Integrada:</label>
+      <select id="escola_integrada" name="escola_integrada" required>
+        <option value="">Selecione</option>
+        <option value="SESI">SESI</option>
+        <option value="SEDUC">SEDUC</option>
+        <option value="Nenhuma">Nenhuma</option>
+      </select>
+
+      <h3>Informações Complementares</h3>
+      <label for="mora_com_quem">Mora com quem:</label>
+      <input type="text" id="mora_com_quem" name="mora_com_quem" />
+
+      <label for="sobre_aluno">Sobre o aluno:</label>
+      <textarea id="sobre_aluno" name="sobre_aluno"></textarea>
+
+      <label for="pessoa_com_deficiencia">Pessoa com Deficiência?</label>
+      <input type="checkbox" id="pessoa_com_deficiencia" name="pessoa_com_deficiencia" onchange="verificarDeficiencia()" />
+
+      <div id="deficienciaSection" style="display:none;">
+        <label for="deficiencia_descricao">Qual deficiência?</label>
+        <input type="text" id="deficiencia_descricao" name="deficiencia_descricao" />
+      </div>
+
+      <label for="outras_informacoes">Outras Informações:</label>
+      <textarea id="outras_informacoes" name="outras_informacoes"></textarea>
+
       <label for="foto">Foto:</label>
       <input type="file" id="foto" name="foto" accept="image/*" />
 
@@ -125,84 +169,66 @@
   </main>
 
   <script>
-    document.addEventListener("DOMContentLoaded", function () {
+    document.addEventListener("DOMContentLoaded", () => {
       const idadeInput = document.getElementById("idade");
       const empregadoRadios = document.querySelectorAll('input[name="empregado"]');
       const responsavelSection = document.getElementById("responsavelSection");
       const empresaSection = document.getElementById("empresaSection");
+      const deficienciaSection = document.getElementById("deficienciaSection");
       const alertaDiv = document.getElementById("alerta");
       const form = document.getElementById("cadastroAlunoForm");
 
       function verificarCadastroResponsavel() {
         const idade = parseInt(idadeInput.value);
-        if (!isNaN(idade) && idade < 18) {
-          responsavelSection.style.display = "block";
-        } else {
-          responsavelSection.style.display = "none";
-        }
+        responsavelSection.style.display = !isNaN(idade) && idade < 18 ? "block" : "none";
       }
 
       function verificarCadastroEmpresa() {
-        const empregadoSelecionado = document.querySelector('input[name="empregado"]:checked');
-        if (empregadoSelecionado && empregadoSelecionado.value === "sim") {
-          empresaSection.style.display = "block";
-        } else {
-          empresaSection.style.display = "none";
-        }
+        const empregado = document.querySelector('input[name="empregado"]:checked').value;
+        empresaSection.style.display = empregado === "sim" ? "block" : "none";
       }
 
-      idadeInput.addEventListener("change", verificarCadastroResponsavel);
-      empregadoRadios.forEach((radio) => radio.addEventListener("change", verificarCadastroEmpresa));
-      verificarCadastroResponsavel();
-      verificarCadastroEmpresa();
+      function verificarDeficiencia() {
+        const checked = document.getElementById("pessoa_com_deficiencia").checked;
+        deficienciaSection.style.display = checked ? "block" : "none";
+      }
 
-      form.addEventListener("submit", async function (e) {
+      form.addEventListener("submit", async (e) => {
         e.preventDefault();
-        const submitButton = form.querySelector('button[type="submit"]');
-        const originalButtonText = submitButton.textContent;
-
-        submitButton.disabled = true;
-        submitButton.textContent = "Cadastrando...";
+        const btn = form.querySelector('button[type="submit"]');
+        const original = btn.textContent;
+        btn.disabled = true;
+        btn.textContent = "Cadastrando...";
 
         try {
-          const response = await fetch("http://localhost:5000/cadastro/alunos", {
-            method: "POST",
-            body: new FormData(form),
-          });
-
-          const data = await response.json();
-
-          if (response.ok) {
-            showAlert("success", data.mensagem || "Aluno cadastrado com sucesso!");
-            form.reset();
-            verificarCadastroResponsavel();
-            verificarCadastroEmpresa();
-          } else {
-            showAlert("error", data.erro || "Erro ao cadastrar aluno");
-          }
+          const res = await fetch(form.action, { method: "POST", body: new FormData(form) });
+          const data = await res.json();
+          if (res.ok) showAlert("success", data.mensagem);
+          else showAlert("error", data.erro || "Erro no cadastro");
         } catch (err) {
           console.error(err);
-          showAlert("error", "Erro inesperado no envio do formulário.");
+          showAlert("error", "Erro inesperado ao enviar o formulário.");
         } finally {
-          submitButton.disabled = false;
-          submitButton.textContent = originalButtonText;
+          btn.disabled = false;
+          btn.textContent = original;
         }
       });
 
       function showAlert(tipo, mensagem) {
         alertaDiv.style.display = "block";
-        alertaDiv.innerText = mensagem;
+        alertaDiv.textContent = mensagem;
         alertaDiv.style.backgroundColor = tipo === "success" ? "#d4edda" : "#f8d7da";
         alertaDiv.style.color = tipo === "success" ? "#155724" : "#721c24";
         alertaDiv.style.border = tipo === "success" ? "1px solid #c3e6cb" : "1px solid #f5c6cb";
         alertaDiv.style.marginTop = "20px";
         alertaDiv.style.padding = "10px";
         alertaDiv.style.borderRadius = "4px";
-
-        setTimeout(() => {
-          alertaDiv.style.display = "none";
-        }, 5000);
+        setTimeout(() => (alertaDiv.style.display = "none"), 5000);
       }
+
+      idadeInput.addEventListener("change", verificarCadastroResponsavel);
+      empregadoRadios.forEach(r => r.addEventListener("change", verificarCadastroEmpresa));
+      document.getElementById("pessoa_com_deficiencia").addEventListener("change", verificarDeficiencia);
     });
   </script>
 </body>

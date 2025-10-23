@@ -1,25 +1,176 @@
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Consultar Aluno</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Consulta de Alunos</title>
+  <link rel="stylesheet" href="./css/cadastroAluno.css">
+  <style>
+    /* Estilo aprimorado para cards */
+    .aluno-card {
+      display: flex;
+      align-items: flex-start;
+      gap: 20px;
+      border: 1px solid #ccc;
+      border-radius: 10px;
+      padding: 15px;
+      margin-bottom: 20px;
+      background: #fff;
+      box-shadow: 0 3px 8px rgba(0,0,0,0.1);
+    }
+
+    .aluno-card img {
+      width: 120px;
+      height: 120px;
+      border-radius: 8px;
+      object-fit: cover;
+      border: 2px solid #eee;
+    }
+
+    .aluno-card .info {
+      flex: 1;
+    }
+
+    .aluno-card h3 {
+      margin-bottom: 10px;
+      color: #a80000;
+    }
+
+    .aluno-card p {
+      margin: 3px 0;
+      font-size: 0.95rem;
+    }
+
+    #filtros {
+      background: #fff;
+      padding: 20px;
+      border-radius: 10px;
+      margin-bottom: 25px;
+      box-shadow: 0 3px 8px rgba(0,0,0,0.1);
+    }
+
+    #consultarButton {
+      background-color: #a80000;
+      color: #fff;
+      border: none;
+      padding: 10px 18px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-weight: bold;
+    }
+
+    #consultarButton:hover {
+      background-color: #c70000;
+    }
+
+    details summary {
+      cursor: pointer;
+      font-weight: bold;
+      color: #333;
+      margin-top: 8px;
+    }
+
+    details p {
+      margin-left: 15px;
+    }
+  </style>
 </head>
+
 <body>
-    <h1>Consultar Aluno</h1>
-    
-    <div>
-        <label for="alunoId">ID do Aluno:</label>
-        <input type="text" id="alunoId" placeholder="Digite o ID do aluno">
-    </div>
-    
-    <div>
-        <label for="alunoNome">Nome do Aluno:</label>
-        <input type="text" id="alunoNome" placeholder="Digite o nome do aluno">
-    </div>
+  <header>
+    <h1>Consulta de Alunos</h1>
+    <nav>
+      <ul>
+        <li><a href="./principal.html">Home</a></li>
+        <li><a href="./cadastroAluno.html">Cadastrar</a></li>
+        <li><a href="./ocorrencias.html">Ocorrências</a></li>
+      </ul>
+    </nav>
+  </header>
 
-    <button id="consultarButton">Consultar</button>
+  <main>
+    <section id="filtros">
+      <h3>Filtros de Busca</h3>
+      <label for="alunoNome">Nome do Aluno:</label>
+      <input type="text" id="alunoNome" placeholder="Digite o nome do aluno">
+      <button id="consultarButton">Consultar</button>
+    </section>
 
-    <script src="consultarAluno.js"></script>
+    <section id="resultadoConsulta" style="margin-top: 20px;"></section>
+  </main>
+
+  <script>
+    document.getElementById("consultarButton").addEventListener("click", async function() {
+      const nome = document.getElementById("alunoNome").value.trim();
+      const url = new URL("http://localhost:5000/alunos/buscar");
+      if (nome) url.searchParams.append("nome", nome);
+
+      const resultadoDiv = document.getElementById("resultadoConsulta");
+      resultadoDiv.innerHTML = "<p>Carregando...</p>";
+
+      try {
+        const response = await fetch(url);
+        const data = await response.json();
+        resultadoDiv.innerHTML = "";
+
+        if (response.ok && Array.isArray(data) && data.length > 0) {
+          data.forEach(aluno => {
+            const safe = val => (val === null || val === undefined || val === "" ? "Não informado" : val);
+
+            const card = document.createElement("div");
+            card.classList.add("aluno-card");
+
+            const fotoHtml = aluno.foto_url
+              ? `<img src="${aluno.foto_url}" alt="Foto de ${safe(aluno.nome)}">`
+              : `<div style="width:120px;height:120px;border-radius:8px;background:#eee;display:flex;align-items:center;justify-content:center;color:#777;">Sem Foto</div>`;
+
+            card.innerHTML = `
+              ${fotoHtml}
+              <div class="info">
+                <h3>${safe(aluno.nome)}</h3>
+                <p><strong>ID:</strong> ${safe(aluno.id)}</p>
+                <p><strong>Matrícula:</strong> ${safe(aluno.matricula)}</p>
+                <p><strong>Curso:</strong> ${safe(aluno.curso)}</p>
+                <p><strong>Turma:</strong> ${safe(aluno.turma)}</p>
+                <p><strong>Cidade:</strong> ${safe(aluno.cidade)}</p>
+                <p><strong>Bairro:</strong> ${safe(aluno.bairro)}</p>
+                <p><strong>Rua:</strong> ${safe(aluno.rua)}</p>
+                <p><strong>Telefone:</strong> ${safe(aluno.telefone)}</p>
+                <p><strong>Idade:</strong> ${safe(aluno.idade)}</p>
+                <p><strong>Data de Nascimento:</strong> ${safe(aluno.data_nascimento)}</p>
+                <p><strong>Linha de Atendimento:</strong> ${safe(aluno.linha_atendimento)}</p>
+                <p><strong>Escola Integrada:</strong> ${safe(aluno.escola_integrada)}</p>
+                <p><strong>Empresa Contratante:</strong> ${safe(aluno.empresa_contratante)}</p>
+                <p><strong>Data de Início do Curso:</strong> ${safe(aluno.data_inicio_curso)}</p>
+                <p><strong>Mora com quem:</strong> ${safe(aluno.mora_com_quem)}</p>
+                <p><strong>Sobre o Aluno:</strong> ${safe(aluno.sobre_aluno)}</p>
+                <p><strong>Pessoa com Deficiência:</strong> ${safe(aluno.pessoa_com_deficiencia)}</p>
+                <p><strong>Descrição da Deficiência:</strong> ${safe(aluno.deficiencia_descricao)}</p>
+                <p><strong>Outras Informações:</strong> ${safe(aluno.outras_informacoes)}</p>
+
+                <details>
+                  <summary><strong>Ocorrências (${aluno.ocorrencias?.length || 0})</strong></summary>
+                  ${
+                    aluno.ocorrencias && aluno.ocorrencias.length > 0
+                      ? aluno.ocorrencias.map(oc =>
+                          `<p>📅 ${safe(oc.data_ocorrencia)} — <strong>${safe(oc.tipo)}</strong>: ${safe(oc.descricao)}</p>`
+                        ).join("")
+                      : "<p>Sem ocorrências registradas.</p>"
+                  }
+                </details>
+              </div>
+            `;
+
+            resultadoDiv.appendChild(card);
+          });
+        } else {
+          resultadoDiv.innerHTML = "<p style='color:#a00;'>Nenhum aluno encontrado.</p>";
+        }
+      } catch (err) {
+        console.error(err);
+        resultadoDiv.innerHTML = "<p style='color:red;'>Erro ao consultar alunos.</p>";
+      }
+    });
+  </script>
 </body>
 </html>

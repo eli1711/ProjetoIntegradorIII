@@ -53,7 +53,7 @@ services:
     depends_on:
       - mysql
     volumes:
-      - ./app/uploads:/backend/app/uploads  # Monta a pasta de uploads no container do backend
+      - ./backend/app/uploads:/backend/app/uploads # Monta a pasta de uploads no container do backend
     networks:
       - rede-interna
     logging:

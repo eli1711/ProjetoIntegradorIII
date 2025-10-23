@@ -18,3 +18,4 @@ UPLOAD_FOLDER = os.path.join(os.path.abspath(os.path.dirname(__file__)), 'app/up
 
 # Allowed file types (opcional, você pode usar ou não)
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif'}
+SQLALCHEMY_DATABASE_URI = "mysql+pymysql://usuario:senha@db/escola_db?charset=utf8mb4"
