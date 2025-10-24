@@ -65,6 +65,7 @@ function initPasswordRecovery() {
             return;
         }
         
+        // @ts-ignore
         const email = emailInput.value.trim();
         
         if (!email) {
@@ -164,7 +165,9 @@ async function handleLogin(event, loginAlert) {
     
 
     const loginData = {
+        // @ts-ignore
         email: emailInput.value.trim(),
+        // @ts-ignore
         senha: senhaInput.value.trim()
     };
 

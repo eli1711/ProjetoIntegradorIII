@@ -4,37 +4,62 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Cadastro de Usuários</title>
-    <link rel="stylesheet" href="./css/styles_cadastro.css">
+    <link rel="stylesheet" href="./css/criarUsuario.css">
 
 </head>
 <body>
-    <h2>Cadastro de Usuário</h2>
-    <form id="userForm">
-        <div class="form-group">
-            <label for="nome">Nome:</label>
-            <input type="text" id="nome" name="nome" required>
-        </div>
-        <div class="form-group">
-            <label for="email">Email:</label>
-            <input type="email" id="email" name="email" required>
-        </div>
-        <div class="form-group">
-            <label for="senha">Senha:</label>
-            <input type="password" id="senha" name="senha" required>
-        </div>
-        <div class="form-group">
-            <label for="cargo">Cargo:</label>
-            <select id="cargo" name="cargo" required>
-                <option value="">Selecione...</option>
-                <option value="administrador">Administrador</option>
-                <option value="coordenador">Coordenador</option>
-                <option value="analista">Analista</option>
-            </select>
-        </div>
-        <button type="submit">Cadastrar</button>
-    </form>
-    <div id="message" class="message"></div>
+    <header>
+    <h1>Cadastrar Usuários</h1>
+    <nav>
+      <ul>
+        <li><a href="./principal.html">Home</a></li>
+        <li><a href="./cadastroAluno.html">Cadastrar Aluno</a></li>
+        <li><a href="./ocorrencias.html">Ocorrências</a></li>
+        <li><a href="./relatorios.html">Relatórios</a></li>
+        <li><a href="./historico.html">Histórico</a></li>
+      </ul>
+    </nav>
+  </header>
 
+    <div class="container">
+        <div class="form-container">
+            <form id="userForm">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="nome">Nome:</label>
+                        <input type="text" id="nome" name="nome" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="email">Email:</label>
+                        <input type="email" id="email" name="email" required>
+                    </div>
+                </div>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="senha">Senha:</label>
+                        <input type="password" id="senha" name="senha" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="cargo">Cargo:</label>
+                        <select id="cargo" name="cargo" required>
+                            <option value="">Selecione...</option>
+                            <option value="administrador">Administrador</option>
+                            <option value="coordenador">Coordenador</option>
+                            <option value="analista">Analista</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <hr>
+                
+                <div class="form-actions">
+                    <button type="submit">Cadastrar</button>
+                </div>
+            </form>
+        </div>
+        
+        <div id="message" class="message"></div>
     <script src="/js/cadastro_usuario.js"></script>
 </body>
 </html>
