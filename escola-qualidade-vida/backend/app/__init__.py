@@ -58,15 +58,15 @@ def create_app():
 # -------------------------------
 
 def _configure_database(app):
-    """Configura o banco de dados MySQL com SQLAlchemy."""
+    """Configura o banco de dados PostgreSQL com SQLAlchemy."""
     db_user = os.environ.get("DB_USER", "root")
     db_password = os.environ.get("DB_PASSWORD", "password")
     db_host = os.environ.get("DB_HOST", "localhost")
-    db_port = os.environ.get("DB_PORT", "3306")
+    db_port = os.environ.get("DB_PORT", "5432")  # Alterado para PostgreSQL
     db_name = os.environ.get("DB_NAME", "escola_db")
 
     app.config["SQLALCHEMY_DATABASE_URI"] = (
-        f"mysql+pymysql://{db_user}:{db_password}@{db_host}:{db_port}/{db_name}"
+        f"postgresql://{db_user}:{db_password}@{db_host}:{db_port}/{db_name}"
     )
     app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
     db.init_app(app)

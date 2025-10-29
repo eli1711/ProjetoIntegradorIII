@@ -1,4 +1,5 @@
 from app.extensions import db
+from sqlalchemy import Enum
 
 class Usuario(db.Model):
     __tablename__ = 'usuarios'
@@ -7,7 +8,7 @@ class Usuario(db.Model):
     nome = db.Column(db.String(100), nullable=False)
     email = db.Column(db.String(120), unique=True, nullable=False)
     senha = db.Column(db.String(255), nullable=False)
-    cargo = db.Column(db.Enum('administrador', 'coordenador', 'analista'), nullable=False)
+    cargo = db.Column(Enum('administrador', 'coordenador', 'analista', name='cargo_enum'), nullable=False)  # Corrigido
 
     # Campos para recuperação de senha
     token_recuperacao = db.Column(db.String(255), nullable=True)

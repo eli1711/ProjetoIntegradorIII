@@ -1,5 +1,4 @@
 from app.extensions import db
-from sqlalchemy.orm import relationship
 from sqlalchemy import Enum
 
 class Aluno(db.Model):
@@ -13,7 +12,7 @@ class Aluno(db.Model):
     bairro = db.Column(db.String(255), nullable=False)
     rua = db.Column(db.String(255), nullable=False)
     idade = db.Column(db.Integer, nullable=False)
-    empregado = db.Column(Enum('sim', 'nao'), nullable=False)
+    empregado = db.Column(Enum('sim', 'nao', name='empregado_enum'), nullable=False)  # Corrigido
     mora_com_quem = db.Column(db.String(255))
     sobre_aluno = db.Column(db.Text)
     foto = db.Column(db.String(255))
@@ -22,12 +21,12 @@ class Aluno(db.Model):
     empresa_id = db.Column(db.Integer, db.ForeignKey('empresa.id'))
     telefone = db.Column(db.String(255))
     data_nascimento = db.Column(db.Date)
-    linha_atendimento = db.Column(Enum('CAI', 'CT', 'CST'), nullable=False)
+    linha_atendimento = db.Column(Enum('CAI', 'CT', 'CST', name='linha_atendimento_enum'), nullable=False)  # Corrigido
     curso = db.Column(db.String(255))
     turma = db.Column(db.String(255))
     data_inicio_curso = db.Column(db.Date)
     empresa_contratante = db.Column(db.String(255))
-    escola_integrada = db.Column(Enum('SESI', 'SEDUC', 'Nenhuma'), nullable=False)
+    escola_integrada = db.Column(Enum('SESI', 'SEDUC', 'Nenhuma', name='escola_integrada_enum'), nullable=False)  # Corrigido
     pessoa_com_deficiencia = db.Column(db.Boolean, default=False)
     outras_informacoes = db.Column(db.Text)
 

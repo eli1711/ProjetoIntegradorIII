@@ -1,17 +1,18 @@
 version: '3.8'
 
 services:
-  mysql:
-    image: mysql:8.0
-    container_name: mysql
+  postgres:
+    image: postgres:13
+    container_name: postgres
     restart: always
     environment:
-      MYSQL_ROOT_PASSWORD: password
-      MYSQL_DATABASE: escola_db
+      POSTGRES_USER: root
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: escola_db
     ports:
-      - "3307:3306"
+      - "5432:5432"
     volumes:
-      - mysql_data:/var/lib/mysql 
+      - postgres_data:/var/lib/postgresql/data
     networks:
       - rede-interna
     logging:
@@ -28,30 +29,30 @@ services:
     restart: always
     environment:
       # Variáveis do Banco de Dados
-      DB_HOST: mysql
-      DB_PORT: 3306
+      DB_HOST: postgres
+      DB_PORT: 5432
       DB_NAME: escola_db
       DB_USER: root
       DB_PASSWORD: password
       SECRET_KEY: uma_chave_super_secreta_32_caracteres_no_minimo
-     
+
       # Variáveis de Email (SMTP)
       SMTP_SERVER: smtp.gmail.com
       SMTP_PORT: 587
       EMAIL_FROM: elihofnimariano996@gmail.com
       EMAIL_PASSWORD: xjggixwamavlwrmd  # REMOVA OS ESPAÇOS!
-     
+
       # URL do Frontend para os links de recuperação
       FRONTEND_URL: http://localhost:8080
-     
+
       # Configurações adicionais (opcionais)
       DEBUG: "False"
       ENVIRONMENT: production
-     
+
     ports:
       - "5000:5000"
     depends_on:
-      - mysql
+      - postgres
     volumes:
       - ./backend/app/uploads:/backend/app/uploads
     networks:
@@ -74,7 +75,7 @@ services:
       - backend
     volumes:
       - ./frontend/public:/usr/share/nginx/html
-      - ./backend/app/uploads:/usr/share/nginx/html/uploads  # CAMINHO CORRIGIDO
+      - ./backend/app/uploads:/usr/share/nginx/html/uploads
     networks:
       - rede-interna
     logging:
@@ -88,4 +89,4 @@ networks:
     driver: bridge
 
 volumes:
-  mysql_data:  # ADICIONE ESTA SEÇÃO SEPARADA PARA VOLUMES
+  postgres_data:  # Alterado para persistir dados do PostgreSQL

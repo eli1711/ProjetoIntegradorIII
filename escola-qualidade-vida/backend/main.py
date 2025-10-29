@@ -62,7 +62,7 @@ def create_first_user():
             # Cria o primeiro usuário (administrador)
             primeiro_usuario = Usuario(
                 nome='Administrador',
-                email='admin@example.com',
+                email='admin@admin.com',
                 senha=generate_password_hash('admin123'),  # Senha inicial
                 cargo='administrador'
             )
