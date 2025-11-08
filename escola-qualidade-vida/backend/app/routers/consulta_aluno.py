@@ -1,64 +1,94 @@
+# app/routers/consulta_aluno.py  (ou onde está a rota /alunos/buscar)
+from datetime import date
 from flask import Blueprint, request, jsonify
-from sqlalchemy import func
 from app.models.aluno import Aluno
-from app.models.ocorrencia import Ocorrencia
+from app.models.turma import Turma
+from app.models.curso import Curso
+from app.extensions import db
 
-consulta_aluno_bp = Blueprint("consulta_aluno", __name__, url_prefix="/alunos")
+consulta_aluno_bp = Blueprint("consulta_aluno", __name__)
+
+def _calc_idade(dt):
+    if not dt:
+        return None
+    hoje = date.today()
+    # idade precisa considerar mês/dia
+    return hoje.year - dt.year - ((hoje.month, hoje.day) < (dt.month, dt.day))
 
 @consulta_aluno_bp.route("/buscar", methods=["GET"])
-def buscar_alunos_com_filtros():
-    nome = request.args.get("nome", "").strip()
+def buscar():
+    nome = (request.args.get("nome") or "").strip()
+    q = Aluno.query
+    if nome:
+        q = q.filter(
+            db.func.concat(Aluno.nome, " ", Aluno.sobrenome).ilike(f"%{nome}%")
+        )
 
-    try:
-        query = Aluno.query.distinct(Aluno.id)
-        if nome:
-            query = query.filter(func.concat(Aluno.nome, " ", Aluno.sobrenome).ilike(f"%{nome}%"))
+    alunos = q.order_by(Aluno.id.desc()).all()
+    out = []
+    for a in alunos:
+        # relações (podem ser None)
+        turma = a.turma_relacionada
+        curso = a.curso_relacionado
 
-        alunos = query.all()
-        resultado = []
+        # idade correta
+        idade = _calc_idade(a.data_nascimento)
 
-        for aluno in alunos:
-            deficiencia_descricao = "Não informada"
-            if aluno.pessoa_com_deficiencia and aluno.outras_informacoes:
-                if "Deficiência:" in aluno.outras_informacoes:
-                    deficiencia_descricao = aluno.outras_informacoes.split("Deficiência:")[-1].strip()
+        # telefone: None quando vazio -> o front mostra "Não informado"
+        telefone = a.telefone or None
 
-            foto_url = f"http://localhost:5000/uploads/{aluno.foto}" if aluno.foto else None
+        # pessoa_com_deficiencia: manter boolean
+        pcd = bool(a.pessoa_com_deficiencia)
 
-            resultado.append({
-                "id": aluno.id,
-                "nome": f"{aluno.nome or ''} {aluno.sobrenome or ''}".strip(),
-                "matricula": aluno.matricula or "Não informada",
-                "curso": aluno.curso or (aluno.curso_relacionado.nome if aluno.curso_relacionado else "Não informado"),
-                "turma": aluno.turma or "Não informada",
-                "cidade": aluno.cidade or "Não informada",
-                "bairro": aluno.bairro or "Não informado",
-                "rua": aluno.rua or "Não informada",
-                "telefone": aluno.telefone or "Não informado",
-                "idade": aluno.idade or "Não informada",
-                "data_nascimento": aluno.data_nascimento.isoformat() if aluno.data_nascimento else "Não informada",
-                "linha_atendimento": aluno.linha_atendimento or "Não informada",
-                "escola_integrada": aluno.escola_integrada or "Não informada",
-                "empresa_contratante": aluno.empresa_contratante or "Não informada",
-                "data_inicio_curso": aluno.data_inicio_curso.isoformat() if aluno.data_inicio_curso else "Não informada",
-                "mora_com_quem": aluno.mora_com_quem or "Não informado",
-                "sobre_aluno": aluno.sobre_aluno or "Não informado",
-                "pessoa_com_deficiencia": "Sim" if aluno.pessoa_com_deficiencia else "Não",
-                "deficiencia_descricao": deficiencia_descricao,
-                "outras_informacoes": aluno.outras_informacoes or "Nenhuma",
-                "foto_url": foto_url,
-                "ocorrencias": [
-                    {
-                        "tipo": o.tipo,
-                        "descricao": o.descricao,
-                        "data_ocorrencia": o.data_ocorrencia.isoformat() if hasattr(o, "data_ocorrencia") and o.data_ocorrencia else "Sem data"
-                    }
-                    for o in getattr(aluno, "ocorrencias", [])
-                ]
-            })
+        # “curso” preferindo o nome da tabela cursos; se não houver, cai no texto legado
+        curso_nome = curso.nome if curso else (a.curso or None)
 
-        return jsonify(resultado), 200
+        # turma: nome e semestre se existir FK
+        turma_nome = turma.nome if turma else (a.turma or None)
+        turma_semestre = turma.semestre if turma else None
 
-    except Exception as e:
-        print(f"❌ Erro na consulta: {e}")
-        return jsonify({"erro": "Falha ao buscar alunos.", "detalhes": str(e)}), 500
+        # foto pública (se existir arquivo gravado)
+        foto_url = f"http://localhost:5000/uploads/{a.foto}" if a.foto else None
+
+        # Se você guarda “Deficiência: …” dentro de outras_informacoes, extraia opcionalmente:
+        def_descr = None
+        if a.outras_informacoes:
+            prefix = "Deficiência:"
+            txt = a.outras_informacoes.strip()
+            if txt.startswith(prefix):
+                def_descr = txt[len(prefix):].strip()
+
+        out.append({
+            "id": a.id,
+            "nome": f"{a.nome} {a.sobrenome}",
+            "matricula": a.matricula,
+            "foto_url": foto_url,
+            "curso": curso_nome,
+            "turma": turma_nome,
+            "turma_semestre": turma_semestre,
+            "cidade": a.cidade or None,
+            "bairro": a.bairro or None,
+            "rua": a.rua or None,
+            "telefone": telefone,                      # <- None quando vazio
+            "idade": idade,                            # <- calculado corretamente
+            "data_nascimento": a.data_nascimento.isoformat() if a.data_nascimento else None,
+            "linha_atendimento": a.linha_atendimento,
+            "escola_integrada": a.escola_integrada,
+            "empresa_contratante": a.empresa_contratante or None,
+            "data_inicio_curso": a.data_inicio_curso.isoformat() if a.data_inicio_curso else None,
+            "mora_com_quem": a.mora_com_quem or None,
+            "sobre_aluno": a.sobre_aluno or None,
+            "outras_informacoes": a.outras_informacoes or None,
+            "pessoa_com_deficiencia": pcd,            # <- boolean (True/False)
+            "deficiencia_descricao": def_descr,       # <- só quando detectado
+            # se quiser, traga as ocorrências já “enxutas”
+            "ocorrencias": [
+                {
+                    "tipo": oc.tipo,
+                    "descricao": oc.descricao,
+                    "data_ocorrencia": oc.data_ocorrencia.isoformat() if oc.data_ocorrencia else None
+                }
+                for oc in getattr(a, "ocorrencias", []) or []
+            ],
+        })
+    return jsonify(out), 200

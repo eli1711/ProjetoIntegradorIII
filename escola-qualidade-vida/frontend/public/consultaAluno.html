@@ -18,7 +18,6 @@
       background: #fff;
       box-shadow: 0 3px 8px rgba(0,0,0,0.1);
     }
-
     .aluno-card img {
       width: 120px;
       height: 120px;
@@ -26,20 +25,9 @@
       object-fit: cover;
       border: 2px solid #eee;
     }
-
-    .aluno-card .info {
-      flex: 1;
-    }
-
-    .aluno-card h3 {
-      margin-bottom: 10px;
-      color: #a80000;
-    }
-
-    .aluno-card p {
-      margin: 3px 0;
-      font-size: 0.95rem;
-    }
+    .aluno-card .info { flex: 1; }
+    .aluno-card h3 { margin-bottom: 10px; color: #a80000; }
+    .aluno-card p { margin: 3px 0; font-size: 0.95rem; }
 
     #filtros {
       background: #fff;
@@ -48,7 +36,6 @@
       margin-bottom: 25px;
       box-shadow: 0 3px 8px rgba(0,0,0,0.1);
     }
-
     #consultarButton {
       background-color: #a80000;
       color: #fff;
@@ -58,10 +45,7 @@
       cursor: pointer;
       font-weight: bold;
     }
-
-    #consultarButton:hover {
-      background-color: #c70000;
-    }
+    #consultarButton:hover { background-color: #c70000; }
 
     details summary {
       cursor: pointer;
@@ -69,10 +53,7 @@
       color: #333;
       margin-top: 8px;
     }
-
-    details p {
-      margin-left: 15px;
-    }
+    details p { margin-left: 15px; }
   </style>
 </head>
 
@@ -100,12 +81,28 @@
   </main>
 
   <script>
-    document.getElementById("consultarButton").addEventListener("click", async function() {
+    const resultadoDiv = document.getElementById("resultadoConsulta");
+    const btn = document.getElementById("consultarButton");
+
+    function safe(val, fallback = "Não informado") {
+      if (val === null || val === undefined || val === "") return fallback;
+      return val;
+    }
+
+    function boolLabel(v) {
+      if (typeof v === "boolean") return v ? "Sim" : "Não";
+      // se vier "t"/"f" do Postgres, ou "sim"/"nao"
+      const s = String(v || "").toLowerCase();
+      if (["t", "true", "1", "sim", "yes", "y"].includes(s)) return "Sim";
+      if (["f", "false", "0", "nao", "não", "no", "n"].includes(s)) return "Não";
+      return safe(v);
+    }
+
+    btn.addEventListener("click", async () => {
       const nome = document.getElementById("alunoNome").value.trim();
       const url = new URL("http://localhost:5000/alunos/buscar");
       if (nome) url.searchParams.append("nome", nome);
 
-      const resultadoDiv = document.getElementById("resultadoConsulta");
       resultadoDiv.innerHTML = "<p>Carregando...</p>";
 
       try {
@@ -115,13 +112,16 @@
 
         if (response.ok && Array.isArray(data) && data.length > 0) {
           data.forEach(aluno => {
-            const safe = val => (val === null || val === undefined || val === "" ? "Não informado" : val);
+            // monta a turma priorizando o relacionamento real
+            const turmaRotulo = aluno.turma_nome
+              ? `${aluno.turma_nome}${aluno.turma_semestre ? ` (Sem ${aluno.turma_semestre})` : ""}`
+              : (aluno.turma || "Não informada");
 
             const card = document.createElement("div");
             card.classList.add("aluno-card");
 
             const fotoHtml = aluno.foto_url
-              ? `<img src="${aluno.foto_url}" alt="Foto de ${safe(aluno.nome)}">`
+              ? `<img src="${aluno.foto_url}" alt="Foto de ${safe(aluno.nome, "Aluno")}">`
               : `<div style="width:120px;height:120px;border-radius:8px;background:#eee;display:flex;align-items:center;justify-content:center;color:#777;">Sem Foto</div>`;
 
             card.innerHTML = `
@@ -131,7 +131,7 @@
                 <p><strong>ID:</strong> ${safe(aluno.id)}</p>
                 <p><strong>Matrícula:</strong> ${safe(aluno.matricula)}</p>
                 <p><strong>Curso:</strong> ${safe(aluno.curso)}</p>
-                <p><strong>Turma:</strong> ${safe(aluno.turma)}</p>
+                <p><strong>Turma:</strong> ${safe(turmaRotulo)}</p>
                 <p><strong>Cidade:</strong> ${safe(aluno.cidade)}</p>
                 <p><strong>Bairro:</strong> ${safe(aluno.bairro)}</p>
                 <p><strong>Rua:</strong> ${safe(aluno.rua)}</p>
@@ -144,8 +144,7 @@
                 <p><strong>Data de Início do Curso:</strong> ${safe(aluno.data_inicio_curso)}</p>
                 <p><strong>Mora com quem:</strong> ${safe(aluno.mora_com_quem)}</p>
                 <p><strong>Sobre o Aluno:</strong> ${safe(aluno.sobre_aluno)}</p>
-                <p><strong>Pessoa com Deficiência:</strong> ${safe(aluno.pessoa_com_deficiencia)}</p>
-                <p><strong>Descrição da Deficiência:</strong> ${safe(aluno.deficiencia_descricao)}</p>
+                <p><strong>Pessoa com Deficiência:</strong> ${boolLabel(aluno.pessoa_com_deficiencia)}</p>
                 <p><strong>Outras Informações:</strong> ${safe(aluno.outras_informacoes)}</p>
 
                 <details>
@@ -160,7 +159,6 @@
                 </details>
               </div>
             `;
-
             resultadoDiv.appendChild(card);
           });
         } else {

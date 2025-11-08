@@ -22,96 +22,54 @@
       --shadow-hover: 0 8px 24px rgba(0, 0, 0, 0.12);
       --transition: all 0.3s ease;
     }
-    * { margin: 0; padding: 0; box-sizing: border-box; }
-    body {
-      font-family: 'Open Sans', sans-serif;
-      background: linear-gradient(135deg, #f5f7fa 0%, #e4edf5 100%);
-      color: var(--dark);
-      line-height: 1.6;
-      min-height: 100vh;
-      padding: 0;
+    *{margin:0;padding:0;box-sizing:border-box}
+    body{
+      font-family:'Open Sans',sans-serif;background:linear-gradient(135deg,#f5f7fa 0%,#e4edf5 100%);
+      color:var(--dark);line-height:1.6;min-height:100vh;padding:0
     }
-    body::before {
-      content: '';
-      position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-      background-image:
-        radial-gradient(circle at 10% 20%, rgba(255, 255, 255, 0.8) 0%, transparent 20%),
-        radial-gradient(circle at 90% 80%, rgba(196, 0, 0, 0.05) 0%, transparent 20%);
-      pointer-events: none; z-index: -1;
-    }
-    header {
-      background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
-      color: white; padding: 1.5rem; box-shadow: var(--shadow); position: relative; overflow: hidden;
-    }
-    header::before {
-      content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-      background: linear-gradient(45deg, transparent 30%, rgba(255, 255, 255, 0.1) 50%, transparent 70%);
-      animation: shimmer 8s infinite linear;
-    }
-    @keyframes shimmer { 0%{transform:translateX(-100%)} 100%{transform:translateX(100%)} }
-    .header-content { max-width: 1200px; margin: 0 auto; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; position: relative; z-index: 1; }
-    .logo-container { display: flex; align-items: center; gap: 1rem; }
-    .logo { height: 50px; filter: drop-shadow(0 2px 4px rgba(0,0,0,.2)); }
-    header h1 { font-family: 'Poppins', sans-serif; font-weight: 600; font-size: 1.8rem; text-shadow: 0 2px 4px rgba(0,0,0,.2); }
-    nav ul { list-style: none; display: flex; gap: 1.5rem; }
-    nav a { color: white; text-decoration: none; font-weight: 500; transition: var(--transition); padding: .5rem .75rem; border-radius: 4px; }
-    nav a:hover { background-color: rgba(255,255,255,.15); }
-
-    .container { max-width: 1200px; margin: 2rem auto; padding: 0 1.5rem; }
-    .form-container { background: white; border-radius: 16px; box-shadow: var(--shadow); overflow: hidden; margin-bottom: 2rem; }
-    .form-header { background: linear-gradient(135deg, var(--secondary) 0%, var(--secondary-light) 100%); color: white; padding: 1.5rem 2rem; }
-    .form-header h2 { font-family:'Poppins',sans-serif; font-weight:500; font-size:1.5rem; display:flex; align-items:center; gap:.75rem; }
-    .form-header h2 i { font-size:1.25rem; }
-    .form-content { padding: 2rem; }
-
-    #alerta { display:none; padding:1rem; border-radius:8px; margin-bottom:1.5rem; font-weight:500; }
-    .alert-success { background:#d4edda; color:#155724; border:1px solid #c3e6cb; }
-    .alert-error { background:#f8d7da; color:#721c24; border:1px solid #f5c6cb; }
-
-    .form-grid { display:grid; grid-template-columns: repeat(auto-fill, minmax(300px,1fr)); gap:1.5rem; }
-    .form-section { margin-bottom:2.5rem; padding-bottom:1.5rem; border-bottom:1px solid var(--gray-light); }
-    .form-section:last-of-type { border-bottom:none; }
-    .section-title { font-family:'Poppins',sans-serif; font-weight:500; font-size:1.3rem; color:var(--secondary); margin-bottom:1.5rem; padding-bottom:.5rem; border-bottom:2px solid var(--primary-light); display:flex; align-items:center; gap:.75rem; }
-    .section-title i { color: var(--primary); }
-    .form-group { margin-bottom:1.25rem; }
-    label { display:block; margin-bottom:.5rem; font-weight:600; color:var(--dark); }
-    input[type="text"], input[type="number"], input[type="date"], input[type="file"], select, textarea {
-      width:100%; padding:.75rem 1rem; border:1px solid var(--gray-light); border-radius:8px; font-family:'Open Sans',sans-serif; font-size:.95rem; transition:var(--transition); background-color:white;
-    }
-    input[type="text"]:focus, input[type="number"]:focus, input[type="date"]:focus, select:focus, textarea:focus {
-      outline:none; border-color:var(--primary); box-shadow:0 0 0 3px rgba(196,0,0,.1);
-    }
-    textarea { resize: vertical; min-height:100px; }
-    .radio-group { display:flex; gap:1.5rem; margin-bottom:1.25rem; }
-    .radio-option { display:flex; align-items:center; gap:.5rem; }
-    input[type="radio"] { accent-color: var(--primary); }
-    .checkbox-group { display:flex; align-items:center; gap:.5rem; margin-bottom:1.25rem; }
-    input[type="checkbox"] { accent-color: var(--primary); transform:scale(1.2); }
-
-    .submit-container { text-align:center; margin-top:2rem; }
-    button[type="submit"] {
-      background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
-      color:white; border:none; border-radius:50px; padding:.9rem 2.5rem; font-size:1.1rem; font-weight:600; cursor:pointer; transition:var(--transition); box-shadow:var(--shadow);
-      display:inline-flex; align-items:center; gap:.75rem;
-    }
-    button[type="submit"]:hover { transform:translateY(-3px); box-shadow: var(--shadow-hover); }
-    button[type="submit"]:active { transform: translateY(0); }
-    button[type="submit"]:disabled { background: var(--gray); cursor:not-allowed; transform:none; box-shadow:none; }
-
-    .conditional-section {
-      background-color: rgba(196, 0, 0, 0.03);
-      border-radius:12px; padding:1.5rem; margin-top:1rem; border-left:4px solid var(--primary); animation: fadeIn .5s ease;
-    }
-    @keyframes fadeIn { from{opacity:0; transform:translateY(10px)} to{opacity:1; transform:translateY(0)} }
-
-    footer { text-align:center; padding:1.5rem; background:white; color:var(--gray); margin-top:3rem; border-top:1px solid var(--gray-light); font-size:.9rem; }
-    @media (max-width: 768px) {
-      .header-content { flex-direction: column; text-align: center; }
-      nav ul { justify-content:center; flex-wrap:wrap; }
-      .form-grid { grid-template-columns: 1fr; }
-      .form-content { padding:1.5rem; }
-      .radio-group { flex-direction:column; gap:.75rem; }
-    }
+    body::before{content:'';position:fixed;top:0;left:0;width:100%;height:100%;
+      background-image:radial-gradient(circle at 10% 20%,rgba(255,255,255,.8) 0%,transparent 20%),
+                       radial-gradient(circle at 90% 80%,rgba(196,0,0,.05) 0%,transparent 20%);
+      pointer-events:none;z-index:-1}
+    header{background:linear-gradient(135deg,var(--primary) 0%,var(--primary-dark) 100%);color:#fff;padding:1.5rem;box-shadow:var(--shadow);position:relative;overflow:hidden}
+    header::before{content:'';position:absolute;inset:0;
+      background:linear-gradient(45deg,transparent 30%,rgba(255,255,255,.1) 50%,transparent 70%);
+      animation:shimmer 8s infinite linear}
+    @keyframes shimmer{0%{transform:translateX(-100%)}100%{transform:translateX(100%)}}
+    .header-content{max-width:1200px;margin:0 auto;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:1rem;position:relative;z-index:1}
+    .logo-container{display:flex;align-items:center;gap:1rem}
+    .logo{height:50px;filter:drop-shadow(0 2px 4px rgba(0,0,0,.2))}
+    header h1{font-family:'Poppins',sans-serif;font-weight:600;font-size:1.8rem;text-shadow:0 2px 4px rgba(0,0,0,.2)}
+    nav ul{list-style:none;display:flex;gap:1.5rem}
+    nav a{color:#fff;text-decoration:none;font-weight:500;transition:var(--transition);padding:.5rem .75rem;border-radius:4px}
+    nav a:hover{background-color:rgba(255,255,255,.15)}
+    .container{max-width:1200px;margin:2rem auto;padding:0 1.5rem}
+    .form-container{background:#fff;border-radius:16px;box-shadow:var(--shadow);overflow:hidden;margin-bottom:2rem}
+    .form-header{background:linear-gradient(135deg,var(--secondary) 0%,var(--secondary-light) 100%);color:#fff;padding:1.5rem 2rem}
+    .form-header h2{font-family:'Poppins',sans-serif;font-weight:500;font-size:1.5rem;display:flex;align-items:center;gap:.75rem}
+    .form-content{padding:2rem}
+    #alerta{display:none;padding:1rem;border-radius:8px;margin-bottom:1.5rem;font-weight:500}
+    .alert-success{background:#d4edda;color:#155724;border:1px solid #c3e6cb}
+    .alert-error{background:#f8d7da;color:#721c24;border:1px solid #f5c6cb}
+    .form-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:1.5rem}
+    .form-section{margin-bottom:2.5rem;padding-bottom:1.5rem;border-bottom:1px solid var(--gray-light)}
+    .form-section:last-of-type{border-bottom:none}
+    .section-title{font-family:'Poppins',sans-serif;font-weight:500;font-size:1.3rem;color:var(--secondary);margin-bottom:1.5rem;padding-bottom:.5rem;border-bottom:2px solid var(--primary-light);display:flex;align-items:center;gap:.75rem}
+    .form-group{margin-bottom:1.25rem}
+    label{display:block;margin-bottom:.5rem;font-weight:600;color:var(--dark)}
+    input[type="text"],input[type="number"],input[type="date"],input[type="file"],select,textarea{
+      width:100%;padding:.75rem 1rem;border:1px solid var(--gray-light);border-radius:8px;font-size:.95rem;transition:var(--transition);background:#fff}
+    input:focus,select:focus,textarea:focus{outline:none;border-color:var(--primary);box-shadow:0 0 0 3px rgba(196,0,0,.1)}
+    textarea{resize:vertical;min-height:100px}
+    .radio-group{display:flex;gap:1.5rem;margin-bottom:1.25rem}
+    .checkbox-group{display:flex;align-items:center;gap:.5rem;margin-bottom:1.25rem}
+    .submit-container{text-align:center;margin-top:2rem}
+    button[type="submit"]{background:linear-gradient(135deg,var(--primary) 0%,var(--primary-dark) 100%);color:#fff;border:none;border-radius:50px;padding:.9rem 2.5rem;font-size:1.1rem;font-weight:600;cursor:pointer;transition:var(--transition);box-shadow:var(--shadow);display:inline-flex;align-items:center;gap:.75rem}
+    button[type="submit"]:hover{transform:translateY(-3px);box-shadow:var(--shadow-hover)}
+    button[type="submit"]:disabled{background:var(--gray);cursor:not-allowed}
+    .conditional-section{background:rgba(196,0,0,.03);border-radius:12px;padding:1.5rem;margin-top:1rem;border-left:4px solid var(--primary)}
+    footer{text-align:center;padding:1.5rem;background:#fff;color:var(--gray);margin-top:3rem;border-top:1px solid var(--gray-light);font-size:.9rem}
+    @media (max-width:768px){.header-content{flex-direction:column;text-align:center}nav ul{justify-content:center;flex-wrap:wrap}.form-grid{grid-template-columns:1fr}.form-content{padding:1.5rem}}
   </style>
 </head>
 <body>
@@ -137,6 +95,7 @@
       <div class="form-header">
         <h2><i class="fas fa-user-plus"></i> Novo Cadastro de Aluno</h2>
       </div>
+
       <div class="form-content">
         <div id="alerta"></div>
 
@@ -170,11 +129,11 @@
               </div>
               <div class="form-group">
                 <label for="telefone">Telefone:</label>
-                <input type="text" id="telefone" name="telefone" />
+                <input type="text" id="telefone" name="telefone" inputmode="tel" placeholder="(00) 00000-0000" />
               </div>
               <div class="form-group">
                 <label for="idade">Idade:</label>
-                <input type="number" id="idade" name="idade" required onchange="verificarCadastroResponsavel()" />
+                <input type="number" id="idade" name="idade" required />
               </div>
               <div class="form-group">
                 <label for="data_nascimento">Data de Nascimento:</label>
@@ -224,19 +183,17 @@
             <div class="form-group">
               <label>Aluno empregado?</label>
               <div class="radio-group">
-                <div class="radio-option">
-                  <input type="radio" id="empregado-sim" name="empregado" value="sim" onchange="verificarCadastroEmpresa()" />
-                  <label for="empregado-sim">Sim</label>
-                </div>
-                <div class="radio-option">
-                  <input type="radio" id="empregado-nao" name="empregado" value="nao" onchange="verificarCadastroEmpresa()" checked />
-                  <label for="empregado-nao">Não</label>
-                </div>
+                <label class="radio-option">
+                  <input type="radio" id="empregado-sim" name="empregado" value="sim" /> Sim
+                </label>
+                <label class="radio-option">
+                  <input type="radio" id="empregado-nao" name="empregado" value="nao" checked /> Não
+                </label>
               </div>
             </div>
 
             <div id="empresaSection" class="conditional-section" style="display:none;">
-              <h4 class="section-title" style="font-size: 1.1rem;"><i class="fas fa-building"></i> Dados da Empresa</h4>
+              <h4 class="section-title" style="font-size:1.1rem;"><i class="fas fa-building"></i> Dados da Empresa</h4>
               <div class="form-grid">
                 <div class="form-group">
                   <label for="empresa">Nome da Empresa:</label>
@@ -337,7 +294,7 @@
               </div>
               <div class="form-group">
                 <div class="checkbox-group">
-                  <input type="checkbox" id="pessoa_com_deficiencia" name="pessoa_com_deficiencia" onchange="verificarDeficiencia()" />
+                  <input type="checkbox" id="pessoa_com_deficiencia" name="pessoa_com_deficiencia" />
                   <label for="pessoa_com_deficiencia">Pessoa com Deficiência?</label>
                 </div>
               </div>
@@ -359,9 +316,7 @@
           </div>
 
           <div class="submit-container">
-            <button type="submit">
-              <i class="fas fa-user-plus"></i> Cadastrar Aluno
-            </button>
+            <button type="submit"><i class="fas fa-user-plus"></i> Cadastrar Aluno</button>
           </div>
         </form>
       </div>
@@ -382,7 +337,6 @@
       const alertaDiv = document.getElementById("alerta");
       const form = document.getElementById("cadastroAlunoForm");
 
-      // ---------- NOVO: carregar SOMENTE turmas cadastradas (ativas) por curso ----------
       const cursoSelect = document.getElementById("curso");
       const turmaSelect = document.getElementById("turma_id");
 
@@ -396,7 +350,6 @@
           return;
         }
         try {
-          // usa endpoint que já retorna APENAS turmas cadastradas e ATIVAS
           const res = await fetch(`http://localhost:5000/turmas/por_curso?curso_id=${encodeURIComponent(cursoId)}`);
           const turmas = await res.json();
 
@@ -420,7 +373,6 @@
 
       cursoSelect.addEventListener("change", () => carregarTurmasPorCurso(cursoSelect.value));
       if (cursoSelect.value) carregarTurmasPorCurso(cursoSelect.value);
-      // -------------------------------------------------------------------
 
       function verificarCadastroResponsavel() {
         const idade = parseInt(idadeInput.value);
@@ -445,7 +397,12 @@
         btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Cadastrando...';
 
         try {
-          const res = await fetch(form.action, { method: "POST", body: new FormData(form) });
+          // 🔒 Garante que o telefone vai no payload
+          const fd = new FormData(form);
+          const tel = (document.getElementById("telefone").value || "").trim();
+          fd.set("telefone", tel);
+
+          const res = await fetch(form.action, { method: "POST", body: fd });
           const data = await res.json();
           if (res.ok) showAlert("success", data.mensagem || "Aluno cadastrado com sucesso!");
           else showAlert("error", data.erro || "Erro no cadastro");
