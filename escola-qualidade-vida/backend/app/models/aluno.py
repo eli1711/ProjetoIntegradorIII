@@ -23,21 +23,27 @@ class Aluno(db.Model):
     data_nascimento = db.Column(db.Date)
     linha_atendimento = db.Column(Enum('CAI', 'CT', 'CST', name='linha_atendimento_enum'), nullable=False)  # Corrigido
     curso = db.Column(db.String(255))
-    turma = db.Column(db.String(255))
+    turma = db.Column(db.String(255))  # mantido por compatibilidade (rótulo textual)
     data_inicio_curso = db.Column(db.Date)
     empresa_contratante = db.Column(db.String(255))
     escola_integrada = db.Column(Enum('SESI', 'SEDUC', 'Nenhuma', name='escola_integrada_enum'), nullable=False)  # Corrigido
     pessoa_com_deficiencia = db.Column(db.Boolean, default=False)
     outras_informacoes = db.Column(db.Text)
 
+    # 🔹 NOVO: vínculo real com a turma (FK)
+    turma_id = db.Column(db.Integer, db.ForeignKey('turmas.id'), nullable=True)
+
+    # relacionamentos
     curso_relacionado = db.relationship('Curso', backref='alunos', lazy=True)
+    turma_relacionada = db.relationship('Turma', backref='alunos', lazy=True)
 
     def __init__(self, nome, sobrenome, matricula, cidade, bairro, rua, idade, empregado,
                  mora_com_quem=None, sobre_aluno=None, foto=None, telefone=None,
                  data_nascimento=None, linha_atendimento=None, curso=None, turma=None,
                  data_inicio_curso=None, empresa_contratante=None, escola_integrada=None,
                  pessoa_com_deficiencia=False, outras_informacoes=None,
-                 responsavel_id=None, empresa_id=None, curso_id=None):
+                 responsavel_id=None, empresa_id=None, curso_id=None,
+                 turma_id=None):  # 🔹 adicionado
         self.nome = nome
         self.sobrenome = sobrenome
         self.matricula = matricula
@@ -62,6 +68,7 @@ class Aluno(db.Model):
         self.responsavel_id = responsavel_id
         self.empresa_id = empresa_id
         self.curso_id = curso_id
+        self.turma_id = turma_id  # 🔹 adicionado
 
     def __repr__(self):
         return f"<Aluno {self.nome} {self.sobrenome}>"

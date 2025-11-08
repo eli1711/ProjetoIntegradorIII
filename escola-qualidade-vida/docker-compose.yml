@@ -28,33 +28,26 @@ services:
     container_name: escola-backend
     restart: always
     environment:
-      # Variáveis do Banco de Dados
       DB_HOST: postgres
       DB_PORT: 5432
       DB_NAME: escola_db
       DB_USER: root
       DB_PASSWORD: password
       SECRET_KEY: uma_chave_super_secreta_32_caracteres_no_minimo
-
-      # Variáveis de Email (SMTP)
       SMTP_SERVER: smtp.gmail.com
       SMTP_PORT: 587
       EMAIL_FROM: elihofnimariano996@gmail.com
-      EMAIL_PASSWORD: xjggixwamavlwrmd  # REMOVA OS ESPAÇOS!
-
-      # URL do Frontend para os links de recuperação
+      EMAIL_PASSWORD: xjggixwamavlwrmd
       FRONTEND_URL: http://localhost:8080
-
-      # Configurações adicionais (opcionais)
       DEBUG: "False"
       ENVIRONMENT: production
-
     ports:
       - "5000:5000"
     depends_on:
       - postgres
     volumes:
-      - ./backend/app/uploads:/backend/app/uploads
+      # 👇 agora mapeia para o caminho REAL usado pelo Flask
+      - ./backend/app/uploads:/app/app/uploads
     networks:
       - rede-interna
     logging:
@@ -75,6 +68,7 @@ services:
       - backend
     volumes:
       - ./frontend/public:/usr/share/nginx/html
+      # mantém este mapeamento: o host ./backend/app/uploads agora receberá os arquivos corretos
       - ./backend/app/uploads:/usr/share/nginx/html/uploads
     networks:
       - rede-interna
@@ -89,4 +83,4 @@ networks:
     driver: bridge
 
 volumes:
-  postgres_data:  # Alterado para persistir dados do PostgreSQL
+  postgres_data:

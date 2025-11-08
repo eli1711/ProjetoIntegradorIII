@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Criar Turma</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;500;600;700&family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <style>
+    body { font-family: 'Open Sans', sans-serif; background: #f5f7fa; color: #212529; line-height:1.6; }
+    .container{max-width:1200px;margin:2rem auto;padding:0 1.5rem;}
+    .form-container{background:#fff;border-radius:16px;box-shadow:0 4px 12px rgba(0,0,0,.08);overflow:hidden;margin-bottom:2rem}
+    .form-header{background:linear-gradient(135deg,#000283,#2d2db6);color:#fff;padding:1.5rem 2rem}
+    .form-header h2{font-family:'Poppins',sans-serif;font-weight:500;font-size:1.5rem;display:flex;gap:.75rem;align-items:center}
+    .form-content{padding:2rem}
+    .form-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:1.25rem}
+    label{display:block;margin-bottom:.5rem;font-weight:600}
+    input,select{width:100%;padding:.7rem 1rem;border:1px solid #e9ecef;border-radius:8px}
+    .submit-container{text-align:center;margin-top:1.5rem}
+    button{background:linear-gradient(135deg,#c40000,#8a0000);color:#fff;border:none;border-radius:50px;padding:.9rem 2rem;font-weight:700;cursor:pointer}
+    .note{font-size:.9rem;color:#6c757d}
+    #alerta{display:none;margin-bottom:1rem;padding:.8rem;border-radius:8px}
+    .alert-success{background:#d4edda;color:#155724;border:1px solid #c3e6cb}
+    .alert-error{background:#f8d7da;color:#721c24;border:1px solid #f5c6cb}
+
+    /* Lista de turmas */
+    .list-container{background:#fff;border-radius:16px;box-shadow:0 4px 12px rgba(0,0,0,.08);overflow:hidden}
+    .list-header{background:#f1f3f5;padding:1rem 1.5rem;font-weight:700}
+    table{width:100%;border-collapse:collapse}
+    th, td{padding:.9rem 1rem;border-bottom:1px solid #e9ecef;text-align:left;vertical-align:middle}
+    th{background:#f8f9fa}
+    .pill{display:inline-block;padding:.2rem .6rem;border-radius:999px;font-size:.8rem}
+    .pill-green{background:#d3f9d8;color:#2b8a3e;border:1px solid #b2f2bb}
+    .pill-gray{background:#e9ecef;color:#495057;border:1px solid #dee2e6}
+    .btn-sm{padding:.45rem .9rem;border-radius:999px;border:none;cursor:pointer}
+    .btn-outline{background:#fff;border:1px solid #dee2e6}
+    .btn-danger{background:#c92a2a;color:#fff;border:none}
+    .tools{display:flex;gap:.5rem;flex-wrap:wrap}
+    .filters{display:flex;gap:1rem;align-items:flex-end;margin-bottom:1rem}
+    .filters select{max-width:260px}
+  </style>
+</head>
+<body>
+  <div class="container">
+    <!-- FORM CRIAR TURMA -->
+    <div class="form-container">
+      <div class="form-header">
+        <h2><i class="fas fa-users"></i> Criar Turma</h2>
+      </div>
+      <div class="form-content">
+        <div id="alerta"></div>
+
+        <form id="formTurma" method="POST" action="http://localhost:5000/turmas/">
+          <div class="form-grid">
+            <div>
+              <label for="nome">Nome da Turma</label>
+              <input type="text" id="nome" name="nome" required>
+            </div>
+
+            <div>
+              <label for="semestre">Semestre</label>
+              <select id="semestre" name="semestre" required>
+                <option value="">Selecione</option>
+                <option value="1">1º semestre</option>
+                <option value="2">2º semestre</option>
+              </select>
+            </div>
+
+            <div>
+              <label for="curso_id">Curso</label>
+              <select id="curso_id" name="curso_id" required>
+                <option value="">Carregando...</option>
+              </select>
+            </div>
+
+            <div>
+              <label for="data_inicio">Data de Início</label>
+              <input type="date" id="data_inicio" name="data_inicio" required>
+            </div>
+
+            <div>
+              <label for="data_fim">Data de Término <span class="note">(preencher apenas ao encerrar o semestre)</span></label>
+              <input type="date" id="data_fim" name="data_fim" disabled>
+            </div>
+          </div>
+
+          <div class="submit-container">
+            <button type="submit"><i class="fas fa-save"></i> Criar Turma</button>
+          </div>
+        </form>
+
+        <p class="note" style="margin-top:1rem">
+          Dica: deixe a <b>Data de Término</b> vazia durante o semestre. Ao final, use o botão <b>Finalizar</b> na lista de turmas abaixo.
+        </p>
+      </div>
+    </div>
+
+    <!-- LISTA / FINALIZAÇÃO -->
+    <div class="list-container">
+      <div class="list-header">
+        Turmas
+      </div>
+      <div class="form-content">
+        <div class="filters">
+          <div>
+            <label for="filtroCurso">Filtrar por Curso</label>
+            <select id="filtroCurso">
+              <option value="">Todos</option>
+            </select>
+          </div>
+          <div>
+            <label for="filtroStatus">Status</label>
+            <select id="filtroStatus">
+              <option value="ativas">Ativas</option>
+              <option value="todas">Todas</option>
+            </select>
+          </div>
+          <button class="btn-sm btn-outline" id="btnRecarregar"><i class="fas fa-rotate-right"></i> Recarregar</button>
+        </div>
+
+        <div style="overflow-x:auto">
+          <table>
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Turma</th>
+                <th>Curso</th>
+                <th>Sem.</th>
+                <th>Início</th>
+                <th>Término</th>
+                <th>Status</th>
+                <th style="width:220px">Ações</th>
+              </tr>
+            </thead>
+            <tbody id="tbodyTurmas">
+              <tr><td colspan="8">Carregando...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const alertaDiv = document.getElementById('alerta');
+    const dataFim = document.getElementById('data_fim');
+
+    // Habilita o campo data_fim somente se o usuário clicar duas vezes (proteção simples)
+    let enableClicks = 0;
+    dataFim.addEventListener('click', () => {
+      enableClicks++;
+      if (enableClicks >= 2) dataFim.disabled = false;
+    });
+
+    function showAlert(tipo, msg) {
+      alertaDiv.style.display = 'block';
+      alertaDiv.className = (tipo === 'success') ? 'alert-success' : 'alert-error';
+      alertaDiv.textContent = msg;
+      setTimeout(() => alertaDiv.style.display = 'none', 5000);
+    }
+
+    // -------- Carregar CURSOS (para form e filtros) --------
+    async function loadCursos() {
+      const selCriar = document.getElementById('curso_id');
+      const selFiltro = document.getElementById('filtroCurso');
+      try {
+        const res = await fetch('http://localhost:5000/cursos/');
+        const data = await res.json();
+
+        // Select do formulário
+        selCriar.innerHTML = '<option value="">Selecione</option>';
+        (data || []).forEach(c => {
+          selCriar.innerHTML += `<option value="${c.id}">${c.nome}</option>`;
+        });
+
+        // Select do filtro
+        selFiltro.innerHTML = '<option value="">Todos</option>';
+        (data || []).forEach(c => {
+          selFiltro.innerHTML += `<option value="${c.id}">${c.nome}</option>`;
+        });
+      } catch (e) {
+        selCriar.innerHTML = '<option value="">Erro ao carregar</option>';
+        console.error(e);
+      }
+    }
+
+    // -------- Listagem / Finalização --------
+    const tbody = document.getElementById('tbodyTurmas');
+    const filtroCurso = document.getElementById('filtroCurso');
+    const filtroStatus = document.getElementById('filtroStatus');
+    const btnRecarregar = document.getElementById('btnRecarregar');
+
+    async function loadTurmas() {
+      tbody.innerHTML = `<tr><td colspan="8">Carregando...</td></tr>`;
+      const params = new URLSearchParams();
+      if (filtroStatus.value) params.set('status', filtroStatus.value);
+      if (filtroCurso.value) params.set('curso_id', filtroCurso.value);
+
+      try {
+        const res = await fetch(`http://localhost:5000/turmas/?${params.toString()}`);
+        const data = await res.json();
+
+        if (!Array.isArray(data) || data.length === 0) {
+          tbody.innerHTML = `<tr><td colspan="8">Nenhuma turma encontrada.</td></tr>`;
+          return;
+        }
+
+        tbody.innerHTML = '';
+        data.forEach(t => {
+          const tr = document.createElement('tr');
+          tr.innerHTML = `
+            <td>${t.id}</td>
+            <td>${t.nome}</td>
+            <td>${t.curso_nome ?? '-'}</td>
+            <td>${t.semestre}</td>
+            <td>${t.data_inicio ?? '-'}</td>
+            <td>${t.data_fim ?? '-'}</td>
+            <td>
+              ${t.ativa
+                ? '<span class="pill pill-green">Ativa</span>'
+                : '<span class="pill pill-gray">Finalizada</span>'}
+            </td>
+            <td>
+              <div class="tools">
+                <button class="btn-sm btn-outline" onclick="copiarId(${t.id})">
+                  <i class="fa-regular fa-copy"></i> ID
+                </button>
+                ${t.ativa ? `
+                  <button class="btn-sm btn-danger" onclick="finalizarTurma(${t.id})">
+                    <i class="fa-solid fa-flag-checkered"></i> Finalizar
+                  </button>
+                ` : ''}
+              </div>
+            </td>
+          `;
+          tbody.appendChild(tr);
+        });
+      } catch (e) {
+        console.error(e);
+        tbody.innerHTML = `<tr><td colspan="8">Erro ao carregar turmas.</td></tr>`;
+      }
+    }
+
+    async function finalizarTurma(id) {
+      if (!confirm('Deseja finalizar esta turma? A data de término será hoje (você pode editar depois).')) return;
+      try {
+        const res = await fetch(`http://localhost:5000/turmas/${id}/finalizar`, {
+          method: 'PATCH',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({}) // usa data de hoje
+        });
+        const data = await res.json();
+        if (res.ok) {
+          showAlert('success', data.mensagem || 'Turma finalizada!');
+          loadTurmas();
+        } else {
+          showAlert('error', data.erro || 'Erro ao finalizar turma');
+        }
+      } catch (e) {
+        showAlert('error', 'Falha ao comunicar com o servidor.');
+      }
+    }
+
+    function copiarId(id) {
+      navigator.clipboard.writeText(String(id));
+      showAlert('success', `ID ${id} copiado!`);
+    }
+
+    btnRecarregar.addEventListener('click', (e) => {
+      e.preventDefault();
+      loadTurmas();
+    });
+    filtroCurso.addEventListener('change', loadTurmas);
+    filtroStatus.addEventListener('change', loadTurmas);
+
+    // -------- Submit criar turma --------
+    document.getElementById('formTurma').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const fd = new FormData(e.target);
+      try {
+        const res = await fetch(e.target.action, { method: 'POST', body: fd });
+        const data = await res.json();
+        if (res.ok) {
+          showAlert('success', data.mensagem || 'Turma criada!');
+          e.target.reset();
+          dataFim.disabled = true;
+          enableClicks = 0;
+          loadTurmas();
+        } else {
+          showAlert('error', data.erro || 'Erro ao criar turma');
+        }
+      } catch {
+        showAlert('error', 'Falha ao comunicar com o servidor.');
+      }
+    });
+
+    // Init
+    loadCursos().then(loadTurmas);
+  </script>
+</body>
+</html>

@@ -6,7 +6,7 @@ from app import db
 from app.models.aluno import Aluno
 from app.models.responsavel import Responsavel
 from app.models.empresa import Empresa
-
+from app.models.turma import Turma  # 🔹 para validar turma_id
 
 aluno_bp = Blueprint("aluno", __name__, url_prefix="/alunos")
 
@@ -17,14 +17,12 @@ def listar_alunos():
 def str_to_bool(value):
     return str(value).lower() in ["true", "1", "on", "t", "yes", "y", "sim"]
 
-
 def parse_date(value):
     """Converte string de data (YYYY-MM-DD) para objeto date."""
     try:
         return datetime.strptime(value, "%Y-%m-%d").date() if value else None
     except ValueError:
         return None
-
 
 def salvar_foto(foto_file, aluno_nome, destino="/backend/app/uploads"):
     caminho_absoluto = os.path.join(os.path.abspath(os.path.dirname(__file__)), destino)
@@ -45,9 +43,7 @@ def salvar_foto(foto_file, aluno_nome, destino="/backend/app/uploads"):
     foto_file.save(caminho)
     return filename
 
-
 cadastro_bp = Blueprint("cadastro", __name__, url_prefix="/cadastro")
-
 
 @cadastro_bp.route("/alunos", methods=["POST"])
 def cadastrar_aluno():
@@ -63,6 +59,21 @@ def cadastrar_aluno():
 
         idade = int(data.get("idade"))
         curso_id = int(data.get("curso"))
+
+        # 🔹 turma_id obrigatório e deve pertencer ao curso selecionado
+        turma_id_raw = request.form.get("turma_id")
+        if not turma_id_raw:
+            return jsonify({"erro": "Selecione uma turma válida."}), 400
+        try:
+            turma_id = int(turma_id_raw)
+        except ValueError:
+            return jsonify({"erro": "turma_id inválido."}), 400
+
+        turma_obj = Turma.query.get(turma_id)
+        if not turma_obj:
+            return jsonify({"erro": "Turma não encontrada."}), 400
+        if turma_obj.curso_id != curso_id:
+            return jsonify({"erro": "A turma selecionada não pertence ao curso escolhido."}), 400
 
         empregado = data.get("empregado", "nao")
         pessoa_com_deficiencia = str_to_bool(data.get("pessoa_com_deficiencia"))
@@ -91,14 +102,15 @@ def cadastrar_aluno():
             telefone=data.get("telefone"),
             data_nascimento=parse_date(data.get("data_nascimento")),
             linha_atendimento=data["linha_atendimento"],
-            curso=data.get("curso"),  # 🔧 corrigido (antes curso_nome)
-            turma=data.get("turma"),
+            curso=data.get("curso"),  # mantém compatibilidade
+            turma=data.get("turma"),  # mantém compatibilidade textual (rótulo)
             data_inicio_curso=parse_date(data.get("data_inicio_curso")),
             empresa_contratante=data.get("empresa_contratante"),
             escola_integrada=data["escola_integrada"],
             pessoa_com_deficiencia=pessoa_com_deficiencia,
             outras_informacoes=outras_informacoes,
             curso_id=curso_id,
+            turma_id=turma_id,  # 🔹 vínculo real com a turma
         )
 
         # Responsável (menores de idade)

@@ -22,13 +22,7 @@
       --shadow-hover: 0 8px 24px rgba(0, 0, 0, 0.12);
       --transition: all 0.3s ease;
     }
-
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
-
+    * { margin: 0; padding: 0; box-sizing: border-box; }
     body {
       font-family: 'Open Sans', sans-serif;
       background: linear-gradient(135deg, #f5f7fa 0%, #e4edf5 100%);
@@ -37,347 +31,86 @@
       min-height: 100vh;
       padding: 0;
     }
-
     body::before {
       content: '';
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background-image: 
-          radial-gradient(circle at 10% 20%, rgba(255, 255, 255, 0.8) 0%, transparent 20%),
-          radial-gradient(circle at 90% 80%, rgba(196, 0, 0, 0.05) 0%, transparent 20%);
-      pointer-events: none;
-      z-index: -1;
+      position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+      background-image:
+        radial-gradient(circle at 10% 20%, rgba(255, 255, 255, 0.8) 0%, transparent 20%),
+        radial-gradient(circle at 90% 80%, rgba(196, 0, 0, 0.05) 0%, transparent 20%);
+      pointer-events: none; z-index: -1;
     }
-
-    /* Cabeçalho */
     header {
       background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
-      color: white;
-      padding: 1.5rem;
-      box-shadow: var(--shadow);
-      position: relative;
-      overflow: hidden;
+      color: white; padding: 1.5rem; box-shadow: var(--shadow); position: relative; overflow: hidden;
     }
-
     header::before {
-      content: '';
-      position: absolute;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
+      content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 100%;
       background: linear-gradient(45deg, transparent 30%, rgba(255, 255, 255, 0.1) 50%, transparent 70%);
       animation: shimmer 8s infinite linear;
     }
+    @keyframes shimmer { 0%{transform:translateX(-100%)} 100%{transform:translateX(100%)} }
+    .header-content { max-width: 1200px; margin: 0 auto; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; position: relative; z-index: 1; }
+    .logo-container { display: flex; align-items: center; gap: 1rem; }
+    .logo { height: 50px; filter: drop-shadow(0 2px 4px rgba(0,0,0,.2)); }
+    header h1 { font-family: 'Poppins', sans-serif; font-weight: 600; font-size: 1.8rem; text-shadow: 0 2px 4px rgba(0,0,0,.2); }
+    nav ul { list-style: none; display: flex; gap: 1.5rem; }
+    nav a { color: white; text-decoration: none; font-weight: 500; transition: var(--transition); padding: .5rem .75rem; border-radius: 4px; }
+    nav a:hover { background-color: rgba(255,255,255,.15); }
 
-    @keyframes shimmer {
-      0% { transform: translateX(-100%); }
-      100% { transform: translateX(100%); }
+    .container { max-width: 1200px; margin: 2rem auto; padding: 0 1.5rem; }
+    .form-container { background: white; border-radius: 16px; box-shadow: var(--shadow); overflow: hidden; margin-bottom: 2rem; }
+    .form-header { background: linear-gradient(135deg, var(--secondary) 0%, var(--secondary-light) 100%); color: white; padding: 1.5rem 2rem; }
+    .form-header h2 { font-family:'Poppins',sans-serif; font-weight:500; font-size:1.5rem; display:flex; align-items:center; gap:.75rem; }
+    .form-header h2 i { font-size:1.25rem; }
+    .form-content { padding: 2rem; }
+
+    #alerta { display:none; padding:1rem; border-radius:8px; margin-bottom:1.5rem; font-weight:500; }
+    .alert-success { background:#d4edda; color:#155724; border:1px solid #c3e6cb; }
+    .alert-error { background:#f8d7da; color:#721c24; border:1px solid #f5c6cb; }
+
+    .form-grid { display:grid; grid-template-columns: repeat(auto-fill, minmax(300px,1fr)); gap:1.5rem; }
+    .form-section { margin-bottom:2.5rem; padding-bottom:1.5rem; border-bottom:1px solid var(--gray-light); }
+    .form-section:last-of-type { border-bottom:none; }
+    .section-title { font-family:'Poppins',sans-serif; font-weight:500; font-size:1.3rem; color:var(--secondary); margin-bottom:1.5rem; padding-bottom:.5rem; border-bottom:2px solid var(--primary-light); display:flex; align-items:center; gap:.75rem; }
+    .section-title i { color: var(--primary); }
+    .form-group { margin-bottom:1.25rem; }
+    label { display:block; margin-bottom:.5rem; font-weight:600; color:var(--dark); }
+    input[type="text"], input[type="number"], input[type="date"], input[type="file"], select, textarea {
+      width:100%; padding:.75rem 1rem; border:1px solid var(--gray-light); border-radius:8px; font-family:'Open Sans',sans-serif; font-size:.95rem; transition:var(--transition); background-color:white;
     }
-
-    .header-content {
-      max-width: 1200px;
-      margin: 0 auto;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      flex-wrap: wrap;
-      gap: 1rem;
-      position: relative;
-      z-index: 1;
+    input[type="text"]:focus, input[type="number"]:focus, input[type="date"]:focus, select:focus, textarea:focus {
+      outline:none; border-color:var(--primary); box-shadow:0 0 0 3px rgba(196,0,0,.1);
     }
+    textarea { resize: vertical; min-height:100px; }
+    .radio-group { display:flex; gap:1.5rem; margin-bottom:1.25rem; }
+    .radio-option { display:flex; align-items:center; gap:.5rem; }
+    input[type="radio"] { accent-color: var(--primary); }
+    .checkbox-group { display:flex; align-items:center; gap:.5rem; margin-bottom:1.25rem; }
+    input[type="checkbox"] { accent-color: var(--primary); transform:scale(1.2); }
 
-    .logo-container {
-      display: flex;
-      align-items: center;
-      gap: 1rem;
-    }
-
-    .logo {
-      height: 50px;
-      filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2));
-    }
-
-    header h1 {
-      font-family: 'Poppins', sans-serif;
-      font-weight: 600;
-      font-size: 1.8rem;
-      text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-    }
-
-    nav ul {
-      list-style: none;
-      display: flex;
-      gap: 1.5rem;
-    }
-
-    nav a {
-      color: white;
-      text-decoration: none;
-      font-weight: 500;
-      transition: var(--transition);
-      padding: 0.5rem 0.75rem;
-      border-radius: 4px;
-    }
-
-    nav a:hover {
-      background-color: rgba(255, 255, 255, 0.15);
-    }
-
-    /* Conteúdo principal */
-    .container {
-      max-width: 1200px;
-      margin: 2rem auto;
-      padding: 0 1.5rem;
-    }
-
-    .form-container {
-      background: white;
-      border-radius: 16px;
-      box-shadow: var(--shadow);
-      overflow: hidden;
-      margin-bottom: 2rem;
-    }
-
-    .form-header {
-      background: linear-gradient(135deg, var(--secondary) 0%, var(--secondary-light) 100%);
-      color: white;
-      padding: 1.5rem 2rem;
-    }
-
-    .form-header h2 {
-      font-family: 'Poppins', sans-serif;
-      font-weight: 500;
-      font-size: 1.5rem;
-      display: flex;
-      align-items: center;
-      gap: 0.75rem;
-    }
-
-    .form-header h2 i {
-      font-size: 1.25rem;
-    }
-
-    .form-content {
-      padding: 2rem;
-    }
-
-    /* Alertas */
-    #alerta {
-      display: none;
-      padding: 1rem;
-      border-radius: 8px;
-      margin-bottom: 1.5rem;
-      font-weight: 500;
-    }
-
-    .alert-success {
-      background-color: #d4edda;
-      color: #155724;
-      border: 1px solid #c3e6cb;
-    }
-
-    .alert-error {
-      background-color: #f8d7da;
-      color: #721c24;
-      border: 1px solid #f5c6cb;
-    }
-
-    /* Formulário */
-    .form-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-      gap: 1.5rem;
-    }
-
-    .form-section {
-      margin-bottom: 2.5rem;
-      padding-bottom: 1.5rem;
-      border-bottom: 1px solid var(--gray-light);
-    }
-
-    .form-section:last-of-type {
-      border-bottom: none;
-    }
-
-    .section-title {
-      font-family: 'Poppins', sans-serif;
-      font-weight: 500;
-      font-size: 1.3rem;
-      color: var(--secondary);
-      margin-bottom: 1.5rem;
-      padding-bottom: 0.5rem;
-      border-bottom: 2px solid var(--primary-light);
-      display: flex;
-      align-items: center;
-      gap: 0.75rem;
-    }
-
-    .section-title i {
-      color: var(--primary);
-    }
-
-    .form-group {
-      margin-bottom: 1.25rem;
-    }
-
-    label {
-      display: block;
-      margin-bottom: 0.5rem;
-      font-weight: 600;
-      color: var(--dark);
-    }
-
-    input[type="text"],
-    input[type="number"],
-    input[type="date"],
-    input[type="file"],
-    select,
-    textarea {
-      width: 100%;
-      padding: 0.75rem 1rem;
-      border: 1px solid var(--gray-light);
-      border-radius: 8px;
-      font-family: 'Open Sans', sans-serif;
-      font-size: 0.95rem;
-      transition: var(--transition);
-      background-color: white;
-    }
-
-    input[type="text"]:focus,
-    input[type="number"]:focus,
-    input[type="date"]:focus,
-    select:focus,
-    textarea:focus {
-      outline: none;
-      border-color: var(--primary);
-      box-shadow: 0 0 0 3px rgba(196, 0, 0, 0.1);
-    }
-
-    textarea {
-      resize: vertical;
-      min-height: 100px;
-    }
-
-    .radio-group {
-      display: flex;
-      gap: 1.5rem;
-      margin-bottom: 1.25rem;
-    }
-
-    .radio-option {
-      display: flex;
-      align-items: center;
-      gap: 0.5rem;
-    }
-
-    input[type="radio"] {
-      accent-color: var(--primary);
-    }
-
-    .checkbox-group {
-      display: flex;
-      align-items: center;
-      gap: 0.5rem;
-      margin-bottom: 1.25rem;
-    }
-
-    input[type="checkbox"] {
-      accent-color: var(--primary);
-      transform: scale(1.2);
-    }
-
-    /* Botão de envio */
-    .submit-container {
-      text-align: center;
-      margin-top: 2rem;
-    }
-
+    .submit-container { text-align:center; margin-top:2rem; }
     button[type="submit"] {
       background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
-      color: white;
-      border: none;
-      border-radius: 50px;
-      padding: 0.9rem 2.5rem;
-      font-size: 1.1rem;
-      font-weight: 600;
-      cursor: pointer;
-      transition: var(--transition);
-      box-shadow: var(--shadow);
-      display: inline-flex;
-      align-items: center;
-      gap: 0.75rem;
+      color:white; border:none; border-radius:50px; padding:.9rem 2.5rem; font-size:1.1rem; font-weight:600; cursor:pointer; transition:var(--transition); box-shadow:var(--shadow);
+      display:inline-flex; align-items:center; gap:.75rem;
     }
+    button[type="submit"]:hover { transform:translateY(-3px); box-shadow: var(--shadow-hover); }
+    button[type="submit"]:active { transform: translateY(0); }
+    button[type="submit"]:disabled { background: var(--gray); cursor:not-allowed; transform:none; box-shadow:none; }
 
-    button[type="submit"]:hover {
-      transform: translateY(-3px);
-      box-shadow: var(--shadow-hover);
-    }
-
-    button[type="submit"]:active {
-      transform: translateY(0);
-    }
-
-    button[type="submit"]:disabled {
-      background: var(--gray);
-      cursor: not-allowed;
-      transform: none;
-      box-shadow: none;
-    }
-
-    /* Seções condicionais */
     .conditional-section {
       background-color: rgba(196, 0, 0, 0.03);
-      border-radius: 12px;
-      padding: 1.5rem;
-      margin-top: 1rem;
-      border-left: 4px solid var(--primary);
-      animation: fadeIn 0.5s ease;
+      border-radius:12px; padding:1.5rem; margin-top:1rem; border-left:4px solid var(--primary); animation: fadeIn .5s ease;
     }
+    @keyframes fadeIn { from{opacity:0; transform:translateY(10px)} to{opacity:1; transform:translateY(0)} }
 
-    @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(10px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
-
-    /* Rodapé */
-    footer {
-      text-align: center;
-      padding: 1.5rem;
-      background-color: white;
-      color: var(--gray);
-      margin-top: 3rem;
-      border-top: 1px solid var(--gray-light);
-      font-size: 0.9rem;
-    }
-
-    /* Responsividade */
+    footer { text-align:center; padding:1.5rem; background:white; color:var(--gray); margin-top:3rem; border-top:1px solid var(--gray-light); font-size:.9rem; }
     @media (max-width: 768px) {
-      .header-content {
-        flex-direction: column;
-        text-align: center;
-      }
-
-      nav ul {
-        justify-content: center;
-        flex-wrap: wrap;
-      }
-
-      .form-grid {
-        grid-template-columns: 1fr;
-      }
-
-      .form-content {
-        padding: 1.5rem;
-      }
-
-      .radio-group {
-        flex-direction: column;
-        gap: 0.75rem;
-      }
+      .header-content { flex-direction: column; text-align: center; }
+      nav ul { justify-content:center; flex-wrap:wrap; }
+      .form-grid { grid-template-columns: 1fr; }
+      .form-content { padding:1.5rem; }
+      .radio-group { flex-direction:column; gap:.75rem; }
     }
   </style>
 </head>
@@ -404,7 +137,6 @@
       <div class="form-header">
         <h2><i class="fas fa-user-plus"></i> Novo Cadastro de Aluno</h2>
       </div>
-      
       <div class="form-content">
         <div id="alerta"></div>
 
@@ -416,42 +148,34 @@
                 <label for="nome">Nome:</label>
                 <input type="text" id="nome" name="nome" required />
               </div>
-              
               <div class="form-group">
                 <label for="sobrenome">Sobrenome:</label>
                 <input type="text" id="sobrenome" name="sobrenome" required />
               </div>
-              
               <div class="form-group">
                 <label for="matricula">Matrícula:</label>
                 <input type="text" id="matricula" name="matricula" required />
               </div>
-              
               <div class="form-group">
                 <label for="cidade">Cidade:</label>
                 <input type="text" id="cidade" name="cidade" required />
               </div>
-              
               <div class="form-group">
                 <label for="bairro">Bairro:</label>
                 <input type="text" id="bairro" name="bairro" required />
               </div>
-              
               <div class="form-group">
                 <label for="rua">Rua:</label>
                 <input type="text" id="rua" name="rua" required />
               </div>
-              
               <div class="form-group">
                 <label for="telefone">Telefone:</label>
                 <input type="text" id="telefone" name="telefone" />
               </div>
-              
               <div class="form-group">
                 <label for="idade">Idade:</label>
                 <input type="number" id="idade" name="idade" required onchange="verificarCadastroResponsavel()" />
               </div>
-              
               <div class="form-group">
                 <label for="data_nascimento">Data de Nascimento:</label>
                 <input type="date" id="data_nascimento" name="data_nascimento" required />
@@ -467,32 +191,26 @@
                   <label for="nomeResponsavel">Nome:</label>
                   <input type="text" id="nomeResponsavel" name="nomeResponsavel" />
                 </div>
-                
                 <div class="form-group">
                   <label for="sobrenomeResponsavel">Sobrenome:</label>
                   <input type="text" id="sobrenomeResponsavel" name="sobrenomeResponsavel" />
                 </div>
-                
                 <div class="form-group">
                   <label for="parentescoResponsavel">Parentesco:</label>
                   <input type="text" id="parentescoResponsavel" name="parentescoResponsavel" />
                 </div>
-                
                 <div class="form-group">
                   <label for="telefone_responsavel">Telefone:</label>
                   <input type="text" id="telefone_responsavel" name="telefone_responsavel" />
                 </div>
-                
                 <div class="form-group">
                   <label for="cidade_responsavel">Cidade:</label>
                   <input type="text" id="cidade_responsavel" name="cidade_responsavel" />
                 </div>
-                
                 <div class="form-group">
                   <label for="bairro_responsavel">Bairro:</label>
                   <input type="text" id="bairro_responsavel" name="bairro_responsavel" />
                 </div>
-                
                 <div class="form-group">
                   <label for="rua_responsavel">Rua:</label>
                   <input type="text" id="rua_responsavel" name="rua_responsavel" />
@@ -516,7 +234,7 @@
                 </div>
               </div>
             </div>
-            
+
             <div id="empresaSection" class="conditional-section" style="display:none;">
               <h4 class="section-title" style="font-size: 1.1rem;"><i class="fas fa-building"></i> Dados da Empresa</h4>
               <div class="form-grid">
@@ -524,32 +242,26 @@
                   <label for="empresa">Nome da Empresa:</label>
                   <input type="text" id="empresa" name="empresa" />
                 </div>
-                
                 <div class="form-group">
                   <label for="empresa_contratante">Empresa Contratante:</label>
                   <input type="text" id="empresa_contratante" name="empresa_contratante" />
                 </div>
-                
                 <div class="form-group">
                   <label for="endereco_empresa">Endereço:</label>
                   <input type="text" id="endereco_empresa" name="endereco_empresa" />
                 </div>
-                
                 <div class="form-group">
                   <label for="telefone_empresa">Telefone:</label>
                   <input type="text" id="telefone_empresa" name="telefone_empresa" />
                 </div>
-                
                 <div class="form-group">
                   <label for="cidade_empresa">Cidade:</label>
                   <input type="text" id="cidade_empresa" name="cidade_empresa" />
                 </div>
-                
                 <div class="form-group">
                   <label for="bairro_empresa">Bairro:</label>
                   <input type="text" id="bairro_empresa" name="bairro_empresa" />
                 </div>
-                
                 <div class="form-group">
                   <label for="rua_empresa">Rua:</label>
                   <input type="text" id="rua_empresa" name="rua_empresa" />
@@ -577,17 +289,19 @@
                   <option value="10">Técnico em Segurança do Trabalho</option>
                 </select>
               </div>
-              
+
               <div class="form-group">
-                <label for="turma">Turma:</label>
-                <input type="text" id="turma" name="turma" />
+                <label for="turma_id">Turma:</label>
+                <select id="turma_id" name="turma_id" required>
+                  <option value="">Selecione o curso primeiro</option>
+                </select>
               </div>
-              
+
               <div class="form-group">
                 <label for="data_inicio_curso">Data de Início do Curso:</label>
                 <input type="date" id="data_inicio_curso" name="data_inicio_curso" />
               </div>
-              
+
               <div class="form-group">
                 <label for="linha_atendimento">Linha de Atendimento:</label>
                 <select id="linha_atendimento" name="linha_atendimento" required>
@@ -597,7 +311,7 @@
                   <option value="CST">CST</option>
                 </select>
               </div>
-              
+
               <div class="form-group">
                 <label for="escola_integrada">Escola Integrada:</label>
                 <select id="escola_integrada" name="escola_integrada" required>
@@ -617,31 +331,26 @@
                 <label for="mora_com_quem">Mora com quem:</label>
                 <input type="text" id="mora_com_quem" name="mora_com_quem" />
               </div>
-              
               <div class="form-group">
                 <label for="sobre_aluno">Sobre o aluno:</label>
                 <textarea id="sobre_aluno" name="sobre_aluno"></textarea>
               </div>
-              
               <div class="form-group">
                 <div class="checkbox-group">
                   <input type="checkbox" id="pessoa_com_deficiencia" name="pessoa_com_deficiencia" onchange="verificarDeficiencia()" />
                   <label for="pessoa_com_deficiencia">Pessoa com Deficiência?</label>
                 </div>
               </div>
-              
               <div id="deficienciaSection" class="conditional-section" style="display:none;">
                 <div class="form-group">
                   <label for="deficiencia_descricao">Qual deficiência?</label>
                   <input type="text" id="deficiencia_descricao" name="deficiencia_descricao" />
                 </div>
               </div>
-              
               <div class="form-group">
                 <label for="outras_informacoes">Outras Informações:</label>
                 <textarea id="outras_informacoes" name="outras_informacoes"></textarea>
               </div>
-              
               <div class="form-group">
                 <label for="foto">Foto:</label>
                 <input type="file" id="foto" name="foto" accept="image/*" />
@@ -673,6 +382,46 @@
       const alertaDiv = document.getElementById("alerta");
       const form = document.getElementById("cadastroAlunoForm");
 
+      // ---------- NOVO: carregar SOMENTE turmas cadastradas (ativas) por curso ----------
+      const cursoSelect = document.getElementById("curso");
+      const turmaSelect = document.getElementById("turma_id");
+
+      async function carregarTurmasPorCurso(cursoId) {
+        turmaSelect.disabled = true;
+        turmaSelect.innerHTML = '<option value="">Carregando...</option>';
+
+        if (!cursoId) {
+          turmaSelect.innerHTML = '<option value="">Selecione o curso primeiro</option>';
+          turmaSelect.disabled = true;
+          return;
+        }
+        try {
+          // usa endpoint que já retorna APENAS turmas cadastradas e ATIVAS
+          const res = await fetch(`http://localhost:5000/turmas/por_curso?curso_id=${encodeURIComponent(cursoId)}`);
+          const turmas = await res.json();
+
+          if (Array.isArray(turmas) && turmas.length) {
+            turmaSelect.innerHTML = '<option value="">Selecione</option>';
+            turmas.forEach(t => {
+              const label = `${t.nome} (Sem ${t.semestre})`;
+              turmaSelect.innerHTML += `<option value="${t.id}">${label}</option>`;
+            });
+            turmaSelect.disabled = false;
+          } else {
+            turmaSelect.innerHTML = '<option value="">Nenhuma turma ativa para este curso</option>';
+            turmaSelect.disabled = true;
+          }
+        } catch (e) {
+          console.error(e);
+          turmaSelect.innerHTML = '<option value="">Erro ao carregar turmas</option>';
+          turmaSelect.disabled = true;
+        }
+      }
+
+      cursoSelect.addEventListener("change", () => carregarTurmasPorCurso(cursoSelect.value));
+      if (cursoSelect.value) carregarTurmasPorCurso(cursoSelect.value);
+      // -------------------------------------------------------------------
+
       function verificarCadastroResponsavel() {
         const idade = parseInt(idadeInput.value);
         responsavelSection.style.display = !isNaN(idade) && idade < 18 ? "block" : "none";
@@ -698,7 +447,7 @@
         try {
           const res = await fetch(form.action, { method: "POST", body: new FormData(form) });
           const data = await res.json();
-          if (res.ok) showAlert("success", data.mensagem);
+          if (res.ok) showAlert("success", data.mensagem || "Aluno cadastrado com sucesso!");
           else showAlert("error", data.erro || "Erro no cadastro");
         } catch (err) {
           console.error(err);

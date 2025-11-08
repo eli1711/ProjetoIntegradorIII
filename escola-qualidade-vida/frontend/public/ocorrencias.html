@@ -27,8 +27,8 @@
     <input type="text" id="buscar_nome" placeholder="Digite o nome..." autocomplete="off" />
     <ul id="sugestoes" style="list-style: none; padding-left: 0;"></ul>
 
-    <div id="aluno_selecionado" style="margin: 15px 0; display: none;">
-      <img id="foto_exibida" src="" alt="Foto do Aluno" />
+    <div id="aluno_selecionado" style="margin: 15px 0; display: none; align-items:center; gap:12px;">
+      <img id="foto_exibida" src="" alt="Foto do Aluno" style="width:80px;height:80px;object-fit:cover;border-radius:8px;border:1px solid #ddd;" />
       <div>
         <strong id="nome_exibido"></strong><br />
       </div>
@@ -62,6 +62,7 @@
     const nomeExibido = document.getElementById("nome_exibido");
     const fotoExibida = document.getElementById("foto_exibida");
     const alunoIdInput = document.getElementById("aluno_id");
+    const form = document.getElementById("ocorrenciaForm");
 
     // 🔍 Busca alunos conforme o usuário digita
     buscarInput.addEventListener("input", async () => {
@@ -70,7 +71,7 @@
       if (nome.length < 2) return;
 
       try {
-        const response = await fetch(`http://localhost:5000/alunos/buscar?nome=${nome}`);
+        const response = await fetch(`http://localhost:5000/alunos/buscar?nome=${encodeURIComponent(nome)}`);
         const data = await response.json();
 
         if (response.ok && Array.isArray(data)) {
@@ -105,21 +106,40 @@
     }
 
     // 📤 Envio do formulário de ocorrência
-    document.getElementById("ocorrenciaForm").addEventListener("submit", async (e) => {
+    form.addEventListener("submit", async (e) => {
       e.preventDefault();
 
-      const formData = new FormData(e.target);
+      // validação básica: precisa ter aluno escolhido
+      if (!alunoIdInput.value) {
+        alert("Selecione um aluno antes de cadastrar a ocorrência.");
+        return;
+      }
+
+      const payload = {
+        aluno_id: Number(alunoIdInput.value),
+        tipo: document.getElementById("tipo").value,
+        descricao: document.getElementById("descricao").value.trim(),
+        data_ocorrencia: document.getElementById("data_ocorrencia").value || null
+      };
 
       try {
-        const response = await fetch("http://localhost:5000/ocorrencias", {
+        // use a barra final para não tomar 308
+        const response = await fetch("http://localhost:5000/ocorrencias/", {
           method: "POST",
-          body: formData
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload)
         });
 
         const data = await response.json();
-        alert(data.mensagem || "Ocorrência cadastrada com sucesso!");
-        e.target.reset();
-        alunoSelecionadoDiv.style.display = "none";
+
+        if (response.ok) {
+          alert(data.mensagem || "Ocorrência cadastrada com sucesso!");
+          form.reset();
+          alunoSelecionadoDiv.style.display = "none";
+        } else {
+          alert(data.erro || "Erro ao cadastrar ocorrência.");
+          console.error("Detalhes:", data.detalhes || data);
+        }
       } catch (error) {
         console.error("Erro ao cadastrar ocorrência:", error);
         alert("Falha ao cadastrar ocorrência.");
