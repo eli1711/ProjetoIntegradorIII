@@ -3,10 +3,9 @@ from flask import Blueprint, request, jsonify
 from datetime import datetime, date
 from app.extensions import db
 from app.models.turma import Turma
-from app.models.curso import Curso  # ajuste o import conforme seu projeto
+from app.models.curso import Curso
 
 turma_bp = Blueprint("turma", __name__, url_prefix="/turmas")
-
 
 def _parse_date(val):
     if not val:
@@ -16,21 +15,38 @@ def _parse_date(val):
     except ValueError:
         return None
 
+def _serialize_turma(t: Turma):
+    return {
+        "id": t.id,
+        "nome": t.nome,
+        "semestre": t.semestre,
+        "curso_id": t.curso_id,
+        "curso_nome": getattr(getattr(t, "curso", None), "nome", None),
+        "data_inicio": t.data_inicio.isoformat() if t.data_inicio else None,
+        "data_fim": t.data_fim.isoformat() if t.data_fim else None,
+        "ativa": t.data_fim is None,
+    }
 
 @turma_bp.route("/", methods=["GET"])
 def listar_turmas():
     """
     Lista turmas.
-    Parâmetros opcionais:
-      - status=ativas|todas (default: ativas -> data_fim IS NULL)
-      - curso_id=<int>
+    Parâmetros:
+      - status=todas|ativas|finalizadas (default: todas)
+      - curso_id=<int> (opcional)
     """
-    status = request.args.get("status", "ativas").strip().lower()
+    status = (request.args.get("status") or "todas").strip().lower()
     curso_id = request.args.get("curso_id")
 
     query = Turma.query
+
     if status == "ativas":
         query = query.filter(Turma.data_fim.is_(None))
+    elif status == "finalizadas":
+        query = query.filter(Turma.data_fim.isnot(None))
+    else:
+        # "todas": sem filtro por data_fim
+        pass
 
     if curso_id:
         try:
@@ -39,28 +55,12 @@ def listar_turmas():
         except ValueError:
             return jsonify({"erro": "curso_id inválido"}), 400
 
-    turmas = query.order_by(Turma.id.desc()).all()
-    out = []
-    for t in turmas:
-        out.append({
-            "id": t.id,
-            "nome": t.nome,
-            "semestre": t.semestre,
-            "curso_id": t.curso_id,
-            "data_inicio": t.data_inicio.isoformat() if t.data_inicio else None,
-            "data_fim": t.data_fim.isoformat() if t.data_fim else None,
-            "ativa": t.data_fim is None,
-            "curso_nome": getattr(getattr(t, "curso", None), "nome", None),
-        })
-    return jsonify(out), 200
-
+    # Ordena: ativas primeiro (data_fim IS NULL), depois finalizadas; dentro, id desc
+    turmas = query.order_by(Turma.data_fim.isnot(None), Turma.id.desc()).all()
+    return jsonify([_serialize_turma(t) for t in turmas]), 200
 
 @turma_bp.route("/por_curso", methods=["GET"])
 def listar_turmas_por_curso():
-    """
-    Lista APENAS turmas ativas de um curso específico (para preencher selects).
-    Ex: /turmas/por_curso?curso_id=3
-    """
     curso_id = request.args.get("curso_id")
     if not curso_id:
         return jsonify({"erro": "curso_id é obrigatório"}), 400
@@ -83,14 +83,8 @@ def listar_turmas_por_curso():
         } for t in turmas
     ]), 200
 
-
 @turma_bp.route("/", methods=["POST"])
 def criar_turma():
-    """
-    Cria uma turma. Aceita JSON, form-data (multipart/urlencoded) ou querystring.
-    Campos obrigatórios: nome, semestre ('1'|'2'), curso_id, data_inicio (YYYY-MM-DD)
-    Opcional: data_fim (YYYY-MM-DD)
-    """
     data = request.get_json(silent=True) or request.form.to_dict() or request.args.to_dict()
 
     obrigatorios = ["nome", "semestre", "curso_id", "data_inicio"]
@@ -101,7 +95,6 @@ def criar_turma():
     if semestre not in ("1", "2"):
         return jsonify({"erro": "semestre deve ser '1' ou '2'"}), 400
 
-    # curso_id precisa existir
     try:
         curso_id = int(data.get("curso_id"))
     except (TypeError, ValueError):
@@ -122,21 +115,15 @@ def criar_turma():
         semestre=semestre,
         curso_id=curso_id,
         data_inicio=data_inicio,
-        data_fim=data_fim,  # normalmente None (preencher só ao encerrar)
+        data_fim=data_fim,
     )
     db.session.add(turma)
     db.session.commit()
 
-    return jsonify({"mensagem": "Turma criada com sucesso!", "id": turma.id}), 201
-
+    return jsonify({"mensagem": "Turma criada com sucesso!", **_serialize_turma(turma)}), 201
 
 @turma_bp.route("/<int:turma_id>/finalizar", methods=["PATCH"])
 def finalizar_turma(turma_id: int):
-    """
-    Finaliza uma turma (define data_fim).
-    Corpo aceito (opcional): {"data_fim": "YYYY-MM-DD"}.
-    Se não enviar, usa a data de hoje.
-    """
     turma = Turma.query.get(turma_id)
     if not turma:
         return jsonify({"erro": "Turma não encontrada"}), 404
@@ -160,6 +147,5 @@ def finalizar_turma(turma_id: int):
 
     return jsonify({
         "mensagem": "Turma finalizada com sucesso!",
-        "id": turma.id,
-        "data_fim": turma.data_fim.isoformat()
+        **_serialize_turma(turma)
     }), 200

@@ -27,6 +27,13 @@
                 <i class="fas fa-arrow-right card-arrow"></i>
             </a>
 
+            <a class="card" id="link-cadastro-turma" href="./turmas.html">
+                <i class="fas fa-chalkboard card-icon"></i>
+                <h2>Cadastro de Turmas</h2>
+                <p>Crie e gerencie turmas vinculadas aos cursos.</p>
+                <i class="fas fa-arrow-right card-arrow"></i>
+            </a>
+
             <a class="card" id="link-ocorrencias" href="./ocorrencias.html">
                 <i class="fas fa-exclamation-triangle card-icon"></i>
                 <h2>Ocorrências</h2>
@@ -70,8 +77,7 @@
     </button>
     
     <script>
-
-         // Função logout definida ANTES de ser usada
+        // Função logout definida ANTES de ser usada
         function logout() {
             if (confirm('Tem certeza que deseja sair?')) {
                 localStorage.removeItem('access_token');
@@ -81,7 +87,6 @@
                 window.location.href = 'index.html';
             }
         }
-
 
         let narradorLigado = true;
 
@@ -143,7 +148,7 @@
             }
         }
 
-         // Adiciona efeito de digitação ao título
+        // Efeito de digitação no título
         document.addEventListener('DOMContentLoaded', function() {
             const title = document.querySelector('header h1');
             const originalText = title.textContent;
@@ -159,10 +164,9 @@
             };
             
             setTimeout(typeWriter, 500);
-        });  
+        });
     </script>
 
     <script src="js/script.js"></script>
-
 </body>
 </html>

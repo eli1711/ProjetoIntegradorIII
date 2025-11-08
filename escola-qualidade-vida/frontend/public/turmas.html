@@ -111,8 +111,9 @@
           <div>
             <label for="filtroStatus">Status</label>
             <select id="filtroStatus">
+              <option value="todas" selected>Todas</option>
               <option value="ativas">Ativas</option>
-              <option value="todas">Todas</option>
+              <option value="finalizadas">Finalizadas</option>
             </select>
           </div>
           <button class="btn-sm btn-outline" id="btnRecarregar"><i class="fas fa-rotate-right"></i> Recarregar</button>
@@ -193,7 +194,7 @@
     async function loadTurmas() {
       tbody.innerHTML = `<tr><td colspan="8">Carregando...</td></tr>`;
       const params = new URLSearchParams();
-      if (filtroStatus.value) params.set('status', filtroStatus.value);
+      if (filtroStatus.value) params.set('status', filtroStatus.value);     // todas | ativas | finalizadas
       if (filtroCurso.value) params.set('curso_id', filtroCurso.value);
 
       try {
@@ -252,7 +253,9 @@
         const data = await res.json();
         if (res.ok) {
           showAlert('success', data.mensagem || 'Turma finalizada!');
-          loadTurmas();
+          // Mostra imediatamente na lista (agora como Finalizada)
+          filtroStatus.value = 'todas';
+          await loadTurmas();
         } else {
           showAlert('error', data.erro || 'Erro ao finalizar turma');
         }
@@ -273,28 +276,8 @@
     filtroCurso.addEventListener('change', loadTurmas);
     filtroStatus.addEventListener('change', loadTurmas);
 
-    // -------- Submit criar turma --------
-    document.getElementById('formTurma').addEventListener('submit', async (e) => {
-      e.preventDefault();
-      const fd = new FormData(e.target);
-      try {
-        const res = await fetch(e.target.action, { method: 'POST', body: fd });
-        const data = await res.json();
-        if (res.ok) {
-          showAlert('success', data.mensagem || 'Turma criada!');
-          e.target.reset();
-          dataFim.disabled = true;
-          enableClicks = 0;
-          loadTurmas();
-        } else {
-          showAlert('error', data.erro || 'Erro ao criar turma');
-        }
-      } catch {
-        showAlert('error', 'Falha ao comunicar com o servidor.');
-      }
-    });
-
-    // Init
+    // Init (mostra TODAS por padrão)
+    filtroStatus.value = 'todas';
     loadCursos().then(loadTurmas);
   </script>
 </body>
