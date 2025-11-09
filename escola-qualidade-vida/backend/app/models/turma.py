@@ -1,6 +1,4 @@
 from app.extensions import db
-from sqlalchemy import Enum
-from datetime import date
 
 class Turma(db.Model):
     __tablename__ = 'turmas'
@@ -12,7 +10,6 @@ class Turma(db.Model):
     data_fim = db.Column(db.Date, nullable=True)  # preenche só no fim do semestre
     curso_id = db.Column(db.Integer, db.ForeignKey('cursos.id'), nullable=False)
 
-    # opcional: se houver model Curso
     curso = db.relationship('Curso', backref='turmas', lazy=True)
 
     def __repr__(self):

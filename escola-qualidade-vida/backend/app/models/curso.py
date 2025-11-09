@@ -4,4 +4,7 @@ class Curso(db.Model):
     __tablename__ = 'cursos'
 
     id = db.Column(db.Integer, primary_key=True)
-    nome = db.Column(db.String(255), nullable=False)
+    nome = db.Column(db.String(120), nullable=False, unique=True)
+
+    def __repr__(self):
+        return f"<Curso {self.nome}>"

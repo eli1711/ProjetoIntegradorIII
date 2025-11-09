@@ -232,18 +232,9 @@
             <div class="form-grid">
               <div class="form-group">
                 <label for="curso">Curso:</label>
+                <!-- Agora carrega da API -->
                 <select id="curso" name="curso" required>
-                  <option value="">Selecione</option>
-                  <option value="1">Técnico em Mecânica</option>
-                  <option value="2">Técnico em Eletrotécnica</option>
-                  <option value="3">Técnico em Automação Industrial</option>
-                  <option value="4">Técnico em Informática para Internet</option>
-                  <option value="5">Técnico em Mecatrônica</option>
-                  <option value="6">Técnico em Eletrônica</option>
-                  <option value="7">Técnico em Logística</option>
-                  <option value="8">Técnico em Administração</option>
-                  <option value="9">Técnico em Desenvolvimento de Sistemas</option>
-                  <option value="10">Técnico em Segurança do Trabalho</option>
+                  <option value="">Carregando...</option>
                 </select>
               </div>
 
@@ -340,6 +331,30 @@
       const cursoSelect = document.getElementById("curso");
       const turmaSelect = document.getElementById("turma_id");
 
+      // ---- NOVO: carregar cursos da API ----
+      async function loadCursos() {
+        try {
+          const res = await fetch("http://localhost:5000/cursos/");
+          const lista = await res.json();
+
+          cursoSelect.innerHTML = '<option value="">Selecione</option>';
+
+          if (Array.isArray(lista) && lista.length) {
+            lista.forEach(c => {
+              const opt = document.createElement("option");
+              opt.value = String(c.id);
+              opt.textContent = c.nome;
+              cursoSelect.appendChild(opt);
+            });
+          } else {
+            cursoSelect.innerHTML = '<option value="">Nenhum curso cadastrado</option>';
+          }
+        } catch (e) {
+          console.error(e);
+          cursoSelect.innerHTML = '<option value="">Erro ao carregar cursos</option>';
+        }
+      }
+
       async function carregarTurmasPorCurso(cursoId) {
         turmaSelect.disabled = true;
         turmaSelect.innerHTML = '<option value="">Carregando...</option>';
@@ -370,6 +385,16 @@
           turmaSelect.disabled = true;
         }
       }
+
+      // Carrega cursos e, quando terminar, ajusta o select de turmas
+      loadCursos().then(() => {
+        if (cursoSelect.value) {
+          carregarTurmasPorCurso(cursoSelect.value);
+        } else {
+          turmaSelect.innerHTML = '<option value="">Selecione o curso primeiro</option>';
+          turmaSelect.disabled = true;
+        }
+      });
 
       cursoSelect.addEventListener("change", () => carregarTurmasPorCurso(cursoSelect.value));
       if (cursoSelect.value) carregarTurmasPorCurso(cursoSelect.value);

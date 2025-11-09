@@ -161,7 +161,7 @@
     }
 
     // -------- Carregar CURSOS (para form e filtros) --------
-    async function loadCursos() {
+    async function loadCursos(selecionarIdAposCriar = null) {
       const selCriar = document.getElementById('curso_id');
       const selFiltro = document.getElementById('filtroCurso');
       try {
@@ -173,16 +173,57 @@
         (data || []).forEach(c => {
           selCriar.innerHTML += `<option value="${c.id}">${c.nome}</option>`;
         });
+        // opção especial para criar um novo curso
+        selCriar.innerHTML += `<option value="__novo__">+ Novo curso…</option>`;
 
         // Select do filtro
         selFiltro.innerHTML = '<option value="">Todos</option>';
         (data || []).forEach(c => {
           selFiltro.innerHTML += `<option value="${c.id}">${c.nome}</option>`;
         });
+
+        // se acabamos de criar um curso, seleciona-o
+        if (selecionarIdAposCriar) {
+          selCriar.value = String(selecionarIdAposCriar);
+        }
       } catch (e) {
         selCriar.innerHTML = '<option value="">Erro ao carregar</option>';
         console.error(e);
       }
+    }
+
+    // Detecta escolha "+ Novo curso…"
+    document.getElementById('curso_id').addEventListener('change', async (e) => {
+      if (e.target.value === '__novo__') {
+        const nome = prompt('Nome do novo curso:');
+        if (!nome || !nome.trim()) {
+          e.target.value = '';
+          return;
+        }
+        try {
+          const novoId = await criarCursoNoServidor(nome.trim());
+          showAlert('success', 'Curso criado com sucesso!');
+          await loadCursos(novoId);
+        } catch (errMsg) {
+          showAlert('error', errMsg || 'Não foi possível criar o curso.');
+          e.target.value = '';
+        }
+      }
+    });
+
+    async function criarCursoNoServidor(nome) {
+      const res = await fetch('http://localhost:5000/cursos/', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({ nome })
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        // Se backend devolver 409 com id existente, aproveita para selecioná-lo
+        if (res.status === 409 && data.id) return data.id;
+        throw (data.erro || data.message || 'Erro ao criar curso');
+      }
+      return data.id; // espera { id, nome, ... }
     }
 
     // -------- Listagem / Finalização --------
@@ -253,7 +294,6 @@
         const data = await res.json();
         if (res.ok) {
           showAlert('success', data.mensagem || 'Turma finalizada!');
-          // Mostra imediatamente na lista (agora como Finalizada)
           filtroStatus.value = 'todas';
           await loadTurmas();
         } else {

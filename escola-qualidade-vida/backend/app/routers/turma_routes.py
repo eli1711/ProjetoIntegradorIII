@@ -1,4 +1,3 @@
-# app/routers/turma_routes.py
 from flask import Blueprint, request, jsonify
 from datetime import datetime, date
 from app.extensions import db
@@ -30,7 +29,6 @@ def _serialize_turma(t: Turma):
 @turma_bp.route("/", methods=["GET"])
 def listar_turmas():
     """
-    Lista turmas.
     Parâmetros:
       - status=todas|ativas|finalizadas (default: todas)
       - curso_id=<int> (opcional)
@@ -44,9 +42,6 @@ def listar_turmas():
         query = query.filter(Turma.data_fim.is_(None))
     elif status == "finalizadas":
         query = query.filter(Turma.data_fim.isnot(None))
-    else:
-        # "todas": sem filtro por data_fim
-        pass
 
     if curso_id:
         try:
@@ -55,7 +50,7 @@ def listar_turmas():
         except ValueError:
             return jsonify({"erro": "curso_id inválido"}), 400
 
-    # Ordena: ativas primeiro (data_fim IS NULL), depois finalizadas; dentro, id desc
+    # Ativas primeiro, depois finalizadas; dentro de cada, id desc
     turmas = query.order_by(Turma.data_fim.isnot(None), Turma.id.desc()).all()
     return jsonify([_serialize_turma(t) for t in turmas]), 200
 
