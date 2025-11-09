@@ -101,7 +101,7 @@ def _register_blueprints(app):
     app.register_blueprint(turma_bp, url_prefix="/turmas")
     app.register_blueprint(ocorrencia_bp)  # já tem url_prefix no próprio blueprint
     app.register_blueprint(test_bp, url_prefix="/api")
-    app.register_blueprint(aluno_bp, url_prefix="/alunos")
+    app.register_blueprint(aluno_bp)  # <- corrigido: sem url_prefix aqui
     app.register_blueprint(consulta_aluno_bp, url_prefix="/alunos")
     app.register_blueprint(upload_bp, url_prefix="/files")
     app.register_blueprint(usuario_bp)

@@ -198,6 +198,52 @@
         </table>
       </div>
     </section>
+
+    <!-- NOVO: OCORRÊNCIAS POR TURMA -->
+    <section class="section table-card">
+      <div class="table-head">
+        <h3>Ocorrências por Turma</h3>
+        <div class="table-tools">
+          <button class="btn-sm secondary" id="exportOcorrTurmas"><i class="fa-solid fa-file-export"></i> CSV</button>
+        </div>
+      </div>
+      <div class="table-wrap">
+        <table id="tblOcorrTurmas">
+          <thead>
+            <tr>
+              <th>Turma</th>
+              <th>Curso</th>
+              <th>Alunos com Ocorrência</th>
+              <th>Ocorrências</th>
+            </tr>
+          </thead>
+          <tbody><tr><td colspan="4" class="muted">Carregando...</td></tr></tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- NOVO: OCORRÊNCIAS POR CURSO -->
+    <section class="section table-card">
+      <div class="table-head">
+        <h3>Ocorrências por Curso</h3>
+        <div class="table-tools">
+          <button class="btn-sm secondary" id="exportOcorrCursos"><i class="fa-solid fa-file-export"></i> CSV</button>
+        </div>
+      </div>
+      <div class="table-wrap">
+        <table id="tblOcorrCursos">
+          <thead>
+            <tr>
+              <th>Curso</th>
+              <th>Turmas</th>
+              <th>Alunos</th>
+              <th>Ocorrências</th>
+            </tr>
+          </thead>
+          <tbody><tr><td colspan="4" class="muted">Carregando...</td></tr></tbody>
+        </table>
+      </div>
+    </section>
   </main>
 
   <script>
@@ -255,14 +301,11 @@
 
     // ------- Carrega Cursos para o select (a partir das turmas) -------
     async function hydrateCursosNoFiltro(){
-      // pegar todas as turmas para extrair cursos únicos
       const all = await API.turmas('todas','');
       const nomes = new Set();
       (all||[]).forEach(t=>{ if (t?.curso_nome) nomes.add(t.curso_nome); });
-      // monta opções
       cursoFiltro.innerHTML = `<option value="">Todos</option>`;
       [...nomes].sort().forEach(n=>{
-        // o filtro usará o nome do curso; no fetch usaremos curso_id quando disponível
         const opt = document.createElement('option');
         opt.value = n;
         opt.textContent = n;
@@ -286,8 +329,7 @@
 
     // ------- Render principal -------
     function render(){
-      // aplica filtro de status / curso / busca textual
-      const status = statusTurma.value;     // todas | ativas | finalizadas
+      const status = statusTurma.value;
       const cursoNome = cursoFiltro.value.trim().toLowerCase();
       const fAluno = buscaAluno.value.trim().toLowerCase();
       const fTurma = buscaTurma.value.trim().toLowerCase();
@@ -299,10 +341,8 @@
       if (cursoNome) turmas = turmas.filter(t=>(t.curso_nome||'').toLowerCase().includes(cursoNome));
       if (fTurma) turmas = turmas.filter(t=>(t.nome||'').toLowerCase().includes(fTurma));
 
-      // map auxiliares
       const alunos = DATA.alunos.slice().filter(a=>{
         const okAluno = !fAluno || ((a.nome||'').toLowerCase().includes(fAluno));
-        // restringe por turma visível
         const turmaMatch = turmas.some(t=>matchTurmaAluno(t, a));
         return okAluno && turmaMatch;
       });
@@ -317,16 +357,17 @@
       // KPIs
       renderKPIs(alunos, turmas, ocorr);
 
-      // Tabelas
+      // Tabelas principais
       renderTabelaTurmas(turmas, mapAlunosPorTurma, mapOcorrPorTurma);
       renderTabelaAlunos(alunos, mapOcorrPorAluno);
-
-      // Distribuição por escola integrada
       renderDistribuicaoEscola(alunos);
+
+      // NOVO: Indicadores de ocorrências
+      renderOcorrenciasPorTurma(turmas, alunos, mapOcorrPorAluno);
+      renderOcorrenciasPorCurso(turmas, alunos, mapOcorrPorAluno);
     }
 
     function matchTurmaAluno(turma, aluno){
-      // Tente por turma_id; se não houver, usa rótulo textual "turma"
       if (aluno.turma_id != null && turma.id != null){
         return Number(aluno.turma_id) === Number(turma.id);
       }
@@ -338,7 +379,6 @@
     function countAlunosPorTurma(alunos, turmas){
       const map = new Map();
       turmas.forEach(t=>map.set(t.id, 0));
-
       alunos.forEach(a=>{
         const turma = turmas.find(t=>matchTurmaAluno(t, a));
         if (turma) map.set(turma.id, (map.get(turma.id)||0)+1);
@@ -360,11 +400,10 @@
       const map = new Map();
       alunos.forEach(a=>{
         const qtd = byAluno.get(a.id)||0;
-        // necessidade de turma
-        const tKey = a.turma_id ?? (a.turma||'__rot_turma__'+(a.turma||''));
+        const tKey = a.turma_id ?? (a.turma||'__rot_turma__'+(a.turma||'')); // fallback
         map.set(tKey, (map.get(tKey)||0)+qtd);
       });
-      return map; // key: turma_id (ou fallback textual) -> qtd
+      return map;
     }
 
     function mediaIdade(alunos){
@@ -401,8 +440,6 @@
       }
       const rows = turmas.map(t=>{
         const alunosQtd = mapAlunosPorTurma.get(t.id) || 0;
-
-        // ocorrências por turma: tentar por id; se não achar, tenta por rótulo textual
         let ocorrQtd = mapOcorrPorTurma.get(t.id);
         if (ocorrQtd == null) ocorrQtd = mapOcorrPorTurma.get('__rot_turma__'+(t.nome||'')) || 0;
 
@@ -426,7 +463,6 @@
       }).join('');
       tbody.innerHTML = rows;
 
-      // Export CSV
       el('#exportTurmas').onclick = ()=>{
         const data = [['ID','Turma','Curso','Semestre','Inicio','Termino','Status','Alunos','Ocorrencias']];
         turmas.forEach(t=>{
@@ -472,7 +508,6 @@
       }).join('');
       tbody.innerHTML = rows;
 
-      // Export CSV
       el('#exportAlunos').onclick = ()=>{
         const data = [['ID','Aluno','Turma','Curso','Idade','Escola Integrada','PCD','Ocorrencias']];
         alunos.forEach(a=>{
@@ -506,6 +541,116 @@
           return `<tr><td>${nome}</td><td>${qtd}</td><td>${pct}%</td></tr>`;
         }).join('');
       tbody.innerHTML = linhas || `<tr><td colspan="3" class="muted">Sem dados.</td></tr>`;
+    }
+
+    // -------- NOVOS RENDERS: OCORRÊNCIAS --------
+    function renderOcorrenciasPorTurma(turmas, alunos, mapOcorrPorAluno){
+      const tbody = el('#tblOcorrTurmas tbody');
+      if (!turmas.length){
+        tbody.innerHTML = `<tr><td colspan="4" class="muted">Sem resultados.</td></tr>`;
+        return;
+      }
+
+      // agrega por turma
+      const agg = turmas.map(t=>{
+        // alunos desta turma
+        const alTurma = alunos.filter(a=>matchTurmaAluno(t, a));
+        // alunos com pelo menos 1 ocorrência
+        const alunosComOc = alTurma.filter(a=>(mapOcorrPorAluno.get(a.id)||0) > 0);
+        // total de ocorrências somando os alunos
+        const totalOc = alTurma.reduce((s,a)=>s+(mapOcorrPorAluno.get(a.id)||0),0);
+        return {
+          turma: t.nome || '-',
+          curso: t.curso_nome || '-',
+          alunosComOc: alunosComOc.length,
+          ocorrencias: totalOc
+        };
+      }).sort((a,b)=>b.ocorrencias - a.ocorrencias);
+
+      if (!agg.length){
+        tbody.innerHTML = `<tr><td colspan="4" class="muted">Sem resultados.</td></tr>`;
+        return;
+      }
+
+      tbody.innerHTML = agg.map(r=>`
+        <tr>
+          <td>${r.turma}</td>
+          <td>${r.curso}</td>
+          <td>${r.alunosComOc}</td>
+          <td>${r.ocorrencias}</td>
+        </tr>
+      `).join('');
+
+      // export
+      el('#exportOcorrTurmas').onclick = ()=>{
+        const data = [['Turma','Curso','AlunosComOcorrencia','Ocorrencias']];
+        agg.forEach(r=>data.push([r.turma,r.curso,r.alunosComOc,r.ocorrencias]));
+        download('ocorrencias_por_turma.csv', toCSV(data));
+      };
+    }
+
+    function renderOcorrenciasPorCurso(turmas, alunos, mapOcorrPorAluno){
+      const tbody = el('#tblOcorrCursos tbody');
+
+      if (!turmas.length){
+        tbody.innerHTML = `<tr><td colspan="4" class="muted">Sem resultados.</td></tr>`;
+        return;
+      }
+
+      // Mapeamento turmaId -> cursoNome
+      const cursoPorTurmaId = new Map();
+      turmas.forEach(t=>{
+        const k = t.id ?? `__rot__${t.nome||''}`;
+        cursoPorTurmaId.set(k, t.curso_nome || '-');
+      });
+
+      // Agregar por curso a partir dos alunos (para pegar ocorrências)
+      const mapCurso = new Map(); // curso -> { turmas:Set, alunos:Set, ocorr:int }
+      alunos.forEach(a=>{
+        // acha turma correspondente (id ou rótulo)
+        let turma = turmas.find(t=>matchTurmaAluno(t,a));
+        let cursoNome = turma ? (turma.curso_nome || '-') : (a.curso_nome || a.curso || '-');
+
+        if (!mapCurso.has(cursoNome)){
+          mapCurso.set(cursoNome, { turmas:new Set(), alunos:new Set(), ocorr:0 });
+        }
+        const entry = mapCurso.get(cursoNome);
+        if (turma){
+          entry.turmas.add(turma.nome || turma.id || '?');
+        }
+        entry.alunos.add(a.id);
+        entry.ocorr += (mapOcorrPorAluno.get(a.id)||0);
+      });
+
+      const agg = [...mapCurso.entries()]
+        .map(([curso,vals])=>({
+          curso,
+          turmas: vals.turmas.size,
+          alunos: vals.alunos.size,
+          ocorrencias: vals.ocorr
+        }))
+        .sort((a,b)=>b.ocorrencias - a.ocorrencias);
+
+      if (!agg.length){
+        tbody.innerHTML = `<tr><td colspan="4" class="muted">Sem resultados.</td></tr>`;
+        return;
+      }
+
+      tbody.innerHTML = agg.map(r=>`
+        <tr>
+          <td>${r.curso}</td>
+          <td>${r.turmas}</td>
+          <td>${r.alunos}</td>
+          <td>${r.ocorrencias}</td>
+        </tr>
+      `).join('');
+
+      // export
+      el('#exportOcorrCursos').onclick = ()=>{
+        const data = [['Curso','Turmas','Alunos','Ocorrencias']];
+        agg.forEach(r=>data.push([r.curso,r.turmas,r.alunos,r.ocorrencias]));
+        download('ocorrencias_por_curso.csv', toCSV(data));
+      };
     }
 
     // Init
