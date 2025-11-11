@@ -68,7 +68,7 @@ function verificarAcessoLocal(cargo, pagina) {
             'criar_usuario': false,
             'importar_alunos': true,
             'cadastro_turma': false,
-            'consulta_aluno': true, 
+            'consulta_aluno': false, 
         },
         'analista': {
             'cadastro_aluno': true,
@@ -124,6 +124,9 @@ function logout() {
                 'link-relatorios': 'relatorios',
                 'link-historico': 'historico',
                 'link-criar-usuario': 'criar_usuario',
+                'link-importar-alunos': 'importar_alunos',
+                'link-cadastro-turma': 'cadastro_turma',
+                'link-consulta-aluno': 'consulta_aluno'
             };
 
             // ------------------- BLOQUEIO DE LINKS POR CARGO -------------------
@@ -151,6 +154,9 @@ function logout() {
                     'relatorios': true,
                     'historico': true,
                     'criar_usuario': true,
+                    'importar_alunos': true,
+                    'cadastro_turma': true,
+                    'consulta_aluno': true
                 },
                 'coordenador': {
                     'cadastro_aluno': false,
@@ -158,6 +164,10 @@ function logout() {
                     'relatorios': true,
                     'historico': true,
                     'criar_usuario': false,
+                    'importar_alunos': true,
+                    'cadastro_turma': false,
+                    'consulta_aluno': false, 
+
                 },
                 'analista': {
                     'cadastro_aluno': true,
@@ -165,6 +175,9 @@ function logout() {
                     'relatorios': false,
                     'historico': true,
                     'criar_usuario': false,
+                    'importar_alunos':false,
+                    'cadastro_turma':true,
+                    'consulta_aluno':true,
                 }
             };
             
