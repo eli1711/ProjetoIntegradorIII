@@ -32,8 +32,11 @@ def create_app():
     from app.routers.ocorrencia_routes import ocorrencia_bp
     from app.routers.test_routes import test_bp
     from app.routers.usuario_routes import usuario_bp
-
+    from app.routers.permission_routes import permission_bp
+    from app.routers.debug_routes import debug_bp
+    
     # Registra blueprints (usuario no prefixo /api)
+    
     app.register_blueprint(auth_bp, url_prefix='/auth')
     app.register_blueprint(cadastro_bp, url_prefix='/alunos')
     app.register_blueprint(curso_bp, url_prefix='/cursos')
@@ -41,7 +44,8 @@ def create_app():
     app.register_blueprint(ocorrencia_bp, url_prefix='/ocorrencias')
     app.register_blueprint(test_bp, url_prefix='/api')
     app.register_blueprint(usuario_bp)
-
+    app.register_blueprint(permission_bp)
+    app.register_blueprint(debug_bp)
     @app.route('/')
     def index():
         return app.send_static_file('index.html')
