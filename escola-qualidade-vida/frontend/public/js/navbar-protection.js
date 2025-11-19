@@ -1,4 +1,5 @@
-// js/navbar-protection.js
+// desenvolvido por mim
+
 document.addEventListener("DOMContentLoaded", function () {
   console.log("🔐 Iniciando proteção do navbar...");
 
