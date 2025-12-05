@@ -16,8 +16,8 @@ from app.routers.aluno import aluno_bp
 from app.routers.consulta_aluno import consulta_aluno_bp
 from app.routers.uploads_routes import upload_bp
 from app.routers.usuario_routes import usuario_bp
-
-
+from app.routers.permission_routes import permission_bp  # NOVO IMPORT
+from app.routers.debug_routes import debug_bp
 def create_app():
     """Cria e configura a aplicação Flask, incluindo banco, JWT, CORS e rotas."""
     base_dir = os.path.abspath(os.path.dirname(__file__))
@@ -54,7 +54,6 @@ def create_app():
 
     return app
 
-
 def _configure_database(app):
     db_user = os.environ.get("DB_USER", "root")
     db_password = os.environ.get("DB_PASSWORD", "password")
@@ -66,11 +65,9 @@ def _configure_database(app):
     app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
     db.init_app(app)
 
-
 def _configure_jwt(app):
     app.config["SECRET_KEY"] = os.environ.get("SECRET_KEY", "uma_chave_secreta_32_caracteres_no_minimo")
     jwt.init_app(app)
-
 
 def _configure_uploads(app, upload_folder: str):
     app.config["UPLOAD_FOLDER"] = upload_folder
@@ -85,7 +82,6 @@ def _configure_uploads(app, upload_folder: str):
             return jsonify({"erro": "Arquivo não encontrado"}), 404
         return send_from_directory(app.config["UPLOAD_FOLDER"], filename)
 
-
 def _configure_email(app):
     app.config["SMTP_SERVER"] = os.environ.get("SMTP_SERVER", "smtp.gmail.com")
     app.config["SMTP_PORT"] = int(os.environ.get("SMTP_PORT", 587))
@@ -93,15 +89,16 @@ def _configure_email(app):
     app.config["EMAIL_PASSWORD"] = os.environ.get("EMAIL_PASSWORD", "xhfs wgey gede jdce")
     app.config["FRONTEND_URL"] = os.environ.get("FRONTEND_URL", "http://localhost:8080")
 
-
 def _register_blueprints(app):
     app.register_blueprint(auth_bp, url_prefix="/auth")
     app.register_blueprint(cadastro_bp, url_prefix="/cadastro")
     app.register_blueprint(curso_bp, url_prefix="/cursos")
     app.register_blueprint(turma_bp, url_prefix="/turmas")
-    app.register_blueprint(ocorrencia_bp)  # já tem url_prefix no próprio blueprint
+    app.register_blueprint(ocorrencia_bp)
     app.register_blueprint(test_bp, url_prefix="/api")
-    app.register_blueprint(aluno_bp)  # <- corrigido: sem url_prefix aqui
+    app.register_blueprint(aluno_bp)
     app.register_blueprint(consulta_aluno_bp, url_prefix="/alunos")
     app.register_blueprint(upload_bp, url_prefix="/files")
     app.register_blueprint(usuario_bp)
+    app.register_blueprint(permission_bp)  # NOVO REGISTRO
+    app.register_blueprint(debug_bp)

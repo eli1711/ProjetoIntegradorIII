@@ -1,39 +1,32 @@
 import os
 import time
+from flask import Flask
+from app import create_app, db
+from sqlalchemy.exc import OperationalError
+from sqlalchemy import create_engine
 import logging
 from functools import wraps
-
-from sqlalchemy.exc import OperationalError
-from sqlalchemy import create_engine, text
 from werkzeug.security import generate_password_hash
 
-from app import create_app, db
-
+# Configuração do Flask
 app = create_app()
 
-# -------------------------
-# LOGS
-# -------------------------
-logging.basicConfig(
-    level=logging.DEBUG,
-    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
-)
+# Configuração de logs
+log_file = 'app.log'
+logging.basicConfig(level=logging.DEBUG,  # Captura DEBUG, INFO, WARNING, ERROR, CRITICAL
+                    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 
-# Evita adicionar handler duplicado
-if not any(isinstance(h, logging.StreamHandler) for h in app.logger.handlers):
-    console_handler = logging.StreamHandler()
-    console_handler.setLevel(logging.DEBUG)
-    console_handler.setFormatter(
-        logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
-    )
-    app.logger.addHandler(console_handler)
+# Adicionando um Handler para também exibir logs no console
+console_handler = logging.StreamHandler()
+console_handler.setLevel(logging.DEBUG)
+formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+console_handler.setFormatter(formatter)
+app.logger.addHandler(console_handler)
 
-app.logger.setLevel(logging.DEBUG)
-
-# -------------------------
-# RETRY DB
-# -------------------------
 def retry_on_failure(retries=5, backoff_factor=2):
+    """
+    Função decoradora que aplica uma política de retry (tentativas) em caso de falhas.
+    """
     def decorator(func):
         @wraps(func)
         def wrapper(*args, **kwargs):
@@ -43,109 +36,62 @@ def retry_on_failure(retries=5, backoff_factor=2):
                     return func(*args, **kwargs)
                 except OperationalError as e:
                     attempt += 1
-                    backoff_time = backoff_factor**attempt
-                    app.logger.warning(
-                        f"Erro ao conectar ao banco. Tentativa {attempt}/{retries}. "
-                        f"Retry em {backoff_time}s. Detalhes: {e}"
-                    )
+                    backoff_time = backoff_factor ** attempt
+                    app.logger.warning(f"Erro ao conectar ao banco de dados. Tentativa {attempt}/{retries}. "
+                                       f"Voltando a tentar em {backoff_time} segundos. Detalhes: {e}")
                     time.sleep(backoff_time)
-            raise Exception(f"Falha ao conectar ao banco após {retries} tentativas.")
+            raise Exception(f"Falha ao conectar ao banco de dados após {retries} tentativas.")
         return wrapper
     return decorator
 
-
-@retry_on_failure(retries=10, backoff_factor=1)
+# Função para conectar ao banco de dados com retry
+@retry_on_failure(retries=5, backoff_factor=2)
 def wait_for_db():
-    db_uri = app.config.get("SQLALCHEMY_DATABASE_URI")
-    if not db_uri:
-        raise RuntimeError("SQLALCHEMY_DATABASE_URI não configurada no create_app().")
-
-    engine = create_engine(db_uri, pool_pre_ping=True)
+    db_uri = app.config['SQLALCHEMY_DATABASE_URI']
+    engine = create_engine(db_uri)
     with engine.connect():
-        app.logger.info("✅ Conexão com o banco OK!")
+        app.logger.info("Conexão bem-sucedida com o banco de dados!")
 
-
-# -------------------------
-# IMPORTA MODELS (registra mappers)
-# -------------------------
-def import_all_models():
-    """
-    IMPORTANTE:
-    Isso evita problemas do create_all() não enxergar tabelas por falta de import.
-    Ajuste caso os nomes dos arquivos sejam diferentes.
-    """
-    from app.models.aluno import Aluno  # noqa: F401
-    from app.models.responsavel import Responsavel  # noqa: F401
-    from app.models.empresa import Empresa  # noqa: F401
-    from app.models.curso import Curso  # noqa: F401
-    from app.models.turma import Turma  # noqa: F401
-    from app.models.usuario import Usuario  # noqa: F401
-
-
-# -------------------------
-# RESET DO SCHEMA (DEV ONLY)
-# -------------------------
-def reset_public_schema():
-    """
-    Apaga tudo do schema public e recria.
-    Use apenas em DEV.
-    """
-    app.logger.warning("⚠️ RESET DO BANCO: apagando schema public (DEV ONLY)")
-    db.session.execute(text("DROP SCHEMA IF EXISTS public CASCADE;"))
-    db.session.execute(text("CREATE SCHEMA public;"))
-    db.session.commit()
-
-
-# -------------------------
-# CRIA ADMIN INICIAL
-# -------------------------
 def create_first_user():
+    """Cria o primeiro usuário administrador se não existir nenhum usuário"""
     try:
-        from app.models.usuario import Usuario
-
+        from app.models import Usuario  # Import aqui para evitar circular imports
+        
+        # Verifica se já existe algum usuário
         if Usuario.query.first() is None:
+            # Cria o primeiro usuário (administrador)
             primeiro_usuario = Usuario(
-                nome="Administrador",
-                email="admin@admin.com",
-                senha=generate_password_hash("admin123"),
-                cargo="administrador",
+                nome='Administrador',
+                email='admin@admin.com',
+                senha=generate_password_hash('admin123'),  # Senha inicial
+                cargo='administrador'
             )
+            
             db.session.add(primeiro_usuario)
             db.session.commit()
-            app.logger.info("✅ Admin criado: admin@admin.com / admin123")
+            app.logger.info("✅ Primeiro usuário criado com sucesso!")
+            app.logger.info("📧 Email: admin@admin.com")
+            app.logger.info("🔑 Senha inicial: admin123")
+            app.logger.info("⚠️  Altere a senha no primeiro acesso!")
         else:
-            app.logger.info("ℹ️ Já existem usuários no sistema.")
+            app.logger.info("ℹ️  Já existem usuários no sistema.")
+            
     except Exception as e:
-        db.session.rollback()
-        app.logger.error(f"❌ Erro ao criar primeiro usuário: {e}")
+        app.logger.error(f"Erro ao criar primeiro usuário: {e}")
+        # Não levanta exceção para não impedir o app de rodar
 
-
-# -------------------------
-# BOOTSTRAP
-# -------------------------
 with app.app_context():
-    wait_for_db()
-
-    # Ative via docker-compose:
-    # RESET_DB=1
-    if os.getenv("RESET_DB", "0") == "1":
-        reset_public_schema()
-
-    import_all_models()
-
     try:
-        db.create_all()
-        app.logger.info("✅ Tabelas criadas via SQLAlchemy create_all()!")
+        wait_for_db()  # Espera pela conexão com o banco de dados
+        db.create_all()  # Cria as tabelas do banco
+        app.logger.info("Tabelas criadas com sucesso!")
+        
+        # Cria o primeiro usuário se necessário
+        create_first_user()
+        
     except Exception as e:
-        db.session.rollback()
-        app.logger.error(f"❌ Erro ao criar tabelas: {e}")
+        app.logger.error(f"Erro ao criar as tabelas do banco de dados: {e}")
         raise
 
-    create_first_user()
-
-
-if __name__ == "__main__":
-    # Em container, debug geralmente deve ser False.
-    # Se você quiser controlar por env:
-    debug = os.getenv("DEBUG", "False").lower() in ("1", "true", "t", "yes", "y", "sim")
-    app.run(debug=debug, host="0.0.0.0", port=5000)
+if __name__ == '__main__':
+    app.run(debug=True, host='0.0.0.0', port=5000)
