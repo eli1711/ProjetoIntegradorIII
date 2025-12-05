@@ -41,12 +41,12 @@ services:
       FRONTEND_URL: http://localhost:8080
       DEBUG: "False"
       ENVIRONMENT: production
+      RESET_DB: "0"   # <<< AQUI
     ports:
       - "5000:5000"
     depends_on:
       - postgres
     volumes:
-      # 👇 agora mapeia para o caminho REAL usado pelo Flask
       - ./backend/app/uploads:/app/app/uploads
     networks:
       - rede-interna

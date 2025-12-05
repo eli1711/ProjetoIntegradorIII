@@ -7,14 +7,13 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <style>
     body{font-family:Arial,Helvetica,sans-serif;background:#f5f7fa;color:#212529;margin:0;padding:0}
-    /* ===== Header / Nav (barra superior) ===== */
     header{background:#fff;border-bottom:1px solid #e9ecef;position:sticky;top:0;z-index:10}
     header .wrap{max-width:1100px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;padding:12px 16px}
     header h1{margin:0;font-size:1.25rem;color:#111}
     header nav ul{list-style:none;display:flex;gap:14px;margin:0;padding:0}
     header nav a{display:inline-block;padding:8px 12px;border-radius:8px;text-decoration:none;color:#111;font-weight:600}
     header nav a:hover{background:#f1f3f5}
-    /* ===== Página ===== */
+
     .container{max-width:900px;margin:2rem auto;background:#fff;border-radius:16px;box-shadow:0 4px 12px rgba(0,0,0,.08);overflow:hidden}
     .header{background:linear-gradient(135deg,#000283,#2d2db6);color:#fff;padding:1.25rem 1.5rem}
     .header h1{margin:0;font-size:1.25rem}
@@ -33,11 +32,11 @@
     table{width:100%;border-collapse:collapse;margin-top:1rem}
     th,td{border:1px solid #e9ecef;padding:.6rem;text-align:left}
     th{background:#f1f3f5}
+    code{background:#eef;padding:.1rem .3rem;border-radius:6px}
     .template-link{display:inline-flex;align-items:center;gap:.5rem;text-decoration:none}
   </style>
 </head>
 <body>
-  <!-- ===== Barra superior ===== -->
   <header>
     <div class="wrap">
       <h1>Importar Alunos (CSV)</h1>
@@ -46,7 +45,6 @@
           <li><a href="./principal.html">Home</a></li>
           <li><a href="./cadastroAluno.html">Cadastrar Aluno</a></li>
           <li><a href="./consultaAluno.html">Consultar Alunos</a></li>
-          <li><a href="./turmas.html">Turmas</a></li>
         </ul>
       </nav>
     </div>
@@ -63,8 +61,10 @@
       <div class="card">
         <p class="note">
           Faça o upload de um arquivo CSV com os seguintes cabeçalhos (ordem livre).<br>
-          <strong>Dica:</strong> Prefira usar <code>curso_nome</code> e <code>turma_nome</code>. Se preferir, também aceitamos <code>curso_id</code> e <code>turma_id</code> como alternativa.
+          <strong>Obs:</strong> <code>cpf</code> deve ter 11 dígitos e <code>cep</code> deve ter 8 dígitos.<br>
+          <strong>Responsável:</strong> se o aluno for menor (calculado por <code>data_nascimento</code>), os campos do responsável devem existir.
         </p>
+
         <table>
           <thead>
             <tr>
@@ -72,36 +72,47 @@
             </tr>
           </thead>
           <tbody>
-            <tr><td>nome</td><td>sim</td><td>Texto</td></tr>
-            <tr><td>sobrenome</td><td>sim</td><td>Texto</td></tr>
+            <!-- ===== Aluno (NOVO MODELO) ===== -->
             <tr><td>matricula</td><td>sim</td><td>Única</td></tr>
-            <tr><td>cidade</td><td>sim</td><td>Texto</td></tr>
+            <tr><td>nome_completo</td><td>sim</td><td>Texto</td></tr>
+            <tr><td>nome_social</td><td>não</td><td>Texto</td></tr>
+            <tr><td>cpf</td><td>sim</td><td>11 dígitos (pode vir com pontuação)</td></tr>
+            <tr><td>data_nascimento</td><td>sim</td><td>YYYY-MM-DD</td></tr>
+
+            <tr><td>endereco</td><td>sim</td><td>Logradouro (texto)</td></tr>
+            <tr><td>cep</td><td>sim</td><td>8 dígitos (pode vir com hífen)</td></tr>
             <tr><td>bairro</td><td>sim</td><td>Texto</td></tr>
-            <tr><td>rua</td><td>sim</td><td>Texto</td></tr>
-            <tr><td>idade</td><td>sim</td><td>Inteiro</td></tr>
-            <tr><td>linha_atendimento</td><td>sim</td><td>CAI | CT | CST</td></tr>
-            <tr><td>escola_integrada</td><td>sim</td><td>SESI | SEDUC | Nenhuma</td></tr>
-
-            <tr><td>curso_nome</td><td>não</td><td>Nome do curso (preferencial). Se existir no sistema, o vínculo FK será resolvido.</td></tr>
-            <tr><td>turma_nome</td><td>não</td><td>Nome da turma (preferencial). Se existir no sistema, o vínculo FK será resolvido.</td></tr>
-
-            <tr><td>curso_id</td><td>não</td><td>Alternativa: ID de curso. Se vier junto do nome, será validada a coerência.</td></tr>
-            <tr><td>turma_id</td><td>não</td><td>Alternativa: ID de turma. Se vier junto do nome/curso, será validada a coerência.</td></tr>
+            <tr><td>municipio</td><td>sim</td><td>Texto</td></tr>
 
             <tr><td>telefone</td><td>não</td><td>Texto</td></tr>
-            <tr><td>data_nascimento</td><td>não</td><td>YYYY-MM-DD</td></tr>
-            <tr><td>empregado</td><td>não</td><td>sim | nao (padrão: nao)</td></tr>
-            <tr><td>mora_com_quem</td><td>não</td><td>Texto</td></tr>
-            <tr><td>sobre_aluno</td><td>não</td><td>Texto</td></tr>
-            <tr><td>data_inicio_curso</td><td>não</td><td>YYYY-MM-DD</td></tr>
-            <tr><td>empresa_contratante</td><td>não</td><td>Texto</td></tr>
-            <tr><td>pessoa_com_deficiencia</td><td>não</td><td>true/false, 1/0, sim/nao</td></tr>
-            <tr><td>outras_informacoes</td><td>não</td><td>Texto</td></tr>
+            <tr><td>celular</td><td>não</td><td>Texto</td></tr>
+
+            <tr><td>curso</td><td>sim</td><td>Digitável (texto)</td></tr>
+            <tr><td>tipo_curso</td><td>sim</td><td>Digitável (texto)</td></tr>
+            <tr><td>turma</td><td>sim</td><td>Digitável (texto)</td></tr>
+
+            <tr><td>empresa_aprendizagem</td><td>não</td><td>Texto</td></tr>
+            <tr><td>cnpj_empresa</td><td>não</td><td>14 dígitos (só se preencher empresa)</td></tr>
+
+            <tr><td>pne</td><td>não</td><td>true/false, 1/0, sim/nao</td></tr>
+            <tr><td>pne_descricao</td><td>não</td><td>Texto (preencher se pne=true)</td></tr>
+
+            <tr><td>parceria_novo_ensino_medio</td><td>não</td><td>Texto</td></tr>
+
+            <!-- ===== Responsável (apenas se menor) ===== -->
+            <tr><td>responsavel_nome_completo</td><td>condicional</td><td><b>Obrigatório se menor</b></td></tr>
+            <tr><td>responsavel_parentesco</td><td>condicional</td><td><b>Obrigatório se menor</b></td></tr>
+            <tr><td>responsavel_telefone</td><td>condicional</td><td><b>Obrigatório se menor</b> (pode vir com pontuação)</td></tr>
+
+            <tr><td>responsavel_endereco</td><td>não</td><td>Texto</td></tr>
+            <tr><td>responsavel_cep</td><td>não</td><td>8 dígitos</td></tr>
+            <tr><td>responsavel_bairro</td><td>não</td><td>Texto</td></tr>
+            <tr><td>responsavel_municipio</td><td>não</td><td>Texto</td></tr>
           </tbody>
         </table>
 
         <p class="note" style="margin-top:.75rem">
-          Baixe um modelo pronto: 
+          Baixe um modelo pronto (se você criou esse endpoint): 
           <a class="template-link" href="http://localhost:5000/alunos/csv_modelo" target="_blank">
             <i class="fa-regular fa-file"></i> CSV Modelo
           </a>
@@ -144,6 +155,7 @@
         showAlert('error', 'Selecione um arquivo CSV.');
         return;
       }
+
       const fd = new FormData();
       fd.append('arquivo', fileInput.files[0]);
 
@@ -159,7 +171,10 @@
         const data = await res.json();
 
         if (res.ok) {
-          showAlert('success', `Importação finalizada: ${data.sucesso} inseridos, ${data.pulos} pulos, ${data.erros} erros.`);
+          showAlert(
+            'success',
+            `Importação finalizada: ${data.sucesso} inseridos, ${data.pulos} pulos, ${data.erros} erros.`
+          );
         } else {
           showAlert('error', data.erro || 'Falha na importação.');
         }

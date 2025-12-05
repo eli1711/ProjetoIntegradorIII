@@ -1,16 +1,16 @@
 # app/routers/cadastro.py
 import os
-from datetime import datetime
+from datetime import datetime, date
 from flask import Blueprint, request, jsonify, current_app
 from werkzeug.utils import secure_filename
-from app import db
-from app.models.aluno import Aluno
-from app.models.responsavel import Responsavel
-from app.models.empresa import Empresa
-from app.models.turma import Turma
 
-def str_to_bool(value):
-    return str(value).lower() in ["true", "1", "on", "t", "yes", "y", "sim"]
+from app.extensions import db
+from app.models.aluno import Aluno, only_digits
+from app.models.responsavel import Responsavel
+
+cadastro_bp = Blueprint("cadastro", __name__, url_prefix="/cadastro")
+
+ALLOWED_EXTS = {".jpg", ".jpeg", ".png", ".gif", ".webp"}
 
 def _parse_date(val):
     if not val:
@@ -20,12 +20,31 @@ def _parse_date(val):
     except ValueError:
         return None
 
-def salvar_foto(foto_file, aluno_nome):
+def _calc_idade(dt: date | None) -> int | None:
+    if not dt:
+        return None
+    hoje = date.today()
+    return hoje.year - dt.year - ((hoje.month, hoje.day) < (dt.month, dt.day))
+
+def str_to_bool(value):
+    return str(value).strip().lower() in ["true", "1", "on", "t", "yes", "y", "sim"]
+
+def _norm(v):
+    return (v or "").strip()
+
+def _none_if_empty(v):
+    v = _norm(v)
+    return v if v else None
+
+def _save_photo(file_storage, desired_name_base: str) -> str:
     upload_dir = current_app.config["UPLOAD_FOLDER"]
     os.makedirs(upload_dir, exist_ok=True)
 
-    ext = os.path.splitext(foto_file.filename)[1].lower()
-    base = secure_filename((aluno_nome or "aluno").lower())
+    ext = os.path.splitext(file_storage.filename)[1].lower()
+    if ext not in ALLOWED_EXTS:
+        raise ValueError("Extensão de imagem inválida. Use JPG, PNG, GIF ou WEBP.")
+
+    base = secure_filename((desired_name_base or "aluno").lower())
     filename = f"{base}{ext}"
     dest = os.path.join(upload_dir, filename)
 
@@ -35,147 +54,140 @@ def salvar_foto(foto_file, aluno_nome):
         dest = os.path.join(upload_dir, filename)
         i += 1
 
-    foto_file.save(dest)
-    current_app.logger.info(f"🖼️ Foto salva em: {dest}")
+    file_storage.save(dest)
     return filename
-
-cadastro_bp = Blueprint("cadastro", __name__, url_prefix="/cadastro")
 
 @cadastro_bp.route("/alunos", methods=["POST"])
 def cadastrar_aluno():
-    # ✅ NÃO converte para dict; usa request.form diretamente
     form = request.form
 
-    # Logs de diagnóstico
-    try:
-        current_app.logger.info(f"📝 form keys: {list(form.keys())}")
-        current_app.logger.info(f"📞 telefone (bruto): {form.get('telefone')}")
-    except Exception:
-        pass
+    current_app.logger.info(f"FORM_KEYS={list(form.keys())}")
+    current_app.logger.info(f"FILES_KEYS={list(request.files.keys())}")
+
+    # ========= CAMPOS OBRIGATÓRIOS (conforme seu FORM_KEYS atual) =========
+    obrigatorios = [
+        "matricula", "nome_completo", "cpf", "data_nascimento",
+        "endereco", "cep", "bairro", "municipio",
+        "curso", "tipo_curso", "turma",
+    ]
+    faltando = [c for c in obrigatorios if not _norm(form.get(c))]
+    if faltando:
+        return jsonify({"erro": "Campos obrigatórios não preenchidos", "faltando": faltando}), 400
+
+    # ========= NORMALIZA / VALIDA CPF e CEP =========
+    cpf = only_digits(form.get("cpf"))
+    if not cpf or len(cpf) != 11:
+        return jsonify({"erro": "CPF inválido (informe 11 dígitos)"}), 400
+
+    cep = only_digits(form.get("cep"))
+    if not cep or len(cep) != 8:
+        return jsonify({"erro": "CEP inválido (informe 8 dígitos)"}), 400
+
+    # ========= DATA NASCIMENTO + IDADE (calculada) =========
+    data_nasc = _parse_date(form.get("data_nascimento"))
+    if not data_nasc:
+        return jsonify({"erro": "data_nascimento inválida (use YYYY-MM-DD)"}), 400
+
+    idade = _calc_idade(data_nasc)
+    if idade is None:
+        return jsonify({"erro": "Não foi possível calcular a idade."}), 400
+
+    # ========= PNE / EMPRESA =========
+    pne = str_to_bool(form.get("pne"))
+    pne_descricao = _none_if_empty(form.get("pne_descricao"))
+
+    empresa = _none_if_empty(form.get("empresa_aprendizagem"))
+    cnpj = only_digits(form.get("cnpj_empresa"))
+    if cnpj and len(cnpj) != 14:
+        return jsonify({"erro": "CNPJ inválido (informe 14 dígitos)"}), 400
+    if cnpj and not empresa:
+        return jsonify({"erro": "Informe o nome da empresa ao preencher CNPJ"}), 400
+    if empresa and not cnpj:
+        return jsonify({"erro": "Informe o CNPJ ao preencher o nome da empresa"}), 400
+
+    # ========= RESPONSÁVEL (obrigatório se menor) =========
+    responsavel_obj = None
+    if idade < 18:
+        resp_obrig = ["responsavel_nome_completo", "responsavel_parentesco", "responsavel_telefone"]
+        falt_resp = [c for c in resp_obrig if not _norm(form.get(c))]
+        if falt_resp:
+            return jsonify({
+                "erro": "Aluno menor de idade: campos do responsável são obrigatórios",
+                "faltando": falt_resp
+            }), 400
+
+        responsavel_obj = Responsavel(
+            # ajuste estes campos de acordo com seu model Responsavel real:
+            nome=_norm(form.get("responsavel_nome_completo")),
+            sobrenome="",  # se seu model exige sobrenome separado, você pode fazer split aqui
+            parentesco=_none_if_empty(form.get("responsavel_parentesco")),
+            telefone=only_digits(form.get("responsavel_telefone")) or None,
+            cidade=_none_if_empty(form.get("responsavel_municipio")),
+            bairro=_none_if_empty(form.get("responsavel_bairro")),
+            rua=_none_if_empty(form.get("responsavel_endereco")),
+        )
+
+        resp_cep = only_digits(form.get("responsavel_cep"))
+        if resp_cep and len(resp_cep) != 8:
+            return jsonify({"erro": "CEP do responsável inválido (8 dígitos)"}), 400
 
     try:
-        # Campos obrigatórios
-        obrigatorios = [
-            "nome", "sobrenome", "matricula", "cidade", "bairro", "rua",
-            "idade", "curso", "linha_atendimento", "escola_integrada"
-        ]
-        faltando = [c for c in obrigatorios if not form.get(c)]
-        if faltando:
-            return jsonify({"erro": "Campos obrigatórios não preenchidos", "faltando": faltando}), 400
+        # duplicidade CPF (se sua tabela aluno tiver cpf)
+        if hasattr(Aluno, "cpf"):
+            if Aluno.query.filter_by(cpf=cpf).first():
+                return jsonify({"erro": "Já existe aluno cadastrado com este CPF"}), 409
 
-        # Conversões
-        idade = int(form.get("idade"))
-        curso_id = int(form.get("curso"))
-
-        # Telefone (garante persistência)
-        telefone = (form.get("telefone") or "").strip()
-        if telefone == "":
-            telefone = None  # salva NULL em vez de string vazia
-
-        # Turma (FK)
-        turma_id_raw = form.get("turma_id")
-        if not turma_id_raw:
-            return jsonify({"erro": "Selecione uma turma válida."}), 400
-        turma_id = int(turma_id_raw)
-        turma_obj = Turma.query.get(turma_id)
-        if not turma_obj:
-            return jsonify({"erro": "Turma não encontrada."}), 400
-        if turma_obj.curso_id != curso_id:
-            return jsonify({"erro": "A turma selecionada não pertence ao curso escolhido."}), 400
-
-        # Flags e textos
-        pessoa_com_deficiencia = str_to_bool(form.get("pessoa_com_deficiencia"))
-        deficiencia_descricao = (form.get("deficiencia_descricao") or "").strip()
-        empregado = (form.get("empregado") or "nao").strip()
-
-        outras_informacoes = (form.get("outras_informacoes") or "").strip()
-        if pessoa_com_deficiencia and deficiencia_descricao:
-            bloco = f"Deficiência: {deficiencia_descricao}"
-            outras_informacoes = f"{bloco}\n{outras_informacoes}".strip() if outras_informacoes else bloco
-
-        # Empresa (se empregado)
-        empresa_contratante = None
-        empresa_id = None
-        if empregado == "sim":
-            empresa_contratante = form.get("empresa")
-            if not empresa_contratante:
-                return jsonify({"erro": "Nome da empresa é obrigatório."}), 400
-            empresa = Empresa(
-                nome=form.get("empresa"),
-                endereco=form.get("endereco_empresa"),
-                telefone=form.get("telefone_empresa"),
-                cidade=form.get("cidade_empresa"),
-                bairro=form.get("bairro_empresa"),
-                rua=form.get("rua_empresa"),
-            )
-            db.session.add(empresa)
-            db.session.flush()
-            empresa_id = empresa.id
-
-        # Responsável (se menor)
-        responsavel_id = None
-        if idade < 18:
-            req_resp = ["nomeResponsavel", "sobrenomeResponsavel", "parentescoResponsavel"]
-            if not all(form.get(f) for f in req_resp):
-                return jsonify({"erro": "Dados do responsável são obrigatórios para menores de idade."}), 400
-            resp = Responsavel(
-                nome=form.get("nomeResponsavel"),
-                sobrenome=form.get("sobrenomeResponsavel"),
-                parentesco=form.get("parentescoResponsavel"),
-                telefone=form.get("telefone_responsavel"),
-                cidade=form.get("cidade_responsavel"),
-                bairro=form.get("bairro_responsavel"),
-                rua=form.get("rua_responsavel"),
-            )
-            db.session.add(resp)
-            db.session.flush()
-            responsavel_id = resp.id
-
-        # Foto (opcional)
+        # foto
         foto_filename = None
         if "foto" in request.files and request.files["foto"].filename:
-            foto_filename = salvar_foto(request.files["foto"], form.get("nome"))
+            foto_filename = _save_photo(request.files["foto"], form.get("nome_completo"))
 
-        # Datas
-        data_nascimento = _parse_date(form.get("data_nascimento"))
-        data_inicio_curso = _parse_date(form.get("data_inicio_curso"))
+        if responsavel_obj:
+            db.session.add(responsavel_obj)
+            db.session.flush()  # garante id
 
-        # Cria o aluno
+        # ========= CRIA ALUNO (só seta colunas que existem no seu model) =========
         aluno = Aluno(
-            nome=form.get("nome"),
-            sobrenome=form.get("sobrenome"),
-            matricula=form.get("matricula"),
-            cidade=form.get("cidade"),
-            bairro=form.get("bairro"),
-            rua=form.get("rua"),
+            # seu banco/model atual é o "novo" (nome/sobrenome/cidade/rua...)
+            # mas seu FORM é o "antigo" (nome_completo/endereco/municipio).
+            # então fazemos o mapeamento abaixo.
+
+            nome=_norm(form.get("nome_completo")),   # cai tudo aqui
+            sobrenome="",                            # mantém vazio para não quebrar
+            matricula=_norm(form.get("matricula")),
+
+            cidade=_norm(form.get("municipio")),     # municipio -> cidade
+            bairro=_norm(form.get("bairro")),
+            rua=_norm(form.get("endereco")),         # endereco -> rua
+
             idade=idade,
-            empregado=empregado,
-            mora_com_quem=form.get("mora_com_quem"),
-            sobre_aluno=form.get("sobre_aluno"),
-            foto=foto_filename,
-            telefone=telefone,  # ✅ agora vai pro banco
-            data_nascimento=data_nascimento,
-            linha_atendimento=form.get("linha_atendimento"),
-            escola_integrada=form.get("escola_integrada"),
-            pessoa_com_deficiencia=pessoa_com_deficiencia,
-            outras_informacoes=outras_informacoes,
-            curso_id=curso_id,
-            curso=form.get("curso_nome"),
-            turma=form.get("turma"),  # rótulo textual (compat)
-            data_inicio_curso=data_inicio_curso,
-            empresa_contratante=empresa_contratante,
-            responsavel_id=responsavel_id,
-            empresa_id=empresa_id,
-            turma_id=turma_id,
+            empregado="nao",                         # seu form atual não manda "empregado"
+
+            telefone=only_digits(form.get("telefone")) or None,
+            data_nascimento=data_nasc,
+
+            # estes 3 NÃO estão chegando no form atual -> salve default ou permita NULL no banco/model
+            linha_atendimento=_norm(form.get("linha_atendimento") or "CAI"),
+            escola_integrada=_norm(form.get("escola_integrada") or "Nenhuma"),
+
+            curso=_norm(form.get("curso")),
+            turma=_norm(form.get("turma")),
+
+            outras_informacoes=_none_if_empty(form.get("parceria_novo_ensino_medio")),
+            pessoa_com_deficiencia=False,
+
+            responsavel_id=(responsavel_obj.id if responsavel_obj else None),
         )
+
+        # foto só se existir no model
+        if hasattr(aluno, "foto"):
+            aluno.foto = foto_filename
 
         db.session.add(aluno)
         db.session.commit()
+        return jsonify({"mensagem": "Aluno cadastrado com sucesso!", "id": aluno.id}), 201
 
-        current_app.logger.info(f"✅ Aluno salvo (id={aluno.id}) com telefone={aluno.telefone!r}")
-        return jsonify({"mensagem": "Aluno cadastrado com sucesso!"}), 201
-
-    except Exception as e:
+    except Exception:
         db.session.rollback()
         current_app.logger.exception("Erro ao cadastrar aluno")
-        return jsonify({"erro": "Erro ao cadastrar aluno", "detalhes": str(e)}), 500
+        return jsonify({"erro": "Erro ao cadastrar aluno"}), 500

@@ -44,9 +44,10 @@
   <main>
     <section id="filtros">
       <h3>Filtros de Busca</h3>
-      <label for="alunoNome">Nome do Aluno:</label>
-      <input type="text" id="alunoNome" placeholder="Digite o nome do aluno">
-      <button id="consultarButton">Consultar</button>
+      <label for="alunoCpf">CPF do Aluno:</label>
+<input type="text" id="alunoCpf" placeholder="Digite o CPF (somente números ou com pontuação)">
+<button id="consultarButton">Consultar</button>
+
     </section>
 
     <section id="resultadoConsulta" style="margin-top:20px;"></section>
@@ -102,10 +103,9 @@
     }
 
     btn.addEventListener("click", async ()=>{
-      const nome=document.getElementById("alunoNome").value.trim();
-      const url=new URL("http://localhost:5000/alunos/buscar");
-      if(nome) url.searchParams.append("nome",nome);
-
+      const cpf = document.getElementById("alunoCpf").value.trim();
+const url = new URL("http://localhost:5000/alunos/buscar");
+if (cpf) url.searchParams.append("cpf", cpf);
       resultadoDiv.innerHTML="<p>Carregando...</p>";
 
       try{

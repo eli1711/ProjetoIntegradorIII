@@ -1,74 +1,68 @@
+# app/models/aluno.py
 from app.extensions import db
-from sqlalchemy import Enum
+
+def only_digits(s: str | None) -> str | None:
+    if not s:
+        return None
+    digits = "".join(ch for ch in str(s) if ch.isdigit())
+    return digits or None
+
 
 class Aluno(db.Model):
-    __tablename__ = 'aluno'
+    __tablename__ = "aluno"
 
     id = db.Column(db.Integer, primary_key=True)
+
+    # ✅ ADICIONE ISTO (ESSENCIAL PRA CONSULTA POR CPF)
+    cpf = db.Column(db.String(11), unique=True, index=True, nullable=True)
+
+    # (opcional, mas ajuda se seu cadastro/consulta usa nome_completo)
+    nome_completo = db.Column(db.String(255), nullable=True)
+    nome_social = db.Column(db.String(255), nullable=True)
+
     nome = db.Column(db.String(255), nullable=False)
     sobrenome = db.Column(db.String(255), nullable=False)
-    matricula = db.Column(db.String(255), nullable=False, unique=True)
+    matricula = db.Column(db.String(255), nullable=False)
+
     cidade = db.Column(db.String(255), nullable=False)
     bairro = db.Column(db.String(255), nullable=False)
     rua = db.Column(db.String(255), nullable=False)
+
     idade = db.Column(db.Integer, nullable=False)
-    empregado = db.Column(Enum('sim', 'nao', name='empregado_enum'), nullable=False)  # Corrigido
-    mora_com_quem = db.Column(db.String(255))
-    sobre_aluno = db.Column(db.Text)
-    foto = db.Column(db.String(255))
-    curso_id = db.Column(db.Integer, db.ForeignKey('cursos.id'))
-    responsavel_id = db.Column(db.Integer, db.ForeignKey('responsavel.id'))
-    empresa_id = db.Column(db.Integer, db.ForeignKey('empresa.id'))
-    telefone = db.Column(db.String(255))
-    data_nascimento = db.Column(db.Date)
-    linha_atendimento = db.Column(Enum('CAI', 'CT', 'CST', name='linha_atendimento_enum'), nullable=False)  # Corrigido
-    curso = db.Column(db.String(255))
-    turma = db.Column(db.String(255))  # mantido por compatibilidade (rótulo textual)
-    data_inicio_curso = db.Column(db.Date)
-    empresa_contratante = db.Column(db.String(255))
-    escola_integrada = db.Column(Enum('SESI', 'SEDUC', 'Nenhuma', name='escola_integrada_enum'), nullable=False)  # Corrigido
-    pessoa_com_deficiencia = db.Column(db.Boolean, default=False)
-    outras_informacoes = db.Column(db.Text)
+    empregado = db.Column(db.String(10), nullable=False)
 
-    # 🔹 NOVO: vínculo real com a turma (FK)
-    turma_id = db.Column(db.Integer, db.ForeignKey('turmas.id'), nullable=True)
+    mora_com_quem = db.Column(db.String(255), nullable=True)
+    sobre_aluno = db.Column(db.Text, nullable=True)
 
-    # relacionamentos
-    curso_relacionado = db.relationship('Curso', backref='alunos', lazy=True)
-    turma_relacionada = db.relationship('Turma', backref='alunos', lazy=True)
+    foto = db.Column(db.String(255), nullable=True)
 
-    def __init__(self, nome, sobrenome, matricula, cidade, bairro, rua, idade, empregado,
-                 mora_com_quem=None, sobre_aluno=None, foto=None, telefone=None,
-                 data_nascimento=None, linha_atendimento=None, curso=None, turma=None,
-                 data_inicio_curso=None, empresa_contratante=None, escola_integrada=None,
-                 pessoa_com_deficiencia=False, outras_informacoes=None,
-                 responsavel_id=None, empresa_id=None, curso_id=None,
-                 turma_id=None):  # 🔹 adicionado
-        self.nome = nome
-        self.sobrenome = sobrenome
-        self.matricula = matricula
-        self.cidade = cidade
-        self.bairro = bairro
-        self.rua = rua
-        self.idade = idade
-        self.empregado = empregado
-        self.mora_com_quem = mora_com_quem
-        self.sobre_aluno = sobre_aluno
-        self.foto = foto
-        self.telefone = telefone
-        self.data_nascimento = data_nascimento
-        self.linha_atendimento = linha_atendimento
-        self.curso = curso
-        self.turma = turma
-        self.data_inicio_curso = data_inicio_curso
-        self.empresa_contratante = empresa_contratante
-        self.escola_integrada = escola_integrada
-        self.pessoa_com_deficiencia = pessoa_com_deficiencia
-        self.outras_informacoes = outras_informacoes
-        self.responsavel_id = responsavel_id
-        self.empresa_id = empresa_id
-        self.curso_id = curso_id
-        self.turma_id = turma_id  # 🔹 adicionado
+    curso_id = db.Column(db.Integer, db.ForeignKey("cursos.id"), nullable=True)
+    turma_id = db.Column(db.Integer, db.ForeignKey("turmas.id"), nullable=True)
+    empresa_id = db.Column(db.Integer, db.ForeignKey("empresa.id"), nullable=True)
+    responsavel_id = db.Column(db.Integer, db.ForeignKey("responsavel.id"), nullable=True)
+
+    telefone = db.Column(db.String(255), nullable=True)
+    data_nascimento = db.Column(db.Date, nullable=True)
+
+    linha_atendimento = db.Column(db.String(10), nullable=False)
+    curso = db.Column(db.String(255), nullable=True)
+    turma = db.Column(db.String(255), nullable=True)
+
+    data_inicio_curso = db.Column(db.Date, nullable=True)
+    empresa_contratante = db.Column(db.String(255), nullable=True)
+
+    escola_integrada = db.Column(db.String(20), nullable=False)
+
+    pessoa_com_deficiencia = db.Column(db.Boolean, nullable=True)
+    outras_informacoes = db.Column(db.Text, nullable=True)
+
+    curso_relacionado = db.relationship("Curso", foreign_keys=[curso_id], lazy=True)
+    turma_relacionada = db.relationship("Turma", foreign_keys=[turma_id], lazy=True)
+    empresa_relacionada = db.relationship("Empresa", foreign_keys=[empresa_id], lazy=True)
+
+    def normalize(self):
+        self.telefone = only_digits(self.telefone)
+        self.cpf = only_digits(self.cpf)
 
     def __repr__(self):
-        return f"<Aluno {self.nome} {self.sobrenome}>"
+        return f"<Aluno {self.id} {self.nome} {self.sobrenome}>"
