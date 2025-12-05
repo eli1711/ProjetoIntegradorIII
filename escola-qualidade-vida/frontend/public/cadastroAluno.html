@@ -1,104 +1,96 @@
 <!DOCTYPE html>
 <html lang="pt-br">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Cadastro de Aluno</title>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;500;600;700&family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
-  <style>
-    :root {
-      --primary: #c40000;
-      --primary-light: #ff4d4d;
-      --primary-dark: #8a0000;
-      --secondary: #000283;
-      --secondary-light: #2d2db6;
-      --accent: #ff9900;
-      --light: #f8f9fa;
-      --dark: #212529;
-      --gray: #6c757d;
-      --gray-light: #e9ecef;
-      --shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-      --shadow-hover: 0 8px 24px rgba(0, 0, 0, 0.12);
-      --transition: all 0.3s ease;
-    }
-    *{margin:0;padding:0;box-sizing:border-box}
-    body{
-      font-family:'Open Sans',sans-serif;background:linear-gradient(135deg,#f5f7fa 0%,#e4edf5 100%);
-      color:var(--dark);line-height:1.6;min-height:100vh;padding:0
-    }
-    body::before{content:'';position:fixed;top:0;left:0;width:100%;height:100%;
-      background-image:radial-gradient(circle at 10% 20%,rgba(255,255,255,.8) 0%,transparent 20%),
-                       radial-gradient(circle at 90% 80%,rgba(196,0,0,.05) 0%,transparent 20%);
-      pointer-events:none;z-index:-1}
-    header{background:linear-gradient(135deg,var(--primary) 0%,var(--primary-dark) 100%);color:#fff;padding:1.5rem;box-shadow:var(--shadow);position:relative;overflow:hidden}
-    header::before{content:'';position:absolute;inset:0;
-      background:linear-gradient(45deg,transparent 30%,rgba(255,255,255,.1) 50%,transparent 70%);
-      animation:shimmer 8s infinite linear}
-    @keyframes shimmer{0%{transform:translateX(-100%)}100%{transform:translateX(100%)}}
-    .header-content{max-width:1200px;margin:0 auto;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:1rem;position:relative;z-index:1}
-    .logo-container{display:flex;align-items:center;gap:1rem}
-    .logo{height:50px;filter:drop-shadow(0 2px 4px rgba(0,0,0,.2))}
-    header h1{font-family:'Poppins',sans-serif;font-weight:600;font-size:1.8rem;text-shadow:0 2px 4px rgba(0,0,0,.2)}
-    nav ul{list-style:none;display:flex;gap:1.5rem}
-    nav a{color:#fff;text-decoration:none;font-weight:500;transition:var(--transition);padding:.5rem .75rem;border-radius:4px}
-    nav a:hover{background-color:rgba(255,255,255,.15)}
-    .container{max-width:1200px;margin:2rem auto;padding:0 1.5rem}
-    .form-container{background:#fff;border-radius:16px;box-shadow:var(--shadow);overflow:hidden;margin-bottom:2rem}
-    .form-header{background:linear-gradient(135deg,var(--secondary) 0%,var(--secondary-light) 100%);color:#fff;padding:1.5rem 2rem}
-    .form-header h2{font-family:'Poppins',sans-serif;font-weight:500;font-size:1.5rem;display:flex;align-items:center;gap:.75rem}
-    .form-content{padding:2rem}
-    #alerta{display:none;padding:1rem;border-radius:8px;margin-bottom:1.5rem;font-weight:500}
-    .alert-success{background:#d4edda;color:#155724;border:1px solid #c3e6cb}
-    .alert-error{background:#f8d7da;color:#721c24;border:1px solid #f5c6cb}
-    .form-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:1.5rem}
-    .form-section{margin-bottom:2.5rem;padding-bottom:1.5rem;border-bottom:1px solid var(--gray-light)}
-    .form-section:last-of-type{border-bottom:none}
-    .section-title{font-family:'Poppins',sans-serif;font-weight:500;font-size:1.3rem;color:var(--secondary);margin-bottom:1.5rem;padding-bottom:.5rem;border-bottom:2px solid var(--primary-light);display:flex;align-items:center;gap:.75rem}
-    .form-group{margin-bottom:1.25rem}
-    label{display:block;margin-bottom:.5rem;font-weight:600;color:var(--dark)}
-    input[type="text"],input[type="number"],input[type="date"],input[type="file"],select,textarea{
-      width:100%;padding:.75rem 1rem;border:1px solid var(--gray-light);border-radius:8px;font-size:.95rem;transition:var(--transition);background:#fff}
-    input:focus,select:focus,textarea:focus{outline:none;border-color:var(--primary);box-shadow:0 0 0 3px rgba(196,0,0,.1)}
-    textarea{resize:vertical;min-height:100px}
-    .radio-group{display:flex;gap:1.5rem;margin-bottom:1.25rem}
-    .checkbox-group{display:flex;align-items:center;gap:.5rem;margin-bottom:1.25rem}
-    .submit-container{text-align:center;margin-top:2rem}
-    button[type="submit"]{background:linear-gradient(135deg,var(--primary) 0%,var(--primary-dark) 100%);color:#fff;border:none;border-radius:50px;padding:.9rem 2.5rem;font-size:1.1rem;font-weight:600;cursor:pointer;transition:var(--transition);box-shadow:var(--shadow);display:inline-flex;align-items:center;gap:.75rem}
-    button[type="submit"]:hover{transform:translateY(-3px);box-shadow:var(--shadow-hover)}
-    button[type="submit"]:disabled{background:var(--gray);cursor:not-allowed}
-    .conditional-section{background:rgba(196,0,0,.03);border-radius:12px;padding:1.5rem;margin-top:1rem;border-left:4px solid var(--primary)}
-    footer{text-align:center;padding:1.5rem;background:#fff;color:var(--gray);margin-top:3rem;border-top:1px solid var(--gray-light);font-size:.9rem}
-    @media (max-width:768px){.header-content{flex-direction:column;text-align:center}nav ul{justify-content:center;flex-wrap:wrap}.form-grid{grid-template-columns:1fr}.form-content{padding:1.5rem}}
-  </style>
-</head>
-<body>
-  <header>
-    <div class="header-content">
-      <div class="logo-container">
-        <img src="img/senai-logo.png" class="logo" alt="Logo SENAI">
-        <h1>Cadastro de Alunos</h1>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Cadastro de Aluno</title>
+    <link rel="stylesheet" href="css/cadastroAluno.css" />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;500;600;700&family=Poppins:wght@300;400;500;600&display=swap"
+      rel="stylesheet"
+    />
+    <script src="js/navbar-protection.js"></script>
+  </head>
+  <body>
+    <header>
+      <div class="header-content">
+        <div class="logo-container">
+          <img src="img/senai-logo.png" class="logo" alt="Logo SENAI" />
+          <h1>Sistema de Gestão de Alunos</h1>
+        </div>
+
+        <nav>
+          <button class="nav-toggle" id="navToggle">
+            <i class="fas fa-bars"></i>
+          </button>
+
+          <ul id="navMenu">
+            <li>
+              <a href="./principal.html" class="active"
+                ><i class="fas fa-home"></i> Home</a
+              >
+            </li>
+
+            <li class="dropdown">
+              <a href="#"
+                ><i class="fas fa-user-graduate"></i> Alunos
+                <i class="fas fa-chevron-down"></i
+              ></a>
+              <div class="dropdown-content">
+                <a href="./cadastroAluno.html"
+                  ><i class="fas fa-user-plus"></i> Cadastrar Aluno</a
+                >
+                <a href="./consultaAluno.html"
+                  ><i class="fas fa-search"></i> Consultar Alunos</a
+                >
+                <a href="./importar_alunos.html"
+                  ><i class="fas fa-file-csv"></i> Importar CSV</a
+                >
+              </div>
+            </li>
+
+            <li>
+              <a href="./turmas.html"
+                ><i class="fas fa-chalkboard"></i> Turmas</a
+              >
+            </li>
+
+            <li>
+              <a href="./ocorrencias.html"
+                ><i class="fas fa-exclamation-triangle"></i> Ocorrências</a
+              >
+            </li>
+
+            <li>
+              <a href="./dashboard.html">
+                <i class="fas fa-history"></i> Dashboard</a
+              >
+            </li>
+
+            <li>
+              <a href="./criar_usuario.html"
+                ><i class="fas fa-user-cog"></i> Usuários</a
+              >
+            </li>
+          </ul>
+        </nav>
       </div>
-      <nav>
-        <ul>
-          <li><a href="./principal.html"><i class="fas fa-home"></i> Home</a></li>
-          <li><a href="./ocorrencias.html"><i class="fas fa-exclamation-triangle"></i> Ocorrências</a></li>
-          <li><a href="./relatorios.html"><i class="fas fa-chart-bar"></i> Relatórios</a></li>
-          <li><a href="./historico.html"><i class="fas fa-history"></i> Histórico</a></li>
-        </ul>
-      </nav>
-    </div>
-  </header>
+    </header>
 
-  <div class="container">
-    <div class="form-container">
-      <div class="form-header">
-        <h2><i class="fas fa-user-plus"></i> Novo Cadastro de Aluno</h2>
-      </div>
+    <div class="container">
+      <div class="form-container">
+        <div class="form-header">
+          <h2><i class="fas fa-user-plus"></i> Novo Cadastro de Aluno</h2>
+        </div>
 
-      <div class="form-content">
-        <div id="alerta"></div>
+        <div class="form-content">
+          <div id="alerta"></div>
 
+<<<<<<< HEAD
        <form id="cadastroAlunoForm" method="POST" enctype="multipart/form-data"
       action="http://localhost:5000/cadastro/alunos">
 
@@ -267,14 +259,363 @@
   </div>
 </form>
 
+=======
+          <form
+            id="cadastroAlunoForm"
+            method="POST"
+            enctype="multipart/form-data"
+            action="http://localhost:5000/cadastro/alunos"
+          >
+            <div class="form-section">
+              <h3 class="section-title">
+                <i class="fas fa-user"></i> Dados Pessoais
+              </h3>
+              <div class="form-grid">
+                <div class="form-group">
+                  <label for="nome">Nome:</label>
+                  <input type="text" id="nome" name="nome" required />
+                </div>
+                <div class="form-group">
+                  <label for="sobrenome">Sobrenome:</label>
+                  <input type="text" id="sobrenome" name="sobrenome" required />
+                </div>
+                <div class="form-group">
+                  <label for="matricula">Matrícula:</label>
+                  <input type="text" id="matricula" name="matricula" required />
+                </div>
+                <div class="form-group">
+                  <label for="cidade">Cidade:</label>
+                  <input type="text" id="cidade" name="cidade" required />
+                </div>
+                <div class="form-group">
+                  <label for="bairro">Bairro:</label>
+                  <input type="text" id="bairro" name="bairro" required />
+                </div>
+                <div class="form-group">
+                  <label for="rua">Rua:</label>
+                  <input type="text" id="rua" name="rua" required />
+                </div>
+                <div class="form-group">
+                  <label for="telefone">Telefone:</label>
+                  <input
+                    type="text"
+                    id="telefone"
+                    name="telefone"
+                    inputmode="tel"
+                    placeholder="(00) 00000-0000"
+                  />
+                </div>
+                <div class="form-group">
+                  <label for="idade">Idade:</label>
+                  <input type="number" id="idade" name="idade" required />
+                </div>
+                <div class="form-group">
+                  <label for="data_nascimento">Data de Nascimento:</label>
+                  <input
+                    type="date"
+                    id="data_nascimento"
+                    name="data_nascimento"
+                    required
+                  />
+                </div>
+              </div>
+            </div>
+
+            <div class="form-section">
+              <h3 class="section-title">
+                <i class="fas fa-user-friends"></i> Dados do Responsável
+              </h3>
+              <div
+                id="responsavelSection"
+                class="conditional-section"
+                style="display: none"
+              >
+                <div class="form-grid">
+                  <div class="form-group">
+                    <label for="nomeResponsavel">Nome:</label>
+                    <input
+                      type="text"
+                      id="nomeResponsavel"
+                      name="nomeResponsavel"
+                    />
+                  </div>
+                  <div class="form-group">
+                    <label for="sobrenomeResponsavel">Sobrenome:</label>
+                    <input
+                      type="text"
+                      id="sobrenomeResponsavel"
+                      name="sobrenomeResponsavel"
+                    />
+                  </div>
+                  <div class="form-group">
+                    <label for="parentescoResponsavel">Parentesco:</label>
+                    <input
+                      type="text"
+                      id="parentescoResponsavel"
+                      name="parentescoResponsavel"
+                    />
+                  </div>
+                  <div class="form-group">
+                    <label for="telefone_responsavel">Telefone:</label>
+                    <input
+                      type="text"
+                      id="telefone_responsavel"
+                      name="telefone_responsavel"
+                    />
+                  </div>
+                  <div class="form-group">
+                    <label for="cidade_responsavel">Cidade:</label>
+                    <input
+                      type="text"
+                      id="cidade_responsavel"
+                      name="cidade_responsavel"
+                    />
+                  </div>
+                  <div class="form-group">
+                    <label for="bairro_responsavel">Bairro:</label>
+                    <input
+                      type="text"
+                      id="bairro_responsavel"
+                      name="bairro_responsavel"
+                    />
+                  </div>
+                  <div class="form-group">
+                    <label for="rua_responsavel">Rua:</label>
+                    <input
+                      type="text"
+                      id="rua_responsavel"
+                      name="rua_responsavel"
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="form-section">
+              <h3 class="section-title">
+                <i class="fas fa-briefcase"></i> Vínculo Empregatício
+              </h3>
+              <div class="form-group">
+                <label>Aluno empregado?</label>
+                <div class="radio-group">
+                  <label class="radio-option">
+                    <input
+                      type="radio"
+                      id="empregado-sim"
+                      name="empregado"
+                      value="sim"
+                    />
+                    Sim
+                  </label>
+                  <label class="radio-option">
+                    <input
+                      type="radio"
+                      id="empregado-nao"
+                      name="empregado"
+                      value="nao"
+                      checked
+                    />
+                    Não
+                  </label>
+                </div>
+              </div>
+
+              <div
+                id="empresaSection"
+                class="conditional-section"
+                style="display: none"
+              >
+                <h4 class="section-title" style="font-size: 1.1rem">
+                  <i class="fas fa-building"></i> Dados da Empresa
+                </h4>
+                <div class="form-grid">
+                  <div class="form-group">
+                    <label for="empresa">Nome da Empresa:</label>
+                    <input type="text" id="empresa" name="empresa" />
+                  </div>
+                  <div class="form-group">
+                    <label for="empresa_contratante"
+                      >Empresa Contratante:</label
+                    >
+                    <input
+                      type="text"
+                      id="empresa_contratante"
+                      name="empresa_contratante"
+                    />
+                  </div>
+                  <div class="form-group">
+                    <label for="endereco_empresa">Endereço:</label>
+                    <input
+                      type="text"
+                      id="endereco_empresa"
+                      name="endereco_empresa"
+                    />
+                  </div>
+                  <div class="form-group">
+                    <label for="telefone_empresa">Telefone:</label>
+                    <input
+                      type="text"
+                      id="telefone_empresa"
+                      name="telefone_empresa"
+                    />
+                  </div>
+                  <div class="form-group">
+                    <label for="cidade_empresa">Cidade:</label>
+                    <input
+                      type="text"
+                      id="cidade_empresa"
+                      name="cidade_empresa"
+                    />
+                  </div>
+                  <div class="form-group">
+                    <label for="bairro_empresa">Bairro:</label>
+                    <input
+                      type="text"
+                      id="bairro_empresa"
+                      name="bairro_empresa"
+                    />
+                  </div>
+                  <div class="form-group">
+                    <label for="rua_empresa">Rua:</label>
+                    <input type="text" id="rua_empresa" name="rua_empresa" />
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="form-section">
+              <h3 class="section-title">
+                <i class="fas fa-graduation-cap"></i> Dados Acadêmicos
+              </h3>
+              <div class="form-grid">
+                <div class="form-group">
+                  <label for="curso">Curso:</label>
+                  <!-- Agora carrega da API -->
+                  <select id="curso" name="curso" required>
+                    <option value="">Carregando...</option>
+                  </select>
+                </div>
+
+                <div class="form-group">
+                  <label for="turma_id">Turma:</label>
+                  <select id="turma_id" name="turma_id" required>
+                    <option value="">Selecione o curso primeiro</option>
+                  </select>
+                </div>
+
+                <div class="form-group">
+                  <label for="data_inicio_curso"
+                    >Data de Início do Curso:</label
+                  >
+                  <input
+                    type="date"
+                    id="data_inicio_curso"
+                    name="data_inicio_curso"
+                  />
+                </div>
+
+                <div class="form-group">
+                  <label for="linha_atendimento">Linha de Atendimento:</label>
+                  <select
+                    id="linha_atendimento"
+                    name="linha_atendimento"
+                    required
+                  >
+                    <option value="">Selecione</option>
+                    <option value="CAI">CAI</option>
+                    <option value="CT">CT</option>
+                    <option value="CST">CST</option>
+                  </select>
+                </div>
+
+                <div class="form-group">
+                  <label for="escola_integrada">Escola Integrada:</label>
+                  <select
+                    id="escola_integrada"
+                    name="escola_integrada"
+                    required
+                  >
+                    <option value="">Selecione</option>
+                    <option value="SESI">SESI</option>
+                    <option value="SEDUC">SEDUC</option>
+                    <option value="Nenhuma">Nenhuma</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+
+            <div class="form-section">
+              <h3 class="section-title">
+                <i class="fas fa-info-circle"></i> Informações Complementares
+              </h3>
+              <div class="form-grid">
+                <div class="form-group">
+                  <label for="mora_com_quem">Mora com quem:</label>
+                  <input type="text" id="mora_com_quem" name="mora_com_quem" />
+                </div>
+                <div class="form-group">
+                  <label for="sobre_aluno">Sobre o aluno:</label>
+                  <textarea id="sobre_aluno" name="sobre_aluno"></textarea>
+                </div>
+                <div class="form-group">
+                  <div class="checkbox-group">
+                    <input
+                      type="checkbox"
+                      id="pessoa_com_deficiencia"
+                      name="pessoa_com_deficiencia"
+                    />
+                    <label for="pessoa_com_deficiencia"
+                      >Pessoa com Deficiência?</label
+                    >
+                  </div>
+                </div>
+                <div
+                  id="deficienciaSection"
+                  class="conditional-section"
+                  style="display: none"
+                >
+                  <div class="form-group">
+                    <label for="deficiencia_descricao">Qual deficiência?</label>
+                    <input
+                      type="text"
+                      id="deficiencia_descricao"
+                      name="deficiencia_descricao"
+                    />
+                  </div>
+                </div>
+                <div class="form-group">
+                  <label for="outras_informacoes">Outras Informações:</label>
+                  <textarea
+                    id="outras_informacoes"
+                    name="outras_informacoes"
+                  ></textarea>
+                </div>
+                <div class="form-group">
+                  <label for="foto">Foto:</label>
+                  <input type="file" id="foto" name="foto" accept="image/*" />
+                </div>
+              </div>
+            </div>
+
+            <div class="submit-container">
+              <button type="submit">
+                <i class="fas fa-user-plus"></i> Cadastrar Aluno
+              </button>
+            </div>
+          </form>
+        </div>
+>>>>>>> 6fc653cd9afd31b388fe65e249bb7a437cc142a0
       </div>
     </div>
-  </div>
 
-  <footer>
-    <p>&copy; 2024 Departamento de Qualidade de Vida - Todos os direitos reservados.</p>
-  </footer>
+    <footer>
+      <p>
+        &copy; 2024 Departamento de Qualidade de Vida - Todos os direitos
+        reservados.
+      </p>
+    </footer>
 
+<<<<<<< HEAD
   <script>
   document.addEventListener("DOMContentLoaded", () => {
     const alertaDiv = document.getElementById("alerta");
@@ -362,4 +703,8 @@
 </script>
 
 </body>
+=======
+    <script src="js/cadastroAluno.js"></script>
+  </body>
+>>>>>>> 6fc653cd9afd31b388fe65e249bb7a437cc142a0
 </html>

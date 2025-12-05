@@ -5,86 +5,513 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Cadastro de Ocorrência</title>
   <link rel="stylesheet" href="./css/ocorrencias.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;500;600;700&family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet" />
+  <script src="js/navbar-protection.js"></script>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Open Sans', sans-serif;
+      background-color: #f5f5f5;
+      color: #333;
+    }
+
+    header {
+      background: linear-gradient(135deg, #0066cc 0%, #004d99 100%);
+      color: white;
+      padding: 0;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+      position: sticky;
+      top: 0;
+      z-index: 1000;
+    }
+
+    .header-content {
+      max-width: 1200px;
+      margin: 0 auto;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 15px 20px;
+    }
+
+    .logo-container {
+      display: flex;
+      align-items: center;
+      gap: 15px;
+    }
+
+    .logo {
+      height: 50px;
+      width: auto;
+    }
+
+    .logo-container h1 {
+      font-size: 1.5rem;
+      font-weight: 600;
+      font-family: 'Poppins', sans-serif;
+    }
+
+    nav {
+      position: relative;
+    }
+
+    .nav-toggle {
+      display: none;
+      background: none;
+      border: none;
+      color: white;
+      font-size: 1.5rem;
+      cursor: pointer;
+      padding: 5px;
+    }
+
+    #navMenu {
+      display: flex;
+      list-style: none;
+      gap: 20px;
+    }
+
+    #navMenu li {
+      position: relative;
+    }
+
+    #navMenu a {
+      color: white;
+      text-decoration: none;
+      padding: 10px 15px;
+      border-radius: 5px;
+      transition: all 0.3s ease;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 0.95rem;
+      font-weight: 500;
+    }
+
+    #navMenu a:hover {
+      background-color: rgba(255, 255, 255, 0.1);
+    }
+
+    #navMenu a.active {
+      background-color: rgba(255, 255, 255, 0.2);
+    }
+
+    .dropdown-content {
+      display: none;
+      position: absolute;
+      background-color: white;
+      min-width: 200px;
+      box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+      border-radius: 5px;
+      z-index: 1000;
+      top: 100%;
+      left: 0;
+    }
+
+    .dropdown:hover .dropdown-content {
+      display: block;
+    }
+
+    .dropdown-content a {
+      color: #333;
+      padding: 12px 16px;
+      display: block;
+      border-bottom: 1px solid #eee;
+    }
+
+    .dropdown-content a:hover {
+      background-color: #f5f5f5;
+    }
+
+    .dropdown-content a:last-child {
+      border-bottom: none;
+    }
+
+    main {
+      max-width: 1200px;
+      margin: 30px auto;
+      padding: 0 20px;
+    }
+
+    .container {
+      background-color: white;
+      border-radius: 10px;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+      padding: 30px;
+    }
+
+    .form-header {
+      display: flex;
+      align-items: center;
+      gap: 15px;
+      margin-bottom: 30px;
+      padding-bottom: 15px;
+      border-bottom: 2px solid #0066cc;
+    }
+
+    .form-header h2 {
+      color: #0066cc;
+      font-size: 1.8rem;
+      font-weight: 600;
+    }
+
+    .form-header i {
+      color: #0066cc;
+      font-size: 1.5rem;
+    }
+
+    #alerta {
+      padding: 15px;
+      border-radius: 5px;
+      margin-bottom: 20px;
+      display: none;
+    }
+
+    .form-container {
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    label {
+      font-weight: 600;
+      color: #444;
+      margin-bottom: 5px;
+      display: block;
+      font-size: 1rem;
+    }
+
+    input[type="text"],
+    input[type="date"],
+    select,
+    textarea {
+      width: 100%;
+      padding: 12px 15px;
+      border: 2px solid #ddd;
+      border-radius: 5px;
+      font-size: 1rem;
+      transition: border-color 0.3s;
+      font-family: 'Open Sans', sans-serif;
+    }
+
+    input[type="text"]:focus,
+    input[type="date"]:focus,
+    select:focus,
+    textarea:focus {
+      border-color: #0066cc;
+      outline: none;
+    }
+
+    textarea {
+      min-height: 120px;
+      resize: vertical;
+    }
+
+    #sugestoes {
+      background-color: white;
+      border: 2px solid #ddd;
+      border-radius: 5px;
+      max-height: 200px;
+      overflow-y: auto;
+      margin-top: 5px;
+      display: none;
+    }
+
+    #sugestoes li {
+      padding: 10px 15px;
+      cursor: pointer;
+      border-bottom: 1px solid #eee;
+      transition: background-color 0.2s;
+    }
+
+    #sugestoes li:hover {
+      background-color: #f0f8ff;
+    }
+
+    #sugestoes li:last-child {
+      border-bottom: none;
+    }
+
+    #aluno_selecionado {
+      background-color: #f8f9fa;
+      border: 2px solid #dee2e6;
+      border-radius: 8px;
+      padding: 15px;
+      margin: 20px 0;
+    }
+
+    #foto_exibida {
+      width: 80px;
+      height: 80px;
+      object-fit: cover;
+      border-radius: 50%;
+      border: 3px solid #0066cc;
+    }
+
+    #nome_exibido {
+      font-size: 1.2rem;
+      font-weight: 600;
+      color: #333;
+    }
+
+    button[type="submit"] {
+      background: linear-gradient(135deg, #0066cc 0%, #004d99 100%);
+      color: white;
+      padding: 15px 30px;
+      border: none;
+      border-radius: 5px;
+      font-size: 1.1rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      margin-top: 10px;
+      display: block;
+      width: 100%;
+    }
+
+    button[type="submit"]:hover {
+      background: linear-gradient(135deg, #004d99 0%, #003366 100%);
+      transform: translateY(-2px);
+      box-shadow: 0 4px 10px rgba(0, 102, 204, 0.3);
+    }
+
+    button[type="submit"]:active {
+      transform: translateY(0);
+    }
+
+    @media (max-width: 768px) {
+      .header-content {
+        flex-direction: column;
+        gap: 15px;
+      }
+
+      .logo-container h1 {
+        font-size: 1.2rem;
+      }
+
+      .nav-toggle {
+        display: block;
+        position: absolute;
+        right: 0;
+        top: -50px;
+      }
+
+      #navMenu {
+        display: none;
+        flex-direction: column;
+        width: 100%;
+        background-color: #0066cc;
+        position: absolute;
+        top: 100%;
+        left: 0;
+        padding: 20px;
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+      }
+
+      #navMenu.show {
+        display: flex;
+      }
+
+      .container {
+        padding: 20px;
+      }
+
+      .form-header h2 {
+        font-size: 1.4rem;
+      }
+    }
+  </style>
 </head>
 
 <body>
   <header>
-    <h1>Ocorrências de Alunos</h1>
-    <nav>
-      <ul>
-        <li><a href="./principal.html">Home</a></li>
-        <li><a href="./cadastroAluno.html">Cadastrar Aluno</a></li>
-        <li><a href="./relatorios.html">Relatórios</a></li>
-        <li><a href="./historico.html">Histórico</a></li>
-      </ul>
-    </nav>
+    <div class="header-content">
+      <div class="logo-container">
+        <img src="img/senai-logo.png" class="logo" alt="Logo SENAI" />
+        <h1>Sistema de Gestão de Alunos</h1>
+      </div>
+
+      <nav>
+        <button class="nav-toggle" id="navToggle">
+          <i class="fas fa-bars"></i>
+        </button>
+
+        <ul id="navMenu">
+          <li>
+            <a href="./principal.html" class="active"><i class="fas fa-home"></i> Home</a>
+          </li>
+
+          <li class="dropdown">
+            <a href="#"><i class="fas fa-user-graduate"></i> Alunos <i class="fas fa-chevron-down"></i></a>
+            <div class="dropdown-content">
+              <a href="./cadastroAluno.html"><i class="fas fa-user-plus"></i> Cadastrar Aluno</a>
+              <a href="./consultaAluno.html"><i class="fas fa-search"></i> Consultar Alunos</a>
+              <a href="./importar_alunos.html"><i class="fas fa-file-csv"></i> Importar CSV</a>
+            </div>
+          </li>
+
+          <li>
+            <a href="./turmas.html"><i class="fas fa-chalkboard"></i> Turmas</a>
+          </li>
+
+          <li>
+            <a href="./ocorrencias.html"><i class="fas fa-exclamation-triangle"></i> Ocorrências</a>
+          </li>
+
+          <li>
+            <a href="./dashboard.html"><i class="fas fa-history"></i> Dashboard</a>
+          </li>
+
+          <li>
+            <a href="./criar_usuario.html"><i class="fas fa-user-cog"></i> Usuários</a>
+          </li>
+        </ul>
+      </nav>
+    </div>
   </header>
 
   <main>
-    <div id="alerta" style="display: none;"></div>
+    <div class="container">
+      <div class="form-container">
+        <div class="form-header">
+          <h2><i class="fas fa-exclamation-triangle"></i> Cadastrar Ocorrências</h2>
+        </div>
+        
+        <div id="alerta" style="display: none; padding: 15px; border-radius: 5px; margin-bottom: 20px;"></div>
 
-    <label for="buscar_nome">Buscar aluno por nome:</label>
-    <input type="text" id="buscar_nome" placeholder="Digite o nome..." autocomplete="off" />
-    <ul id="sugestoes" style="list-style: none; padding-left: 0;"></ul>
+        <label for="buscar_nome">Buscar aluno por nome:</label>
+        <input type="text" id="buscar_nome" placeholder="Digite o nome do aluno..." autocomplete="off" />
+        <ul id="sugestoes" style="list-style: none; padding-left: 0;"></ul>
 
-    <div id="aluno_selecionado" style="margin: 15px 0; display: none; align-items:center; gap:12px;">
-      <img id="foto_exibida" src="" alt="Foto do Aluno" style="width:80px;height:80px;object-fit:cover;border-radius:8px;border:1px solid #ddd;" />
-      <div>
-        <strong id="nome_exibido"></strong><br />
+        <div id="aluno_selecionado" style="display: none; align-items: center; gap: 15px; background: #f8f9fa; padding: 15px; border-radius: 8px; border: 2px solid #dee2e6; margin: 15px 0;">
+          <img id="foto_exibida" src="" alt="Foto do Aluno" style="width: 80px; height: 80px; object-fit: cover; border-radius: 50%; border: 3px solid #0066cc;" />
+          <div>
+            <strong id="nome_exibido" style="font-size: 1.2rem; color: #333;"></strong><br />
+            <span id="matricula_exibida" style="color: #666;"></span>
+          </div>
+        </div>
+
+        <form id="ocorrenciaForm">
+          <input type="hidden" id="aluno_id" name="aluno_id" required />
+
+          <label for="tipo">Tipo de Ocorrência:</label>
+          <select id="tipo" name="tipo" required>
+            <option value="" selected disabled>Selecione uma opção...</option>
+            <!-- Os tipos serão carregados dinamicamente via JavaScript -->
+          </select>
+
+          <label for="descricao">Descrição:</label>
+          <textarea id="descricao" name="descricao" placeholder="Descreva a ocorrência em detalhes..." required></textarea>
+
+          <label for="data_ocorrencia">Data da Ocorrência:</label>
+          <input type="date" id="data_ocorrencia" name="data_ocorrencia" />
+
+          <button type="submit">Cadastrar Ocorrência</button>
+        </form>
       </div>
     </div>
-
-    <form id="ocorrenciaForm">
-      <input type="hidden" id="aluno_id" name="aluno_id" required />
-
-      <label for="tipo">Tipo de Ocorrência:</label>
-      <select id="tipo" name="tipo" required>
-        <option value="" selected disabled>Selecione uma opção...</option>
-        <option value="atraso">Atraso</option>
-        <option value="atestado">Atestado Médico</option>
-        <option value="saude">Problema de saúde</option>
-      </select>
-
-      <label for="descricao">Descrição:</label>
-      <textarea id="descricao" name="descricao" required></textarea>
-
-      <label for="data_ocorrencia">Data da Ocorrência:</label>
-      <input type="date" id="data_ocorrencia" name="data_ocorrencia" />
-
-      <button type="submit">Cadastrar</button>
-    </form>
   </main>
 
   <script>
+    // Toggle do menu mobile
+    document.getElementById('navToggle').addEventListener('click', function() {
+      document.getElementById('navMenu').classList.toggle('show');
+    });
+
+    // Variáveis globais
     const buscarInput = document.getElementById("buscar_nome");
     const sugestoesUl = document.getElementById("sugestoes");
     const alunoSelecionadoDiv = document.getElementById("aluno_selecionado");
     const nomeExibido = document.getElementById("nome_exibido");
+    const matriculaExibida = document.getElementById("matricula_exibida");
     const fotoExibida = document.getElementById("foto_exibida");
     const alunoIdInput = document.getElementById("aluno_id");
     const form = document.getElementById("ocorrenciaForm");
+    const alertaDiv = document.getElementById("alerta");
+    const tipoSelect = document.getElementById("tipo");
+
+    // Carrega os tipos de ocorrência do backend
+    async function carregarTiposOcorrencia() {
+      try {
+        const response = await fetch("http://localhost:5000/ocorrencias/tipos");
+        const data = await response.json();
+        
+        if (response.ok && data.tipos) {
+          tipoSelect.innerHTML = '<option value="" selected disabled>Selecione uma opção...</option>';
+          
+          data.tipos.forEach(tipo => {
+            const option = document.createElement("option");
+            option.value = tipo;
+            option.textContent = tipo;
+            tipoSelect.appendChild(option);
+          });
+        }
+      } catch (err) {
+        console.error("Erro ao carregar tipos de ocorrência:", err);
+        mostrarAlerta("Erro ao carregar tipos de ocorrência", "erro");
+      }
+    }
+
+    // Função para mostrar alertas
+    function mostrarAlerta(mensagem, tipo = "sucesso") {
+      alertaDiv.textContent = mensagem;
+      alertaDiv.style.display = "block";
+      alertaDiv.style.backgroundColor = tipo === "sucesso" ? "#d4edda" : "#f8d7da";
+      alertaDiv.style.color = tipo === "sucesso" ? "#155724" : "#721c24";
+      alertaDiv.style.border = tipo === "sucesso" ? "1px solid #c3e6cb" : "1px solid #f5c6cb";
+      
+      setTimeout(() => {
+        alertaDiv.style.display = "none";
+      }, 5000);
+    }
 
     // 🔍 Busca alunos conforme o usuário digita
     buscarInput.addEventListener("input", async () => {
       const nome = buscarInput.value.trim();
       sugestoesUl.innerHTML = "";
-      if (nome.length < 2) return;
+      
+      if (nome.length < 2) {
+        sugestoesUl.style.display = "none";
+        return;
+      }
 
       try {
         const response = await fetch(`http://localhost:5000/alunos/buscar?nome=${encodeURIComponent(nome)}`);
         const data = await response.json();
 
-        if (response.ok && Array.isArray(data)) {
+        if (response.ok && Array.isArray(data) && data.length > 0) {
+          sugestoesUl.style.display = "block";
           data.forEach(aluno => {
             const li = document.createElement("li");
-            li.textContent = `${aluno.nome} (${aluno.matricula})`;
+            li.textContent = `${aluno.nome} (Matrícula: ${aluno.matricula || 'N/A'})`;
             li.style.cursor = "pointer";
-            li.onclick = () => selecionarAluno(aluno);
+            li.style.padding = "10px 15px";
+            li.style.borderBottom = "1px solid #eee";
+            li.style.transition = "background-color 0.2s";
+            
+            li.addEventListener("mouseover", () => {
+              li.style.backgroundColor = "#f0f8ff";
+            });
+            
+            li.addEventListener("mouseout", () => {
+              li.style.backgroundColor = "";
+            });
+            
+            li.addEventListener("click", () => selecionarAluno(aluno));
             sugestoesUl.appendChild(li);
           });
+        } else {
+          sugestoesUl.style.display = "none";
         }
       } catch (err) {
         console.error("Erro ao buscar alunos:", err);
+        sugestoesUl.style.display = "none";
       }
     });
 
@@ -92,16 +519,20 @@
     function selecionarAluno(aluno) {
       alunoSelecionadoDiv.style.display = "flex";
       nomeExibido.textContent = aluno.nome;
+      matriculaExibida.textContent = `Matrícula: ${aluno.matricula || 'N/A'}`;
       alunoIdInput.value = aluno.id;
 
-      // Monta URL da foto (ou mostra imagem padrão)
+      // Monta URL da foto
       if (aluno.foto_url) {
         fotoExibida.src = aluno.foto_url;
+      } else if (aluno.foto) {
+        fotoExibida.src = `http://localhost:8080/uploads/${aluno.foto}`;
       } else {
-        fotoExibida.src = "./img/sem-foto.png"; // imagem fallback
+        fotoExibida.src = "./img/sem-foto.png";
       }
 
       sugestoesUl.innerHTML = "";
+      sugestoesUl.style.display = "none";
       buscarInput.value = aluno.nome;
     }
 
@@ -109,21 +540,36 @@
     form.addEventListener("submit", async (e) => {
       e.preventDefault();
 
-      // validação básica: precisa ter aluno escolhido
+      // Validação básica: precisa ter aluno escolhido
       if (!alunoIdInput.value) {
-        alert("Selecione um aluno antes de cadastrar a ocorrência.");
+        mostrarAlerta("Selecione um aluno antes de cadastrar a ocorrência.", "erro");
+        buscarInput.focus();
+        return;
+      }
+
+      // Validação do tipo
+      if (!tipoSelect.value) {
+        mostrarAlerta("Selecione um tipo de ocorrência.", "erro");
+        tipoSelect.focus();
+        return;
+      }
+
+      // Validação da descrição
+      const descricao = document.getElementById("descricao").value.trim();
+      if (!descricao) {
+        mostrarAlerta("A descrição da ocorrência é obrigatória.", "erro");
+        document.getElementById("descricao").focus();
         return;
       }
 
       const payload = {
         aluno_id: Number(alunoIdInput.value),
-        tipo: document.getElementById("tipo").value,
-        descricao: document.getElementById("descricao").value.trim(),
+        tipo: tipoSelect.value,
+        descricao: descricao,
         data_ocorrencia: document.getElementById("data_ocorrencia").value || null
       };
 
       try {
-        // use a barra final para não tomar 308
         const response = await fetch("http://localhost:5000/ocorrencias/", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -133,18 +579,26 @@
         const data = await response.json();
 
         if (response.ok) {
-          alert(data.mensagem || "Ocorrência cadastrada com sucesso!");
+          mostrarAlerta(data.mensagem || "Ocorrência cadastrada com sucesso!", "sucesso");
           form.reset();
           alunoSelecionadoDiv.style.display = "none";
+          alunoIdInput.value = "";
+          buscarInput.value = "";
+          fotoExibida.src = "";
+          nomeExibido.textContent = "";
+          matriculaExibida.textContent = "";
         } else {
-          alert(data.erro || "Erro ao cadastrar ocorrência.");
-          console.error("Detalhes:", data.detalhes || data);
+          mostrarAlerta(data.erro || "Erro ao cadastrar ocorrência.", "erro");
+          console.error("Detalhes do erro:", data.detalhes || data);
         }
       } catch (error) {
         console.error("Erro ao cadastrar ocorrência:", error);
-        alert("Falha ao cadastrar ocorrência.");
+        mostrarAlerta("Falha ao conectar com o servidor. Tente novamente.", "erro");
       }
     });
+
+    // Carrega os tipos ao iniciar a página
+    document.addEventListener("DOMContentLoaded", carregarTiposOcorrencia);
   </script>
 </body>
 </html>

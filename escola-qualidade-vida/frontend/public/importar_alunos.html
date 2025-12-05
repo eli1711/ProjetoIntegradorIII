@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="pt-br">
+<<<<<<< HEAD
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
@@ -123,26 +124,292 @@
         <div style="flex:1 1 400px">
           <label for="arquivo">Arquivo CSV</label>
           <input type="file" id="arquivo" accept=".csv"/>
+=======
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Importar Alunos</title>
+    <link rel="stylesheet" href="css/importarAlunos.css" />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;500;600;700&family=Poppins:wght@300;400;500;600&display=swap"
+      rel="stylesheet"
+    />
+    <script src="js/navbar-protection.js"></script>
+  </head>
+  <body>
+    <header>
+      <div class="header-content">
+        <div class="logo-container">
+          <img src="img/senai-logo.png" class="logo" alt="Logo SENAI" />
+          <h1>Sistema de Gestão de Alunos</h1>
+>>>>>>> 6fc653cd9afd31b388fe65e249bb7a437cc142a0
         </div>
-        <div>
-          <button id="btnImportar"><i class="fa-solid fa-cloud-upload-alt"></i> Importar</button>
-        </div>
-      </div>
 
-      <div class="result" id="resultado" style="display:none">
-        <h3>Relatório</h3>
-        <pre id="log"></pre>
+        <nav>
+          <ul id="navMenu">
+            <li>
+              <a href="./principal.html" class="active"
+                ><i class="fas fa-home"></i> Home</a
+              >
+            </li>
+
+            <li class="dropdown">
+              <a href="#"
+                ><i class="fas fa-user-graduate"></i> Alunos
+                <i class="fas fa-chevron-down"></i
+              ></a>
+              <div class="dropdown-content">
+                <a href="./cadastroAluno.html"
+                  ><i class="fas fa-user-plus"></i> Cadastrar Aluno</a
+                >
+                <a href="./consultaAluno.html"
+                  ><i class="fas fa-search"></i> Consultar Alunos</a
+                >
+                <a href="./importar_alunos.html"
+                  ><i class="fas fa-file-csv"></i> Importar CSV</a
+                >
+              </div>
+            </li>
+
+            <li>
+              <a href="./turmas.html"
+                ><i class="fas fa-chalkboard"></i> Turmas</a>
+            </li>
+
+            <li>
+              <a href="./ocorrencias.html">
+                <i class="fas fa-exclamation-triangle"></i> Ocorrências</a>
+            </li>
+
+            <li>
+              <a href="./dashboard.html">
+                <i class="fas fa-history"></i> Dashboard</a>
+            </li>
+            <li>
+              <a href="./criar_usuario.html"
+                ><i class="fas fa-user-cog"></i> Usuários</a>
+            </li>
+          </ul>
+        </nav>
+      </div>
+    </header>
+
+    <div class="container">
+      <div class="form-container">
+        <div class="form-header">
+          <h2><i class="fas fa-file-csv"></i> Importar Alunos (CSV)</h2>
+        </div>
+
+        <div class="form-content">
+          <div id="alerta"></div>
+
+          <div class="form-section">
+            <h3 class="section-title">
+              <i class="fas fa-info-circle"></i> Instruções de Importação
+            </h3>
+            <div class="card">
+              <p class="note">
+                Faça o upload de um arquivo CSV com os seguintes cabeçalhos
+                (ordem livre).<br />
+                <strong>Dica:</strong> Prefira usar <code>curso_nome</code> e
+                <code>turma_nome</code>. Se preferir, também aceitamos
+                <code>curso_id</code> e <code>turma_id</code> como alternativa.
+              </p>
+
+              <div class="table-container">
+                <table>
+                  <thead>
+                    <tr>
+                      <th>Campo</th>
+                      <th>Obrigatório?</th>
+                      <th>Observações</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>nome</td>
+                      <td>sim</td>
+                      <td>Texto</td>
+                    </tr>
+                    <tr>
+                      <td>sobrenome</td>
+                      <td>sim</td>
+                      <td>Texto</td>
+                    </tr>
+                    <tr>
+                      <td>matricula</td>
+                      <td>sim</td>
+                      <td>Única</td>
+                    </tr>
+                    <tr>
+                      <td>cidade</td>
+                      <td>sim</td>
+                      <td>Texto</td>
+                    </tr>
+                    <tr>
+                      <td>bairro</td>
+                      <td>sim</td>
+                      <td>Texto</td>
+                    </tr>
+                    <tr>
+                      <td>rua</td>
+                      <td>sim</td>
+                      <td>Texto</td>
+                    </tr>
+                    <tr>
+                      <td>idade</td>
+                      <td>sim</td>
+                      <td>Inteiro</td>
+                    </tr>
+                    <tr>
+                      <td>linha_atendimento</td>
+                      <td>sim</td>
+                      <td>CAI | CT | CST</td>
+                    </tr>
+                    <tr>
+                      <td>escola_integrada</td>
+                      <td>sim</td>
+                      <td>SESI | SEDUC | Nenhuma</td>
+                    </tr>
+
+                    <tr>
+                      <td>curso_nome</td>
+                      <td>não</td>
+                      <td>
+                        Nome do curso (preferencial). Se existir no sistema, o
+                        vínculo FK será resolvido.
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>turma_nome</td>
+                      <td>não</td>
+                      <td>
+                        Nome da turma (preferencial). Se existir no sistema, o
+                        vínculo FK será resolvido.
+                      </td>
+                    </tr>
+
+                    <tr>
+                      <td>curso_id</td>
+                      <td>não</td>
+                      <td>
+                        Alternativa: ID de curso. Se vier junto do nome, será
+                        validada a coerência.
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>turma_id</td>
+                      <td>não</td>
+                      <td>
+                        Alternativa: ID de turma. Se vier junto do nome/curso,
+                        será validada a coerência.
+                      </td>
+                    </tr>
+
+                    <tr>
+                      <td>telefone</td>
+                      <td>não</td>
+                      <td>Texto</td>
+                    </tr>
+                    <tr>
+                      <td>data_nascimento</td>
+                      <td>não</td>
+                      <td>YYYY-MM-DD</td>
+                    </tr>
+                    <tr>
+                      <td>empregado</td>
+                      <td>não</td>
+                      <td>sim | nao (padrão: nao)</td>
+                    </tr>
+                    <tr>
+                      <td>mora_com_quem</td>
+                      <td>não</td>
+                      <td>Texto</td>
+                    </tr>
+                    <tr>
+                      <td>sobre_aluno</td>
+                      <td>não</td>
+                      <td>Texto</td>
+                    </tr>
+                    <tr>
+                      <td>data_inicio_curso</td>
+                      <td>não</td>
+                      <td>YYYY-MM-DD</td>
+                    </tr>
+                    <tr>
+                      <td>empresa_contratante</td>
+                      <td>não</td>
+                      <td>Texto</td>
+                    </tr>
+                    <tr>
+                      <td>pessoa_com_deficiencia</td>
+                      <td>não</td>
+                      <td>true/false, 1/0, sim/nao</td>
+                    </tr>
+                    <tr>
+                      <td>outras_informacoes</td>
+                      <td>não</td>
+                      <td>Texto</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+
+              <p class="note" style="margin-top: 1rem">
+                Baixe um modelo pronto:
+                <a
+                  class="template-link"
+                  href="http://localhost:5000/alunos/csv_modelo"
+                  target="_blank"
+                >
+                  <i class="fas fa-file-download"></i> CSV Modelo
+                </a>
+              </p>
+            </div>
+          </div>
+
+          <div class="form-section">
+            <h3 class="section-title">
+              <i class="fas fa-upload"></i> Upload do Arquivo
+            </h3>
+            <div class="form-grid">
+              <div class="form-group">
+                <label for="arquivo">Arquivo CSV:</label>
+                <input type="file" id="arquivo" accept=".csv" />
+              </div>
+            </div>
+
+            <div class="submit-container">
+              <button id="btnImportar" class="import-button">
+                <i class="fas fa-cloud-upload-alt"></i> Importar
+              </button>
+            </div>
+          </div>
+
+          <div class="form-section" id="resultado" style="display: none">
+            <h3 class="section-title">
+              <i class="fas fa-clipboard-list"></i> Relatório de Importação
+            </h3>
+            <div class="result-container">
+              <pre id="log"></pre>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
-  </div>
 
-  <script>
-    const alertaDiv = document.getElementById('alerta');
-    const btn = document.getElementById('btnImportar');
-    const fileInput = document.getElementById('arquivo');
-    const resultado = document.getElementById('resultado');
-    const logEl = document.getElementById('log');
+    <footer>
+      <p>
+        &copy; 2024 Departamento de Qualidade de Vida - Todos os direitos
+        reservados.
+      </p>
+    </footer>
 
+<<<<<<< HEAD
     function showAlert(tipo, msg) {
       alertaDiv.style.display = 'block';
       alertaDiv.className = (tipo === 'success') ? 'alert-success' : 'alert-error';
@@ -191,4 +458,8 @@
     });
   </script>
 </body>
+=======
+    <script src="js/importarAlunos.js"></script>
+  </body>
+>>>>>>> 6fc653cd9afd31b388fe65e249bb7a437cc142a0
 </html>

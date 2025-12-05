@@ -1,0 +1,817 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Histórico e Indicadores</title>
+    <link rel="stylesheet" href="./css/dashboard.css" />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600;700&family=Poppins:wght@500;600&display=swap"
+      rel="stylesheet"
+    />
+    <script src="js/navbar-protection.js"></script>
+  </head>
+  <body>
+    <header>
+      <div class="header-content">
+        <div class="logo-container">
+          <img src="img/senai-logo.png" class="logo" alt="Logo SENAI" />
+          <h1>Sistema de Gestão de Alunos</h1>
+        </div>
+
+        <nav>
+          <button class="nav-toggle" id="navToggle">
+            <i class="fas fa-bars"></i>
+          </button>
+          <ul id="navMenu">
+            <li>
+              <a href="./principal.html" class="active"
+                ><i class="fas fa-home"></i> Home</a
+              >
+            </li>
+            <li class="dropdown">
+              <a href="#"
+                ><i class="fas fa-user-graduate"></i> Alunos
+                <i class="fas fa-chevron-down"></i
+              ></a>
+              <div class="dropdown-content">
+                <a href="./cadastroAluno.html"
+                  ><i class="fas fa-user-plus"></i> Cadastrar Aluno</a
+                >
+                <a href="./consultaAluno.html"
+                  ><i class="fas fa-search"></i> Consultar Alunos</a
+                >
+                <a href="./importar_alunos.html"
+                  ><i class="fas fa-file-csv"></i> Importar CSV</a
+                >
+              </div>
+            </li>
+            <li>
+              <a href="./turmas.html"
+                ><i class="fas fa-chalkboard"></i> Turmas</a
+              >
+            </li>
+            <li>
+              <a href="./ocorrencias.html"
+                ><i class="fas fa-exclamation-triangle"></i> Ocorrências</a
+              >
+            </li>
+            <li>
+              <a href="./dashboard.html"
+                ><i class="fas fa-history"></i> Dashboard</a
+              >
+            </li>
+            <li>
+              <a href="./criar_usuario.html"
+                ><i class="fas fa-user-cog"></i> Usuários</a
+              >
+            </li>
+          </ul>
+        </nav>
+      </div>
+    </header>
+
+    <main>
+      <section class="filters">
+        <div class="group">
+          <label for="statusTurma">Status da Turma</label>
+          <select id="statusTurma">
+            <option value="todas">Todas</option>
+            <option value="ativas" selected>Ativas</option>
+            <option value="finalizadas">Finalizadas</option>
+          </select>
+        </div>
+        <div class="group">
+          <label for="cursoFiltro">Curso</label>
+          <select id="cursoFiltro">
+            <option value="">Todos</option>
+          </select>
+        </div>
+        <div class="group">
+          <label for="buscaAluno">Buscar Aluno</label>
+          <input type="text" id="buscaAluno" placeholder="Nome do aluno" />
+        </div>
+        <div class="group">
+          <label for="buscaTurma">Buscar Turma</label>
+          <input type="text" id="buscaTurma" placeholder="Nome da turma" />
+        </div>
+        <div class="group">
+          <button id="btnAplicar" class="btn">
+            <i class="fa-solid fa-filter"></i> Aplicar
+          </button>
+        </div>
+        <div class="group">
+          <button id="btnLimpar" class="btn btn-outline">
+            <i class="fa-solid fa-eraser"></i> Limpar
+          </button>
+        </div>
+        <div class="group">
+          <button
+            id="btnExportarGeral"
+            class="btn"
+            style="background-color: #27854d; color: white"
+          >
+            <i class="fa-solid fa-file-csv"></i> Relatório Geral
+          </button>
+        </div>
+      </section>
+
+      <section class="section">
+        <h2>Indicadores Gerais</h2>
+        <div class="kpis">
+          <div class="kpi">
+            <h3>Total de Alunos</h3>
+            <div class="value" id="kpiTotalAlunos">-</div>
+          </div>
+          <div class="kpi">
+            <h3>Alunos PCD</h3>
+            <div class="value" id="kpiPCD">-</div>
+          </div>
+          <div class="kpi">
+            <h3>Média de Idade</h3>
+            <div class="value" id="kpiMediaIdade">-</div>
+          </div>
+          <div class="kpi">
+            <h3>Turmas Ativas</h3>
+            <div class="value" id="kpiTurmasAtivas">-</div>
+          </div>
+          <div class="kpi">
+            <h3>Turmas Finalizadas</h3>
+            <div class="value" id="kpiTurmasFinalizadas">-</div>
+          </div>
+          <div class="kpi">
+            <h3>Total Ocorrências</h3>
+            <div class="value" id="kpiOcorrencias">-</div>
+          </div>
+        </div>
+      </section>
+
+      <section class="section">
+        <h2>Visão Gráfica</h2>
+        <div class="charts-grid">
+          <div class="chart-card">
+            <canvas id="chartAlunosCurso"></canvas>
+          </div>
+          <div class="chart-card">
+            <canvas id="chartOcorrenciasCurso"></canvas>
+          </div>
+          <div class="chart-card">
+            <canvas id="chartEscolas"></canvas>
+          </div>
+        </div>
+      </section>
+
+      <section class="section table-card">
+        <div class="table-head">
+          <h3>Resumo por Turma</h3>
+          <button class="btn-sm" id="exportTurmas">
+            <i class="fa-solid fa-file-export"></i> CSV
+          </button>
+        </div>
+        <div class="table-wrap">
+          <table id="tblTurmas">
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Turma</th>
+                <th>Curso</th>
+                <th>Sem.</th>
+                <th>Início</th>
+                <th>Término</th>
+                <th>Status</th>
+                <th>Alunos</th>
+                <th>Ocorrências</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td colspan="9" class="muted">Carregando...</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <section class="section table-card">
+        <div class="table-head">
+          <h3>Resumo por Aluno</h3>
+          <button class="btn-sm" id="exportAlunos">
+            <i class="fa-solid fa-file-export"></i> CSV
+          </button>
+        </div>
+        <div class="table-wrap">
+          <table id="tblAlunos">
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Aluno</th>
+                <th>Turma</th>
+                <th>Curso</th>
+                <th>Idade</th>
+                <th>Escola</th>
+                <th>PCD</th>
+                <th>Ocorrências</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td colspan="8" class="muted">Carregando...</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <section class="section table-card">
+        <div class="table-head"><h3>Distribuição por Escola Integrada</h3></div>
+        <div class="table-wrap">
+          <table id="tblEscola">
+            <thead>
+              <tr>
+                <th>Escola Integrada</th>
+                <th>Alunos</th>
+                <th>%</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td colspan="3" class="muted">Carregando...</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <section class="section table-card">
+        <div class="table-head">
+          <h3>Ocorrências por Turma</h3>
+          <button class="btn-sm" id="exportOcorrTurmas">
+            <i class="fa-solid fa-file-export"></i> CSV
+          </button>
+        </div>
+        <div class="table-wrap">
+          <table id="tblOcorrTurmas">
+            <thead>
+              <tr>
+                <th>Turma</th>
+                <th>Curso</th>
+                <th>Alunos c/ Ocorr.</th>
+                <th>Total Ocorr.</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td colspan="4" class="muted">Carregando...</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <section class="section table-card">
+        <div class="table-head">
+          <h3>Ocorrências por Curso</h3>
+          <button class="btn-sm" id="exportOcorrCursos">
+            <i class="fa-solid fa-file-export"></i> CSV
+          </button>
+        </div>
+        <div class="table-wrap">
+          <table id="tblOcorrCursos">
+            <thead>
+              <tr>
+                <th>Curso</th>
+                <th>Turmas</th>
+                <th>Alunos</th>
+                <th>Total Ocorr.</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td colspan="4" class="muted">Carregando...</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+    </main>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <script src="js/dashboard-charts.js"></script>
+
+    <script>
+      // ------- Utils -------
+      const API = {
+        turmas: (status = "todas", cursoId = "") => {
+          const p = new URLSearchParams();
+          if (status) p.set("status", status);
+          if (cursoId) p.set("curso_id", cursoId);
+          // Nota: Ajuste a URL abaixo se for para produção
+          return fetch(`http://localhost:5000/turmas/?${p.toString()}`).then(
+            (r) => r.json()
+          );
+        },
+        alunos: () =>
+          fetch("http://localhost:5000/alunos/buscar").then((r) => r.json()),
+        ocorrencias: () =>
+          fetch("http://localhost:5000/ocorrencias/").then((r) => r.json()),
+      };
+
+      const el = (sel) => document.querySelector(sel);
+
+      // Função para converter Array de Arrays em texto CSV
+      function toCSV(rows) {
+        return rows
+          .map((r) =>
+            r
+              .map((v) => {
+                const s = (v ?? "").toString().replaceAll('"', '""'); // Escapa aspas duplas
+                return /[",\n;]/.test(s) ? `"${s}"` : s; // Coloca aspas se tiver vírgula ou ponto e vírgula
+              })
+              .join(";")
+          )
+          .join("\n");
+      }
+
+      // Função para forçar o download
+      function download(name, content) {
+        const blob = new Blob([content], { type: "text/csv;charset=utf-8;" });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = name;
+        a.click();
+        URL.revokeObjectURL(url);
+      }
+
+      // ------- Estado Global -------
+      let DATA = { turmas: [], alunos: [], ocorrencias: [] };
+
+      // ------- Referências do DOM -------
+      const statusTurma = el("#statusTurma");
+      const cursoFiltro = el("#cursoFiltro");
+      const buscaAluno = el("#buscaAluno");
+      const buscaTurma = el("#buscaTurma");
+
+      // ------- Listeners de Botões -------
+
+      // 1. Botão Limpar
+      el("#btnLimpar").addEventListener("click", () => {
+        statusTurma.value = "todas";
+        cursoFiltro.value = "";
+        buscaAluno.value = "";
+        buscaTurma.value = "";
+        render();
+      });
+
+      // 2. Botão Aplicar Filtros
+      el("#btnAplicar").addEventListener("click", render);
+
+      // 3. NOVO: Botão Exportar Relatório Geral
+      el("#btnExportarGeral").addEventListener("click", () => {
+        if (!DATA.ocorrencias || !DATA.ocorrencias.length) {
+          alert("Não há ocorrências carregadas para exportar.");
+          return;
+        }
+
+        // Cabeçalho do CSV
+        const csvData = [
+          [
+            "ID Ocorrencia",
+            "Data",
+            "Nome do Aluno",
+            "ID Aluno",
+            "Turma",
+            "Curso",
+            "Tipo/Motivo",
+            "Descricao Detalhada",
+          ],
+        ];
+
+        // Processamento (Cruzamento de dados)
+        DATA.ocorrencias.forEach((oc) => {
+          // Acha o aluno dono da ocorrência
+          const aluno = DATA.alunos.find((a) => a.id == oc.aluno_id) || {};
+
+          // Acha a turma do aluno (tenta pelo ID no aluno, senão tenta pelo texto solto)
+          let nomeTurma = aluno.turma || "-";
+          let nomeCurso = aluno.curso || aluno.curso_nome || "-";
+
+          if (aluno.turma_id) {
+            const turmaObj = DATA.turmas.find((t) => t.id == aluno.turma_id);
+            if (turmaObj) {
+              nomeTurma = turmaObj.nome || "-";
+              nomeCurso = turmaObj.curso_nome || "-";
+            }
+          }
+
+          // Adiciona a linha
+          csvData.push([
+            oc.id || "",
+            oc.data || "", // Ajuste conforme sua API retorna a data
+            aluno.nome || "Aluno Excluído/Não Encontrado",
+            oc.aluno_id || "",
+            nomeTurma,
+            nomeCurso,
+            oc.tipo || oc.motivo || "Ocorrência",
+            oc.descricao || oc.observacao || "",
+          ]);
+        });
+
+        const hoje = new Date().toLocaleDateString("pt-BR").replace(/\//g, "-");
+        download(`relatorio_geral_ocorrencias_${hoje}.csv`, toCSV(csvData));
+      });
+
+      // ------- Inicialização -------
+      async function hydrateCursosNoFiltro() {
+        // Pega cursos únicos das turmas para preencher o select
+        const all = await API.turmas("todas", "");
+        const nomes = new Set();
+        (all || []).forEach((t) => {
+          if (t?.curso_nome) nomes.add(t.curso_nome);
+        });
+        cursoFiltro.innerHTML = `<option value="">Todos</option>`;
+        [...nomes].sort().forEach((n) => {
+          const opt = document.createElement("option");
+          opt.value = n;
+          opt.textContent = n;
+          cursoFiltro.appendChild(opt);
+        });
+      }
+
+      async function loadAll() {
+        try {
+          const [turmas, alunos, ocorrencias] = await Promise.all([
+            API.turmas("todas", ""),
+            API.alunos(),
+            API.ocorrencias(),
+          ]);
+          // Garante que sejam arrays
+          DATA.turmas = Array.isArray(turmas) ? turmas : [];
+          DATA.alunos = Array.isArray(alunos) ? alunos : [];
+          DATA.ocorrencias = Array.isArray(ocorrencias) ? ocorrencias : [];
+
+          await hydrateCursosNoFiltro();
+          render();
+        } catch (error) {
+          console.error("Erro ao carregar dados:", error);
+          el(
+            "main"
+          ).innerHTML = `<div class="muted">Erro de conexão com a API. Verifique o console.</div>`;
+        }
+      }
+
+      // ------- RENDERIZAÇÃO DA TELA (Main Loop) -------
+      function render() {
+        // 1. Aplica Filtros
+        const status = statusTurma.value;
+        const cursoNome = cursoFiltro.value.trim().toLowerCase();
+        const fAluno = buscaAluno.value.trim().toLowerCase();
+        const fTurma = buscaTurma.value.trim().toLowerCase();
+
+        // Filtra Turmas
+        let turmas = DATA.turmas.slice();
+        if (status === "ativas")
+          turmas = turmas.filter((t) => t.ativa === true);
+        else if (status === "finalizadas")
+          turmas = turmas.filter((t) => t.ativa === false);
+
+        if (cursoNome)
+          turmas = turmas.filter((t) =>
+            (t.curso_nome || "").toLowerCase().includes(cursoNome)
+          );
+        if (fTurma)
+          turmas = turmas.filter((t) =>
+            (t.nome || "").toLowerCase().includes(fTurma)
+          );
+
+        // Filtra Alunos (respeitando as turmas filtradas)
+        const alunos = DATA.alunos.slice().filter((a) => {
+          const okAluno =
+            !fAluno || (a.nome || "").toLowerCase().includes(fAluno);
+          const turmaMatch = turmas.some((t) => matchTurmaAluno(t, a));
+          return okAluno && turmaMatch;
+        });
+
+        // Ocorrências (geral, para os contadores)
+        const ocorr = DATA.ocorrencias.slice();
+
+        // 2. Agregações (Cálculos)
+        const mapAlunosPorTurma = countAlunosPorTurma(alunos, turmas);
+        const mapOcorrPorAluno = countOcorrPorAluno(ocorr);
+        const mapOcorrPorTurma = countOcorrPorTurma(ocorr, alunos);
+
+        // 3. Renderiza Componentes da Tela
+        renderKPIs(alunos, turmas, ocorr);
+        renderTabelaTurmas(turmas, mapAlunosPorTurma, mapOcorrPorTurma);
+        renderTabelaAlunos(alunos, mapOcorrPorAluno);
+        renderDistribuicaoEscola(alunos);
+        renderOcorrenciasPorTurma(turmas, alunos, mapOcorrPorAluno);
+        renderOcorrenciasPorCurso(turmas, alunos, mapOcorrPorAluno);
+
+        // 4. Renderiza Gráficos (Função que está no arquivo externo js/dashboard-charts.js)
+        if (typeof renderCharts === "function") {
+          renderCharts(alunos, turmas, mapOcorrPorAluno);
+        }
+      }
+
+      // --- Funções Auxiliares (Lógica de Negócio) ---
+      function matchTurmaAluno(turma, aluno) {
+        if (aluno.turma_id != null && turma.id != null)
+          return Number(aluno.turma_id) === Number(turma.id);
+        const rotAluno = (aluno.turma || "").trim().toLowerCase();
+        const rotTurma = (turma.nome || "").trim().toLowerCase();
+        return !!rotAluno && rotAluno === rotTurma;
+      }
+
+      function countAlunosPorTurma(alunos, turmas) {
+        const map = new Map();
+        turmas.forEach((t) => map.set(t.id, 0));
+        alunos.forEach((a) => {
+          const turma = turmas.find((t) => matchTurmaAluno(t, a));
+          if (turma) map.set(turma.id, (map.get(turma.id) || 0) + 1);
+        });
+        return map;
+      }
+
+      function countOcorrPorAluno(ocorr) {
+        const map = new Map();
+        ocorr.forEach((o) => {
+          const id = o.aluno_id;
+          map.set(id, (map.get(id) || 0) + 1);
+        });
+        return map;
+      }
+
+      function countOcorrPorTurma(ocorr, alunos) {
+        const byAluno = countOcorrPorAluno(ocorr);
+        const map = new Map();
+        alunos.forEach((a) => {
+          const qtd = byAluno.get(a.id) || 0;
+          const tKey =
+            a.turma_id ?? (a.turma || "__rot_turma__" + (a.turma || ""));
+          map.set(tKey, (map.get(tKey) || 0) + qtd);
+        });
+        return map;
+      }
+
+      function mediaIdade(alunos) {
+        const nums = alunos
+          .map((a) => Number(a.idade))
+          .filter((n) => !isNaN(n) && n > 0);
+        if (!nums.length) return 0;
+        return nums.reduce((s, n) => s + n, 0) / nums.length;
+      }
+
+      // --- Funções de Renderização de HTML (Tabelas e Cards) ---
+      function renderKPIs(alunos, turmas, ocorr) {
+        el("#kpiTotalAlunos").textContent = alunos.length;
+        const pcd = alunos.filter((a) => {
+          const v = a.pessoa_com_deficiencia ?? a.pcd ?? false;
+          if (typeof v === "string")
+            return v.toLowerCase() === "sim" || v.toLowerCase() === "true";
+          return !!v;
+        }).length;
+        el("#kpiPCD").textContent = pcd;
+        const med = mediaIdade(alunos);
+        el("#kpiMediaIdade").textContent = med
+          ? med.toFixed(1).replace(".", ",")
+          : "-";
+        el("#kpiTurmasAtivas").textContent = turmas.filter(
+          (t) => t.ativa === true
+        ).length;
+        el("#kpiTurmasFinalizadas").textContent = turmas.filter(
+          (t) => t.ativa === false
+        ).length;
+        el("#kpiOcorrencias").textContent = ocorr.length;
+      }
+
+      function renderTabelaTurmas(turmas, mapAlunosPorTurma, mapOcorrPorTurma) {
+        const tbody = el("#tblTurmas tbody");
+        if (!turmas.length) {
+          tbody.innerHTML = `<tr><td colspan="9" class="muted">Sem resultados.</td></tr>`;
+          return;
+        }
+        tbody.innerHTML = turmas
+          .map((t) => {
+            const alunosQtd = mapAlunosPorTurma.get(t.id) || 0;
+            let ocorrQtd = mapOcorrPorTurma.get(t.id);
+            if (ocorrQtd == null)
+              ocorrQtd =
+                mapOcorrPorTurma.get("__rot_turma__" + (t.nome || "")) || 0;
+            const statusPill = t.ativa
+              ? `<span class="pill green">Ativa</span>`
+              : `<span class="pill gray">Finalizada</span>`;
+            return `<tr><td>${t.id ?? "-"}</td><td>${t.nome ?? "-"}</td><td>${
+              t.curso_nome ?? "-"
+            }</td><td>${t.semestre ?? "-"}</td><td>${
+              t.data_inicio ?? "-"
+            }</td><td>${
+              t.data_fim ?? "-"
+            }</td><td>${statusPill}</td><td>${alunosQtd}</td><td>${ocorrQtd}</td></tr>`;
+          })
+          .join("");
+
+        el("#exportTurmas").onclick = () => {
+          const data = [
+            [
+              "ID",
+              "Turma",
+              "Curso",
+              "Semestre",
+              "Inicio",
+              "Termino",
+              "Status",
+              "Alunos",
+              "Ocorrencias",
+            ],
+          ];
+          turmas.forEach((t) => {
+            const aq = mapAlunosPorTurma.get(t.id) || 0;
+            let oq = mapOcorrPorTurma.get(t.id);
+            if (oq == null)
+              oq = mapOcorrPorTurma.get("__rot_turma__" + (t.nome || "")) || 0;
+            data.push([
+              t.id,
+              t.nome,
+              t.curso_nome,
+              t.semestre,
+              t.data_inicio,
+              t.data_fim,
+              t.ativa ? "Ativa" : "Finalizada",
+              aq,
+              oq,
+            ]);
+          });
+          download("turmas_resumo.csv", toCSV(data));
+        };
+      }
+
+      function renderTabelaAlunos(alunos, mapOcorrPorAluno) {
+        const tbody = el("#tblAlunos tbody");
+        if (!alunos.length) {
+          tbody.innerHTML = `<tr><td colspan="8" class="muted">Sem resultados.</td></tr>`;
+          return;
+        }
+        tbody.innerHTML = alunos
+          .map((a) => {
+            const oc = mapOcorrPorAluno.get(a.id) || 0;
+            const cur = a.curso ?? a.curso_nome ?? "-";
+            const esc = a.escola_integrada ?? a.escola ?? "-";
+            const pcd = a.pessoa_com_deficiencia ?? a.pcd ?? false;
+            const pcdTxt = typeof pcd === "string" ? pcd : pcd ? "Sim" : "Não";
+            return `<tr><td>${a.id ?? "-"}</td><td>${a.nome ?? "-"}</td><td>${
+              a.turma ?? "-"
+            }</td><td>${cur}</td><td>${
+              a.idade ?? "-"
+            }</td><td>${esc}</td><td>${pcdTxt}</td><td>${oc}</td></tr>`;
+          })
+          .join("");
+
+        el("#exportAlunos").onclick = () => {
+          const data = [
+            [
+              "ID",
+              "Aluno",
+              "Turma",
+              "Curso",
+              "Idade",
+              "Escola",
+              "PCD",
+              "Ocorrencias",
+            ],
+          ];
+          alunos.forEach((a) => {
+            data.push([
+              a.id,
+              a.nome,
+              a.turma,
+              a.curso ?? a.curso_nome,
+              a.idade,
+              a.escola_integrada ?? a.escola,
+              a.pcd ? "Sim" : "Não",
+              mapOcorrPorAluno.get(a.id) || 0,
+            ]);
+          });
+          download("alunos_resumo.csv", toCSV(data));
+        };
+      }
+
+      function renderDistribuicaoEscola(alunos) {
+        const tbody = el("#tblEscola tbody");
+        if (!alunos.length) {
+          tbody.innerHTML = `<tr><td colspan="3" class="muted">Sem resultados.</td></tr>`;
+          return;
+        }
+        const mapa = new Map();
+        alunos.forEach((a) => {
+          const key =
+            (a.escola_integrada ?? a.escola ?? "Não informado") ||
+            "Não informado";
+          mapa.set(key, (mapa.get(key) || 0) + 1);
+        });
+        const linhas = [...mapa.entries()]
+          .sort((a, b) => b[1] - a[1])
+          .map(([n, q]) => {
+            const pct = ((q / alunos.length) * 100)
+              .toFixed(1)
+              .replace(".", ",");
+            return `<tr><td>${n}</td><td>${q}</td><td>${pct}%</td></tr>`;
+          })
+          .join("");
+        tbody.innerHTML = linhas;
+      }
+
+      function renderOcorrenciasPorTurma(turmas, alunos, mapOcorrPorAluno) {
+        const tbody = el("#tblOcorrTurmas tbody");
+        const agg = turmas
+          .map((t) => {
+            const alTurma = alunos.filter((a) => matchTurmaAluno(t, a));
+            const comOc = alTurma.filter(
+              (a) => (mapOcorrPorAluno.get(a.id) || 0) > 0
+            ).length;
+            const total = alTurma.reduce(
+              (s, a) => s + (mapOcorrPorAluno.get(a.id) || 0),
+              0
+            );
+            return { turma: t.nome, curso: t.curso_nome, comOc, total };
+          })
+          .sort((a, b) => b.total - a.total);
+        if (!agg.length) {
+          tbody.innerHTML = `<tr><td colspan="4" class="muted">Sem resultados.</td></tr>`;
+          return;
+        }
+        tbody.innerHTML = agg
+          .map(
+            (r) =>
+              `<tr><td>${r.turma || "-"}</td><td>${r.curso || "-"}</td><td>${
+                r.comOc
+              }</td><td>${r.total}</td></tr>`
+          )
+          .join("");
+
+        el("#exportOcorrTurmas").onclick = () => {
+          const data = [
+            ["Turma", "Curso", "AlunosComOcorrencia", "Ocorrencias"],
+          ];
+          agg.forEach((r) => data.push([r.turma, r.curso, r.comOc, r.total]));
+          download("ocorrencias_por_turma.csv", toCSV(data));
+        };
+      }
+
+      function renderOcorrenciasPorCurso(turmas, alunos, mapOcorrPorAluno) {
+        const tbody = el("#tblOcorrCursos tbody");
+        const mapCurso = new Map();
+        alunos.forEach((a) => {
+          let turma = turmas.find((t) => matchTurmaAluno(t, a));
+          let cn = turma
+            ? turma.curso_nome || "-"
+            : a.curso_nome || a.curso || "-";
+          if (!mapCurso.has(cn))
+            mapCurso.set(cn, {
+              turmas: new Set(),
+              alunos: new Set(),
+              ocorr: 0,
+            });
+          const entry = mapCurso.get(cn);
+          if (turma) entry.turmas.add(turma.nome || turma.id);
+          entry.alunos.add(a.id);
+          entry.ocorr += mapOcorrPorAluno.get(a.id) || 0;
+        });
+        const agg = [...mapCurso.entries()]
+          .map(([c, v]) => ({
+            curso: c,
+            turmas: v.turmas.size,
+            alunos: v.alunos.size,
+            ocorrencias: v.ocorr,
+          }))
+          .sort((a, b) => b.ocorrencias - a.ocorrencias);
+        if (!agg.length) {
+          tbody.innerHTML = `<tr><td colspan="4" class="muted">Sem resultados.</td></tr>`;
+          return;
+        }
+        tbody.innerHTML = agg
+          .map(
+            (r) =>
+              `<tr><td>${r.curso}</td><td>${r.turmas}</td><td>${r.alunos}</td><td>${r.ocorrencias}</td></tr>`
+          )
+          .join("");
+
+        el("#exportOcorrCursos").onclick = () => {
+          const data = [["Curso", "Turmas", "Alunos", "Ocorrencias"]];
+          agg.forEach((r) =>
+            data.push([r.curso, r.turmas, r.alunos, r.ocorrencias])
+          );
+          download("ocorrencias_por_curso.csv", toCSV(data));
+        };
+      }
+
+      // Inicia a aplicação
+      loadAll();
+    </script>
+  </body>
+</html>

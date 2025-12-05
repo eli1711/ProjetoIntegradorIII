@@ -12,64 +12,62 @@
   --shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
   --shadow-hover: 0 8px 24px rgba(0, 0, 0, 0.12);
   --transition: all 0.3s ease;
+  --border-radius: 16px;
 }
+
 * {
   margin: 0;
   padding: 0;
   box-sizing: border-box;
 }
+
 body {
-  font-family: "Open Sans", sans-serif;
+  font-family: 'Open Sans', sans-serif;
   background: linear-gradient(135deg, #f5f7fa 0%, #e4edf5 100%);
   color: var(--dark);
   line-height: 1.6;
   min-height: 100vh;
   padding: 0;
+  overflow-x: hidden;
 }
+
 body::before {
-  content: "";
+  content: '';
   position: fixed;
   top: 0;
   left: 0;
   width: 100%;
   height: 100%;
-  background-image: radial-gradient(
-      circle at 10% 20%,
-      rgba(255, 255, 255, 0.8) 0%,
-      transparent 20%
-    ),
-    radial-gradient(
-      circle at 90% 80%,
-      rgba(196, 0, 0, 0.05) 0%,
-      transparent 20%
-    );
+  background-image: radial-gradient(circle at 10% 20%, rgba(255, 255, 255, 0.8) 0%, transparent 20%),
+    radial-gradient(circle at 90% 80%, rgba(196, 0, 0, 0.05) 0%, transparent 20%);
   pointer-events: none;
   z-index: -1;
 }
+
+/* Header */
 header {
-  background: linear-gradient(
-    135deg,
-    var(--primary) 0%,
-    var(--primary-dark) 100%
-  );
+  background: linear-gradient(135deg,
+      var(--primary) 0%,
+      var(--primary-dark) 100%);
   color: #fff;
   padding: 1rem 0;
   box-shadow: var(--shadow);
   position: relative;
   overflow: hidden;
-  z-index: 1000; /* Garante que o header fique acima de outros elementos */
+  z-index: 1000;
+  /* Garante que o header fique acima de outros elementos */
+  overflow: visible;
+  z-index: 1000;
 }
 
 header::before {
   content: "";
   position: absolute;
   inset: 0;
-  background: linear-gradient(
-    45deg,
-    transparent 30%,
-    rgba(255, 255, 255, 0.1) 50%,
-    transparent 70%
-  );
+  background: linear-gradient(45deg,
+      transparent 30%,
+      rgba(255, 255, 255, 0.1) 50%,
+      transparent 70%);
   animation: shimmer 8s infinite linear;
 }
 
@@ -77,6 +75,7 @@ header::before {
   0% {
     transform: translateX(-100%);
   }
+
   100% {
     transform: translateX(100%);
   }
@@ -85,6 +84,7 @@ header::before {
 .header-content {
   max-width: 1400px;
   margin: 0 auto;
+  padding: 0 1.5rem;
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -114,29 +114,26 @@ header::before {
 }
 
 header {
-  background: linear-gradient(
-    135deg,
-    var(--primary) 0%,
-    var(--primary-dark) 100%
-  );
+  background: linear-gradient(135deg,
+      var(--primary) 0%,
+      var(--primary-dark) 100%);
   color: #fff;
   padding: 1rem 0;
   box-shadow: var(--shadow);
   position: relative;
   overflow: hidden;
-  z-index: 1000; /* Garante que o header fique acima de outros elementos */
+  z-index: 1000;
+  /* Garante que o header fique acima de outros elementos */
 }
 
 header::before {
   content: "";
   position: absolute;
   inset: 0;
-  background: linear-gradient(
-    45deg,
-    transparent 30%,
-    rgba(255, 255, 255, 0.1) 50%,
-    transparent 70%
-  );
+  background: linear-gradient(45deg,
+      transparent 30%,
+      rgba(255, 255, 255, 0.1) 50%,
+      transparent 70%);
   animation: shimmer 8s infinite linear;
 }
 
@@ -144,6 +141,7 @@ header::before {
   0% {
     transform: translateX(-100%);
   }
+
   100% {
     transform: translateX(100%);
   }
@@ -191,7 +189,8 @@ header h1 {
 /* Navegação aprimorada */
 nav {
   position: relative;
-  z-index: 1001; /* Garante que a navegação fique acima do header */
+  z-index: 1001;
+  /* Garante que a navegação fique acima do header */
 }
 
 .nav-toggle {
@@ -267,7 +266,7 @@ nav a.active {
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
 }
 
-/* Dropdown menu - CORREÇÃO DEFINITIVA */
+/* Dropdown menu */
 .dropdown {
   position: relative;
 }
@@ -282,22 +281,22 @@ nav a.active {
   box-shadow: var(--shadow-hover);
   border-radius: var(--border-radius);
   overflow: hidden;
-  z-index: 9999; /* Valor muito alto para garantir que fique acima de tudo */
+  z-index: 9999;
   animation: fadeIn 0.3s ease;
 }
 
 @keyframes fadeIn {
-  from { 
-    opacity: 0; 
-    transform: translateY(-10px); 
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
   }
-  to { 
-    opacity: 1; 
-    transform: translateY(0); 
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
   }
 }
 
-/* Hover para desktop */
 .dropdown:hover .dropdown-content {
   display: block;
 }
@@ -326,18 +325,18 @@ nav a.active {
 
 /* Garantir que o header tenha um z-index alto */
 header {
-  background: linear-gradient(
-    135deg,
-    var(--primary) 0%,
-    var(--primary-dark) 100%
-  );
+  background: linear-gradient(135deg,
+      var(--primary) 0%,
+      var(--primary-dark) 100%);
   color: #fff;
   padding: 1rem 0;
   box-shadow: var(--shadow);
   position: relative;
-  overflow: visible; /* Mudado de hidden para visible */
+  overflow: visible;
+  /* Mudado de hidden para visible */
   z-index: 1000;
 }
+
 
 /* Container principal com z-index baixo */
 .container {
@@ -346,7 +345,8 @@ header {
   padding: 0 1.5rem;
   animation: fadeInUp 0.6s ease;
   position: relative;
-  z-index: 1; /* Baixo para ficar abaixo do dropdown */
+  z-index: 1;
+  /* Baixo para ficar abaixo do dropdown */
 }
 
 /* Formulário com z-index baixo */
@@ -358,72 +358,84 @@ header {
   margin-bottom: 2rem;
   transition: var(--transition);
   position: relative;
-  z-index: 1; /* Baixo para ficar abaixo do dropdown */
+  z-index: 1;
+  /* Baixo para ficar abaixo do dropdown */
 }
+
+.nav-toggle {
+  display: none;
+  background: none;
+  border: none;
+  color: #fff;
+  font-size: 1.5rem;
+  cursor: pointer;
+}
+
+/* Container principal */
 .container {
   max-width: 1200px;
   margin: 2rem auto;
   padding: 0 1.5rem;
+  position: relative;
+  z-index: 1;
+  animation: fadeInUp 0.6s ease;
 }
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Formulário */
 .form-container {
   background: #fff;
-  border-radius: 16px;
+  border-radius: var(--border-radius);
   box-shadow: var(--shadow);
   overflow: hidden;
   margin-bottom: 2rem;
+  transition: var(--transition);
+  position: relative;
+  z-index: 1;
 }
+
 .form-header {
-  background: linear-gradient(
-    135deg,
-    var(--secondary) 0%,
-    var(--secondary-light) 100%
-  );
+  background: linear-gradient(135deg, var(--secondary) 0%, var(--secondary-light) 100%);
   color: #fff;
   padding: 1.5rem 2rem;
 }
+
 .form-header h2 {
-  font-family: "Poppins", sans-serif;
+  font-family: 'Poppins', sans-serif;
   font-weight: 500;
   font-size: 1.5rem;
   display: flex;
   align-items: center;
   gap: 0.75rem;
 }
+
 .form-content {
   padding: 2rem;
 }
-#alerta {
-  display: none;
-  padding: 1rem;
-  border-radius: 8px;
-  margin-bottom: 1.5rem;
-  font-weight: 500;
-}
-.alert-success {
-  background: #d4edda;
-  color: #155724;
-  border: 1px solid #c3e6cb;
-}
-.alert-error {
-  background: #f8d7da;
-  color: #721c24;
-  border: 1px solid #f5c6cb;
-}
-.form-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-  gap: 1.5rem;
-}
+
 .form-section {
   margin-bottom: 2.5rem;
   padding-bottom: 1.5rem;
   border-bottom: 1px solid var(--gray-light);
 }
+
 .form-section:last-of-type {
   border-bottom: none;
 }
+
 .section-title {
-  font-family: "Poppins", sans-serif;
+  font-family: 'Poppins', sans-serif;
   font-weight: 500;
   font-size: 1.3rem;
   color: var(--secondary);
@@ -434,15 +446,24 @@ header {
   align-items: center;
   gap: 0.75rem;
 }
+
+.form-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 1.5rem;
+}
+
 .form-group {
   margin-bottom: 1.25rem;
 }
+
 label {
   display: block;
   margin-bottom: 0.5rem;
   font-weight: 600;
   color: var(--dark);
 }
+
 input[type="text"],
 input[type="number"],
 input[type="date"],
@@ -457,6 +478,7 @@ textarea {
   transition: var(--transition);
   background: #fff;
 }
+
 input:focus,
 select:focus,
 textarea:focus {
@@ -464,31 +486,20 @@ textarea:focus {
   border-color: var(--primary);
   box-shadow: 0 0 0 3px rgba(196, 0, 0, 0.1);
 }
+
 textarea {
   resize: vertical;
   min-height: 100px;
 }
-.radio-group {
-  display: flex;
-  gap: 1.5rem;
-  margin-bottom: 1.25rem;
-}
-.checkbox-group {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  margin-bottom: 1.25rem;
-}
+
 .submit-container {
   text-align: center;
   margin-top: 2rem;
 }
-button[type="submit"] {
-  background: linear-gradient(
-    135deg,
-    var(--primary) 0%,
-    var(--primary-dark) 100%
-  );
+
+button[type="submit"],
+.consultar-button {
+  background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
   color: #fff;
   border: none;
   border-radius: 50px;
@@ -502,21 +513,136 @@ button[type="submit"] {
   align-items: center;
   gap: 0.75rem;
 }
-button[type="submit"]:hover {
+
+button[type="submit"]:hover,
+.consultar-button:hover {
   transform: translateY(-3px);
   box-shadow: var(--shadow-hover);
 }
+
 button[type="submit"]:disabled {
   background: var(--gray);
   cursor: not-allowed;
 }
-.conditional-section {
-  background: rgba(196, 0, 0, 0.03);
-  border-radius: 12px;
-  padding: 1.5rem;
-  margin-top: 1rem;
-  border-left: 4px solid var(--primary);
+
+#resultadoConsulta {
+  display: grid;
+  gap: 16px;
 }
+
+/* Card principal */
+#resultadoConsulta .card-aluno {
+  background: #fff;
+  border-radius: var(--border-radius);
+  box-shadow: var(--shadow);
+  overflow: hidden;
+  transition: var(--transition);
+
+  /* limita largura em tela grande */
+  max-width: 980px;
+  width: 100%;
+  margin: 0 auto;
+}
+
+#resultadoConsulta .card-aluno:hover {
+  box-shadow: var(--shadow-hover);
+}
+
+/* Header do card: foto + infos */
+#resultadoConsulta .card-aluno-header {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 16px;
+  background: linear-gradient(135deg, var(--secondary) 0%, var(--secondary-light) 100%);
+  color: #fff;
+}
+
+#resultadoConsulta .card-aluno img {
+  width: 140px !important;
+  height: 140px !important;
+  max-width: 140px !important;
+  max-height: 140px !important;
+  object-fit: cover;
+  border-radius: 12px;
+  display: block;
+  flex: 0 0 140px;
+  box-shadow: var(--shadow);
+  border: 3px solid rgba(255, 255, 255, 0.35);
+}
+
+/* Placeholder quando não houver foto */
+#resultadoConsulta .card-foto.placeholder {
+  width: 140px;
+  height: 140px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  font-size: 2rem;
+  flex: 0 0 140px;
+}
+
+/* Infos principais */
+#resultadoConsulta .card-aluno-info-principal h3 {
+  font-family: 'Poppins', sans-serif;
+  font-weight: 600;
+  font-size: 1.25rem;
+  margin-bottom: 6px;
+}
+
+#resultadoConsulta .card-aluno-info-principal p {
+  margin: 2px 0;
+}
+
+/* Detalhes */
+#resultadoConsulta .card-aluno-detalhes {
+  padding: 16px;
+}
+
+#resultadoConsulta .card-aluno-detalhes p {
+  margin: 6px 0;
+}
+
+/* Ocorrências */
+#resultadoConsulta .card-aluno-ocorrencias {
+  padding: 16px;
+  border-top: 1px solid var(--gray-light);
+}
+
+#resultadoConsulta .card-aluno-ocorrencias h4 {
+  margin-bottom: 10px;
+  color: var(--secondary);
+}
+
+/* Tabela ocorrências */
+.tabela-ocorrencias {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 12px;
+}
+
+.tabela-ocorrencias th,
+.tabela-ocorrencias td {
+  border: 1px solid var(--gray-light);
+  padding: 10px;
+  text-align: left;
+  font-size: 0.95rem;
+}
+
+.tabela-ocorrencias th {
+  background: var(--gray-light);
+}
+
+/* Mensagens */
+.erro {
+  color: var(--primary);
+  font-weight: 600;
+}
+
+/* Footer */
 footer {
   text-align: center;
   padding: 1.5rem;
@@ -526,19 +652,63 @@ footer {
   border-top: 1px solid var(--gray-light);
   font-size: 0.9rem;
 }
+
+/* Responsividade */
 @media (max-width: 768px) {
   .header-content {
     flex-direction: column;
     text-align: center;
   }
-  nav ul {
-    justify-content: center;
-    flex-wrap: wrap;
+
+  .nav-toggle {
+    display: block;
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
   }
+
+  nav ul {
+    display: none;
+    flex-direction: column;
+    width: 100%;
+    margin-top: 1rem;
+  }
+
+  nav ul.show {
+    display: flex;
+  }
+
+  .dropdown-content {
+    position: static;
+    box-shadow: none;
+    border-radius: 0;
+  }
+
   .form-grid {
     grid-template-columns: 1fr;
   }
+
   .form-content {
     padding: 1.5rem;
+  }
+
+  /* Card no mobile */
+  #resultadoConsulta .card-aluno-header {
+    flex-direction: column;
+    text-align: center;
+  }
+
+  #resultadoConsulta .card-aluno img {
+    width: 110px !important;
+    height: 110px !important;
+    max-width: 110px !important;
+    max-height: 110px !important;
+    flex: 0 0 110px;
+  }
+
+  #resultadoConsulta .card-foto.placeholder {
+    width: 110px;
+    height: 110px;
+    flex: 0 0 110px;
   }
 }
