@@ -4,7 +4,7 @@ from app.services.permission_service import PermissionService, get_current_user
 
 permission_bp = Blueprint('permission', __name__)
 
-@permission_bp.route('/api/check_permission/<pagina>', methods=['GET'])
+@permission_bp.route('/check_permission/<pagina>', methods=['GET'])
 @jwt_required()
 def check_permission(pagina):
     """Verifica se usuário tem permissão para acessar uma página específica"""
@@ -27,7 +27,7 @@ def check_permission(pagina):
         print(f"❌ Erro ao verificar permissão: {e}")
         return jsonify({'error': 'Erro ao verificar permissão'}), 500
 
-@permission_bp.route('/api/user_permissions', methods=['GET'])
+@permission_bp.route('/user_permissions', methods=['GET'])
 @jwt_required()
 def get_user_permissions():
     """Retorna todas as permissões do usuário atual"""

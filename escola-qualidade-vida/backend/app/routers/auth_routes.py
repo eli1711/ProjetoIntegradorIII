@@ -34,8 +34,8 @@ def login():
     if not check_password_hash(usuario.senha, senha):
         return jsonify({"erro": "Credenciais inválidas"}), 401
 
-    # Gera token JWT de acesso e retorna cargo
-    access_token = create_access_token(identity=usuario.id)
+    # CORREÇÃO: Garantir que identity seja string
+    access_token = create_access_token(identity=str(usuario.id))  # Convertendo para string
     return jsonify({
         'access_token': access_token,
         'user_id': usuario.id,

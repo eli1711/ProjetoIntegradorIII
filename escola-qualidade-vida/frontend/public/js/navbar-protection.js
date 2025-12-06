@@ -57,7 +57,7 @@ async function verificarPermissaoBackend(pagina) {
     if (!token) return false;
 
     const response = await fetch(
-      `http://localhost:5000/api/check_permission/${pagina}`,
+      `http://localhost:5000/check_permission/${pagina}`,
       {
         method: "GET",
         headers: {

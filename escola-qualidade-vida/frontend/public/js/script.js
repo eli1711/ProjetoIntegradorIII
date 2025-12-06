@@ -29,7 +29,7 @@ async function verificarPermissoesBackend() {
     try {
         console.log('🔄 Carregando permissões do backend...');
         
-        const response = await fetch('http://localhost:5000/api/user_permissions', {
+        const response = await fetch('http://localhost:5000/user_permissions', {
             method: 'GET',
             headers: {
                 'Authorization': `Bearer ${localStorage.getItem('access_token')}`,
@@ -102,7 +102,7 @@ async function verificarAcessoBackend(pagina) {
     try {
         console.log(`🔐 Verificando acesso para: ${pagina}`);
         
-        const response = await fetch(`http://localhost:5000/api/check_permission/${pagina}`, {
+        const response = await fetch(`http://localhost:5000/check_permission/${pagina}`, {
             method: 'GET',
             headers: {
                 'Authorization': `Bearer ${localStorage.getItem('access_token')}`,
