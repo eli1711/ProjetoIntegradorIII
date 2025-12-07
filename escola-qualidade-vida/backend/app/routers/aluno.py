@@ -7,7 +7,7 @@ from flask import Blueprint, request, jsonify, send_file, current_app
 from werkzeug.utils import secure_filename
 
 from app.extensions import db
-from app.models.aluno import Aluno
+from app.models.aluno import Aluno, only_digits
 from app.models.responsavel import Responsavel
 from app.models.empresa import Empresa
 from app.models.turma import Turma
@@ -63,7 +63,9 @@ def _json_aluno(a: Aluno):
     curso = a.curso_relacionado
     return {
         "id": a.id,
+        "cpf": a.cpf,  # ✅ ADICIONADO CPF
         "nome": f"{a.nome} {a.sobrenome}",
+        "nome_completo": a.nome_completo,  # ✅ ADICIONADO nome_completo
         "matricula": a.matricula,
         "foto": a.foto,
         "foto_url": f"/uploads/{a.foto}" if a.foto else None,
@@ -90,6 +92,168 @@ def _json_aluno(a: Aluno):
 _LINHAS_AT = {"CAI", "CT", "CST"}
 _ESCOLAS = {"SESI", "SEDUC", "Nenhuma"}
 _EMPREGADO = {"sim", "nao"}
+
+# -------------------------
+# CADASTRAR ALUNO COM CPF OBRIGATÓRIO (ROTA ALTERNATIVA)
+# -------------------------
+@aluno_bp.route("/cadastrar", methods=["POST"])
+def cadastrar_aluno_com_cpf():
+    """
+    Cadastra um novo aluno via formulário web com CPF OBRIGATÓRIO
+    (Esta é uma rota alternativa à /cadastro/alunos)
+    """
+    try:
+        data = request.form
+        current_app.logger.info(f"Dados recebidos para cadastro: {dict(data)}")
+        
+        # 1. VALIDAÇÃO CPF OBRIGATÓRIO
+        cpf = data.get('cpf')
+        if not cpf:
+            return jsonify({"erro": "CPF é obrigatório"}), 400
+        
+        # Remove formatação do CPF
+        cpf_limpo = only_digits(cpf)
+        
+        # Validação básica
+        if not cpf_limpo or len(cpf_limpo) != 11:
+            return jsonify({"erro": "CPF deve conter 11 dígitos"}), 400
+        
+        # Verificar se CPF já existe
+        aluno_existente = Aluno.query.filter_by(cpf=cpf_limpo).first()
+        if aluno_existente:
+            return jsonify({"erro": "CPF já cadastrado"}), 400
+        
+        # 2. Verificar matrícula única
+        matricula = data.get('matricula')
+        if matricula and Aluno.query.filter_by(matricula=matricula).first():
+            return jsonify({"erro": "Matrícula já cadastrada"}), 400
+        
+        # 3. Processar nome_completo se existir
+        nome_completo = data.get('nome_completo', '')
+        nome = data.get('nome', '')
+        sobrenome = data.get('sobrenome', '')
+        
+        if nome_completo and not nome:
+            # Dividir nome_completo em nome e sobrenome
+            partes = nome_completo.strip().split(' ', 1)
+            nome = partes[0] if partes else ''
+            sobrenome = partes[1] if len(partes) > 1 else ''
+        elif nome and sobrenome and not nome_completo:
+            # Constrói nome_completo se não fornecido
+            nome_completo = f"{nome} {sobrenome}"
+        
+        # 4. Criar aluno COM CPF OBRIGATÓRIO
+        aluno = Aluno(
+            nome=nome,
+            sobrenome=sobrenome,
+            nome_completo=nome_completo,
+            cpf=cpf_limpo,  # CPF OBRIGATÓRIO
+            matricula=matricula,
+            cidade=data.get('cidade', ''),
+            bairro=data.get('bairro', ''),
+            rua=data.get('rua', ''),
+            telefone=only_digits(data.get('telefone')),
+            # Campos com valores padrão
+            linha_atendimento=data.get('linha_atendimento', 'CAI'),
+            escola_integrada=data.get('escola_integrada', 'Nenhuma'),
+            empregado=data.get('empregado', 'nao'),
+            pessoa_com_deficiencia=str_to_bool(data.get('pessoa_com_deficiencia', False))
+        )
+        
+        # Campo idade
+        idade = data.get('idade')
+        if idade:
+            try:
+                aluno.idade = int(idade)
+            except:
+                # Calcular a partir da data de nascimento
+                data_nascimento = data.get('data_nascimento')
+                if data_nascimento:
+                    try:
+                        aluno.data_nascimento = parse_date(data_nascimento)
+                        if aluno.data_nascimento:
+                            hoje = date.today()
+                            aluno.idade = hoje.year - aluno.data_nascimento.year - (
+                                (hoje.month, hoje.day) < (aluno.data_nascimento.month, aluno.data_nascimento.day)
+                            )
+                        else:
+                            aluno.idade = 18
+                    except:
+                        aluno.idade = 18
+                else:
+                    aluno.idade = 18
+        
+        # Data de nascimento
+        if data.get('data_nascimento'):
+            aluno.data_nascimento = parse_date(data.get('data_nascimento'))
+        
+        # Campos opcionais
+        if data.get('mora_com_quem'):
+            aluno.mora_com_quem = data.get('mora_com_quem')
+        if data.get('sobre_aluno'):
+            aluno.sobre_aluno = data.get('sobre_aluno')
+        if data.get('data_inicio_curso'):
+            aluno.data_inicio_curso = parse_date(data.get('data_inicio_curso'))
+        if data.get('empresa_contratante'):
+            aluno.empresa_contratante = data.get('empresa_contratante')
+        if data.get('outras_informacoes'):
+            aluno.outras_informacoes = data.get('outras_informacoes')
+        if data.get('curso'):
+            aluno.curso = data.get('curso')
+        if data.get('turma'):
+            aluno.turma = data.get('turma')
+        
+        # Processar foto
+        if 'foto' in request.files and request.files['foto'].filename:
+            foto = request.files['foto']
+            filename = _save_photo(foto, nome_completo or nome)
+            aluno.foto = filename
+        
+        # Normaliza dados (incluindo CPF já limpo)
+        aluno.normalize()
+        
+        db.session.add(aluno)
+        db.session.commit()
+        
+        return jsonify({
+            "mensagem": "Aluno cadastrado com sucesso!",
+            "aluno_id": aluno.id,
+            "cpf": aluno.cpf,
+            "matricula": aluno.matricula
+        }), 201
+        
+    except Exception as e:
+        db.session.rollback()
+        current_app.logger.error(f"Erro ao cadastrar aluno: {str(e)}", exc_info=True)
+        return jsonify({"erro": f"Erro interno: {str(e)}"}), 500
+
+
+# -------------------------
+# CONSULTAR ALUNO POR CPF
+# -------------------------
+@aluno_bp.route("/por-cpf/<string:cpf>", methods=["GET"])
+def consultar_aluno_por_cpf(cpf):
+    """
+    Consulta um aluno pelo CPF
+    """
+    try:
+        # Limpar CPF
+        cpf_limpo = only_digits(cpf)
+        
+        if not cpf_limpo or len(cpf_limpo) != 11:
+            return jsonify({"erro": "CPF inválido"}), 400
+        
+        aluno = Aluno.query.filter_by(cpf=cpf_limpo).first()
+        
+        if not aluno:
+            return jsonify({"erro": "Aluno não encontrado"}), 404
+        
+        return jsonify(_json_aluno(aluno)), 200
+        
+    except Exception as e:
+        current_app.logger.error(f"Erro ao consultar aluno por CPF: {str(e)}")
+        return jsonify({"erro": f"Erro interno: {str(e)}"}), 500
+
 
 # -------------------------
 # Saúde do blueprint
@@ -119,7 +283,8 @@ def csv_modelo_alunos():
         "curso_id","turma_id",
         # outros opcionais
         "telefone","data_nascimento","empregado","mora_com_quem","sobre_aluno",
-        "data_inicio_curso","empresa_contratante","pessoa_com_deficiencia","outras_informacoes"
+        "data_inicio_curso","empresa_contratante","pessoa_com_deficiencia","outras_informacoes",
+        "cpf"  # ✅ ADICIONADO CPF NO MODELO CSV
     ]
     writer.writerow(headers)
     writer.writerow([
@@ -127,7 +292,7 @@ def csv_modelo_alunos():
         "CAI","SESI",
         "Informática Básica","Turma 101",
         "","","(31) 99999-9999","2009-05-10","nao","","",
-        "2025-02-01","","false",""
+        "2025-02-01","","false","","12345678901"
     ])
     writer.writerow([
         "Bruno","Souza","MAT002","BH","Savassi","Rua B","19",
@@ -135,7 +300,7 @@ def csv_modelo_alunos():
         "", "",  # curso_nome, turma_nome
         "2","12",  # usando IDs como alternativa
         "","2006-11-20","sim","Pais","Aluno destaque",
-        "2025-03-01","Empresa X","true","Necessita adaptação de prova"
+        "2025-03-01","Empresa X","true","Necessita adaptação de prova","98765432109"
     ])
     output.seek(0)
     return send_file(
@@ -152,15 +317,7 @@ def csv_modelo_alunos():
 def importar_csv_alunos():
     """
     Importa um CSV e cria registros na tabela 'aluno'.
-
-    Obrigatórios por linha:
-      - nome, sobrenome, matricula, cidade, bairro, rua, idade,
-        linha_atendimento (CAI|CT|CST), escola_integrada (SESI|SEDUC|Nenhuma)
-
-    Curso/Turma (opcionais):
-      - Preferência por 'curso_nome' e 'turma_nome'. 
-      - Alternativamente, aceita 'curso_id' e 'turma_id'.
-      - IDs inexistentes NÃO barram a importação: são ignorados e FKs ficam NULL.
+    Agora com CPF obrigatório!
     """
     if "arquivo" not in request.files or not request.files["arquivo"].filename:
         return jsonify({"erro": "Envie um arquivo CSV no campo 'arquivo'."}), 400
@@ -173,7 +330,7 @@ def importar_csv_alunos():
 
         obrig = {
             "nome","sobrenome","matricula","cidade","bairro","rua","idade",
-            "linha_atendimento","escola_integrada"
+            "linha_atendimento","escola_integrada","cpf"  # ✅ CPF OBRIGATÓRIO AGORA
         }
 
         if not reader.fieldnames:
@@ -202,10 +359,22 @@ def importar_csv_alunos():
                 idade_raw = _none_if_empty(col("idade"))
                 linha_atendimento = _none_if_empty(col("linha_atendimento"))
                 escola_integrada = _none_if_empty(col("escola_integrada"))
+                cpf_raw = _none_if_empty(col("cpf"))
 
                 if not all([nome, sobrenome, matricula, cidade, bairro, rua, idade_raw,
-                            linha_atendimento, escola_integrada]):
+                            linha_atendimento, escola_integrada, cpf_raw]):
                     raise ValueError("Campos obrigatórios vazios.")
+
+                # Valida CPF
+                cpf = only_digits(cpf_raw)
+                if not cpf or len(cpf) != 11:
+                    raise ValueError("CPF inválido (deve conter 11 dígitos).")
+                
+                # Verifica se CPF já existe
+                if Aluno.query.filter_by(cpf=cpf).first():
+                    pulos += 1
+                    rel.append(f"[Linha {i}] CPF '{cpf_raw}' já cadastrado — pulado.")
+                    continue
 
                 try:
                     idade = int(idade_raw)
@@ -271,7 +440,7 @@ def importar_csv_alunos():
 
                 # Tenta resolver por NOME quando ainda não resolvido
                 if not resolved_curso and curso_nome:
-                    resolved_curso = Curso.query.filter(Curso.nome.ilike(curso_nome)).first()
+                    resolved_curso = Curso.query.filter(Curso.nome.ilike(curco_nome)).first()
                     if not resolved_curso:
                         rel.append(f"[Linha {i}] Aviso: curso_nome '{curso_nome}' não encontrado — gravado apenas como texto.")
 
@@ -296,9 +465,14 @@ def importar_csv_alunos():
                 curso_texto = (resolved_curso.nome if resolved_curso else curso_nome)
                 turma_texto = (resolved_turma.nome if resolved_turma else turma_nome)
 
+                # Constrói nome_completo
+                nome_completo = f"{nome} {sobrenome}".strip()
+
                 aluno = Aluno(
                     nome=nome,
                     sobrenome=sobrenome,
+                    nome_completo=nome_completo,
+                    cpf=cpf,  # ✅ CPF OBRIGATÓRIO
                     matricula=matricula,
                     cidade=cidade,
                     bairro=bairro,
@@ -308,7 +482,7 @@ def importar_csv_alunos():
                     mora_com_quem=mora_com_quem,
                     sobre_aluno=sobre_aluno,
                     foto=None,
-                    telefone=telefone,
+                    telefone=only_digits(telefone),
                     data_nascimento=data_nascimento,
                     linha_atendimento=la,
                     curso=curso_texto,     # salva nomes quando houver
@@ -326,7 +500,7 @@ def importar_csv_alunos():
                 db.session.commit()
 
                 sucesso += 1
-                rel.append(f"[Linha {i}] OK: {nome} {sobrenome} (matrícula {matricula}).")
+                rel.append(f"[Linha {i}] OK: {nome} {sobrenome} (CPF: {cpf}).")
 
             except Exception as ex:
                 db.session.rollback()
@@ -426,6 +600,9 @@ def editar_aluno(aluno_id: int):
         if data.get("turma_id") in (None, "") and not turma_nome:
             aluno.turma_id = None
 
+    # Normaliza dados após edição
+    aluno.normalize()
+    
     db.session.commit()
     return jsonify(_json_aluno(aluno)), 200
 

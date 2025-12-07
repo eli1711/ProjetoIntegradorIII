@@ -64,7 +64,7 @@ def cadastrar_aluno():
     current_app.logger.info(f"FORM_KEYS={list(form.keys())}")
     current_app.logger.info(f"FILES_KEYS={list(request.files.keys())}")
 
-    # ========= CAMPOS OBRIGATÓRIOS (conforme seu FORM_KEYS atual) =========
+    # ========= CAMPOS OBRIGATÓRIOS =========
     obrigatorios = [
         "matricula", "nome_completo", "cpf", "data_nascimento",
         "endereco", "cep", "bairro", "municipio",
@@ -92,6 +92,11 @@ def cadastrar_aluno():
     if idade is None:
         return jsonify({"erro": "Não foi possível calcular a idade."}), 400
 
+    # ========= VERIFICA SE CPF JÁ EXISTE =========
+    aluno_existente = Aluno.query.filter_by(cpf=cpf).first()
+    if aluno_existente:
+        return jsonify({"erro": "Já existe aluno cadastrado com este CPF"}), 409
+
     # ========= PNE / EMPRESA =========
     pne = str_to_bool(form.get("pne"))
     pne_descricao = _none_if_empty(form.get("pne_descricao"))
@@ -117,9 +122,8 @@ def cadastrar_aluno():
             }), 400
 
         responsavel_obj = Responsavel(
-            # ajuste estes campos de acordo com seu model Responsavel real:
             nome=_norm(form.get("responsavel_nome_completo")),
-            sobrenome="",  # se seu model exige sobrenome separado, você pode fazer split aqui
+            sobrenome="",
             parentesco=_none_if_empty(form.get("responsavel_parentesco")),
             telefone=only_digits(form.get("responsavel_telefone")) or None,
             cidade=_none_if_empty(form.get("responsavel_municipio")),
@@ -132,11 +136,6 @@ def cadastrar_aluno():
             return jsonify({"erro": "CEP do responsável inválido (8 dígitos)"}), 400
 
     try:
-        # duplicidade CPF (se sua tabela aluno tiver cpf)
-        if hasattr(Aluno, "cpf"):
-            if Aluno.query.filter_by(cpf=cpf).first():
-                return jsonify({"erro": "Já existe aluno cadastrado com este CPF"}), 409
-
         # foto
         foto_filename = None
         if "foto" in request.files and request.files["foto"].filename:
@@ -146,48 +145,67 @@ def cadastrar_aluno():
             db.session.add(responsavel_obj)
             db.session.flush()  # garante id
 
-        # ========= CRIA ALUNO (só seta colunas que existem no seu model) =========
+        # ========= SEPARA NOME COMPLETO EM NOME E SOBRENOME =========
+        nome_completo = _norm(form.get("nome_completo"))
+        nome = ""
+        sobrenome = ""
+        
+        if nome_completo:
+            # Divide o nome completo em partes
+            partes = nome_completo.split(' ', 1)
+            nome = partes[0] if partes else ""
+            sobrenome = partes[1] if len(partes) > 1 else ""
+
+        # ========= CRIA ALUNO COM CPF OBRIGATÓRIO =========
         aluno = Aluno(
-            # seu banco/model atual é o "novo" (nome/sobrenome/cidade/rua...)
-            # mas seu FORM é o "antigo" (nome_completo/endereco/municipio).
-            # então fazemos o mapeamento abaixo.
-
-            nome=_norm(form.get("nome_completo")),   # cai tudo aqui
-            sobrenome="",                            # mantém vazio para não quebrar
+            # ✅ CPF OBRIGATÓRIO (não pode ser NULL)
+            cpf=cpf,
+            
+            # Nome completo e dividido
+            nome_completo=nome_completo,
+            nome=nome,
+            sobrenome=sobrenome,
+            
             matricula=_norm(form.get("matricula")),
-
-            cidade=_norm(form.get("municipio")),     # municipio -> cidade
+            cidade=_norm(form.get("municipio")),
             bairro=_norm(form.get("bairro")),
-            rua=_norm(form.get("endereco")),         # endereco -> rua
-
+            rua=_norm(form.get("endereco")),
+            
             idade=idade,
-            empregado="nao",                         # seu form atual não manda "empregado"
-
+            empregado="nao",  # default
+            
             telefone=only_digits(form.get("telefone")) or None,
             data_nascimento=data_nasc,
-
-            # estes 3 NÃO estão chegando no form atual -> salve default ou permita NULL no banco/model
+            
             linha_atendimento=_norm(form.get("linha_atendimento") or "CAI"),
             escola_integrada=_norm(form.get("escola_integrada") or "Nenhuma"),
-
+            
             curso=_norm(form.get("curso")),
             turma=_norm(form.get("turma")),
-
+            
             outras_informacoes=_none_if_empty(form.get("parceria_novo_ensino_medio")),
-            pessoa_com_deficiencia=False,
-
+            pessoa_com_deficiencia=pne,
+            
             responsavel_id=(responsavel_obj.id if responsavel_obj else None),
         )
 
-        # foto só se existir no model
+        # Normaliza os dados
+        aluno.normalize()
+        
+        # foto
         if hasattr(aluno, "foto"):
             aluno.foto = foto_filename
 
         db.session.add(aluno)
         db.session.commit()
-        return jsonify({"mensagem": "Aluno cadastrado com sucesso!", "id": aluno.id}), 201
+        
+        return jsonify({
+            "mensagem": "Aluno cadastrado com sucesso!", 
+            "id": aluno.id,
+            "cpf": aluno.cpf
+        }), 201
 
-    except Exception:
+    except Exception as e:
         db.session.rollback()
-        current_app.logger.exception("Erro ao cadastrar aluno")
-        return jsonify({"erro": "Erro ao cadastrar aluno"}), 500
+        current_app.logger.exception(f"Erro ao cadastrar aluno: {str(e)}")
+        return jsonify({"erro": f"Erro ao cadastrar aluno: {str(e)}"}), 500

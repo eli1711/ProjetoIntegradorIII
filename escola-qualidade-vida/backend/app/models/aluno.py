@@ -12,14 +12,14 @@ class Aluno(db.Model):
     __tablename__ = "aluno"
 
     id = db.Column(db.Integer, primary_key=True)
-
-    # ✅ ADICIONE ISTO (ESSENCIAL PRA CONSULTA POR CPF)
-    cpf = db.Column(db.String(11), unique=True, index=True, nullable=True)
-
-    # (opcional, mas ajuda se seu cadastro/consulta usa nome_completo)
+    
+    # ✅ CPF OBRIGATÓRIO (conforme sua tabela)
+    cpf = db.Column(db.String(14), unique=True, nullable=False)
+    
+    # ✅ Campo nome_completo (opcional)
     nome_completo = db.Column(db.String(255), nullable=True)
-    nome_social = db.Column(db.String(255), nullable=True)
-
+    
+    # Campos originais da sua tabela
     nome = db.Column(db.String(255), nullable=False)
     sobrenome = db.Column(db.String(255), nullable=False)
     matricula = db.Column(db.String(255), nullable=False)
@@ -63,6 +63,15 @@ class Aluno(db.Model):
     def normalize(self):
         self.telefone = only_digits(self.telefone)
         self.cpf = only_digits(self.cpf)
+        
+        # Se tiver nome_completo mas nome/sobrenome estiverem vazios, preenche
+        if self.nome_completo and (not self.nome or not self.sobrenome):
+            partes = self.nome_completo.strip().split(' ', 1)
+            self.nome = partes[0] if partes else ''
+            self.sobrenome = partes[1] if len(partes) > 1 else ''
+        # Se não tiver nome_completo, constrói a partir de nome+sobrenome
+        elif not self.nome_completo and self.nome and self.sobrenome:
+            self.nome_completo = f"{self.nome} {self.sobrenome}"
 
     def __repr__(self):
         return f"<Aluno {self.id} {self.nome} {self.sobrenome}>"
