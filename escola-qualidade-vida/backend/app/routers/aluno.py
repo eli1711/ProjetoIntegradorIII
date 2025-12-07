@@ -2,14 +2,14 @@
 import os
 import csv
 import io
-from datetime import datetime
+from datetime import datetime, date
+
 from flask import Blueprint, request, jsonify, send_file, current_app
 from werkzeug.utils import secure_filename
 
 from app.extensions import db
 from app.models.aluno import Aluno, only_digits
 from app.models.responsavel import Responsavel
-from app.models.empresa import Empresa
 from app.models.turma import Turma
 from app.models.curso import Curso
 
@@ -19,13 +19,23 @@ aluno_bp = Blueprint("aluno", __name__, url_prefix="/alunos")
 # Utilitários
 # -------------------------
 def str_to_bool(value):
-    return str(value).lower() in ["true", "1", "on", "t", "yes", "y", "sim"]
+    return str(value).strip().lower() in ["true", "1", "on", "t", "yes", "y", "sim"]
 
 def parse_date(value):
-    try:
-        return datetime.strptime(value, "%Y-%m-%d").date() if value else None
-    except ValueError:
+    """
+    Aceita:
+      - YYYY-MM-DD
+      - DD/MM/YYYY
+    """
+    if not value:
         return None
+    s = str(value).strip()
+    for fmt in ("%Y-%m-%d", "%d/%m/%Y"):
+        try:
+            return datetime.strptime(s, fmt).date()
+        except ValueError:
+            pass
+    return None
 
 def _norm(v: str) -> str:
     return (v or "").strip()
@@ -33,6 +43,12 @@ def _norm(v: str) -> str:
 def _none_if_empty(v):
     v = _norm(v)
     return v if v != "" else None
+
+def _calc_idade(dt: date | None) -> int | None:
+    if not dt:
+        return None
+    hoje = date.today()
+    return hoje.year - dt.year - ((hoje.month, hoje.day) < (dt.month, dt.day))
 
 ALLOWED_EXTS = {".jpg", ".jpeg", ".png", ".gif", ".webp"}
 
@@ -59,33 +75,47 @@ def _save_photo(file_storage, desired_name_base: str) -> str:
     return filename
 
 def _json_aluno(a: Aluno):
-    turma = a.turma_relacionada
-    curso = a.curso_relacionado
+    turma = getattr(a, "turma_relacionada", None)
+    curso = getattr(a, "curso_relacionado", None)
+
     return {
         "id": a.id,
-        "cpf": a.cpf,  # ✅ ADICIONADO CPF
-        "nome": f"{a.nome} {a.sobrenome}",
-        "nome_completo": a.nome_completo,  # ✅ ADICIONADO nome_completo
+        "cpf": a.cpf,
         "matricula": a.matricula,
-        "foto": a.foto,
-        "foto_url": f"/uploads/{a.foto}" if a.foto else None,
-        "curso": (curso.nome if curso else (a.curso or None)),
-        "curso_id": a.curso_id,
-        "turma": (turma.nome if turma else (a.turma or None)),
-        "turma_id": a.turma_id,
+
+        "nome": f"{getattr(a, 'nome', '')} {getattr(a, 'sobrenome', '')}".strip(),
+        "nome_completo": getattr(a, "nome_completo", None),
+        "nome_social": getattr(a, "nome_social", None),
+
+        "foto": getattr(a, "foto", None),
+        "foto_url": f"/uploads/{a.foto}" if getattr(a, "foto", None) else None,
+
+        "curso": (curso.nome if curso else (getattr(a, "curso", None) or None)),
+        "curso_id": getattr(a, "curso_id", None),
+
+        "turma": (turma.nome if turma else (getattr(a, "turma", None) or None)),
+        "turma_id": getattr(a, "turma_id", None),
         "turma_nome": turma.nome if turma else None,
-        "turma_semestre": turma.semestre if turma else None,
-        "cidade": a.cidade, "bairro": a.bairro, "rua": a.rua,
-        "telefone": a.telefone,
-        "data_nascimento": a.data_nascimento.isoformat() if a.data_nascimento else None,
-        "linha_atendimento": a.linha_atendimento,
-        "escola_integrada": a.escola_integrada,
-        "empresa_contratante": a.empresa_contratante,
-        "data_inicio_curso": a.data_inicio_curso.isoformat() if a.data_inicio_curso else None,
-        "mora_com_quem": a.mora_com_quem,
-        "sobre_aluno": a.sobre_aluno,
-        "pessoa_com_deficiencia": bool(a.pessoa_com_deficiencia),
-        "outras_informacoes": a.outras_informacoes,
+        "turma_semestre": getattr(turma, "semestre", None) if turma else None,
+
+        "cidade": getattr(a, "cidade", None),
+        "bairro": getattr(a, "bairro", None),
+        "rua": getattr(a, "rua", None),
+
+        "telefone": getattr(a, "telefone", None),
+        "data_nascimento": a.data_nascimento.isoformat() if getattr(a, "data_nascimento", None) else None,
+
+        "linha_atendimento": getattr(a, "linha_atendimento", None),
+        "escola_integrada": getattr(a, "escola_integrada", None),
+
+        "empresa_contratante": getattr(a, "empresa_contratante", None),
+        "data_inicio_curso": a.data_inicio_curso.isoformat() if getattr(a, "data_inicio_curso", None) else None,
+
+        "mora_com_quem": getattr(a, "mora_com_quem", None),
+        "sobre_aluno": getattr(a, "sobre_aluno", None),
+
+        "pessoa_com_deficiencia": bool(getattr(a, "pessoa_com_deficiencia", False)),
+        "outras_informacoes": getattr(a, "outras_informacoes", None),
     }
 
 # Domínios válidos
@@ -94,134 +124,166 @@ _ESCOLAS = {"SESI", "SEDUC", "Nenhuma"}
 _EMPREGADO = {"sim", "nao"}
 
 # -------------------------
-# CADASTRAR ALUNO COM CPF OBRIGATÓRIO (ROTA ALTERNATIVA)
+# CADASTRAR ALUNO COM CPF OBRIGATÓRIO
 # -------------------------
 @aluno_bp.route("/cadastrar", methods=["POST"])
 def cadastrar_aluno_com_cpf():
     """
-    Cadastra um novo aluno via formulário web com CPF OBRIGATÓRIO
-    (Esta é uma rota alternativa à /cadastro/alunos)
+    Cadastra um novo aluno via formulário web com CPF OBRIGATÓRIO.
+    Inclui nome_social sem quebrar se o model não tiver a coluna.
     """
     try:
         data = request.form
         current_app.logger.info(f"Dados recebidos para cadastro: {dict(data)}")
-        
-        # 1. VALIDAÇÃO CPF OBRIGATÓRIO
-        cpf = data.get('cpf')
+
+        # 1) CPF obrigatório
+        cpf = data.get("cpf")
         if not cpf:
             return jsonify({"erro": "CPF é obrigatório"}), 400
-        
-        # Remove formatação do CPF
+
         cpf_limpo = only_digits(cpf)
-        
-        # Validação básica
         if not cpf_limpo or len(cpf_limpo) != 11:
             return jsonify({"erro": "CPF deve conter 11 dígitos"}), 400
-        
-        # Verificar se CPF já existe
-        aluno_existente = Aluno.query.filter_by(cpf=cpf_limpo).first()
-        if aluno_existente:
+
+        if Aluno.query.filter_by(cpf=cpf_limpo).first():
             return jsonify({"erro": "CPF já cadastrado"}), 400
-        
-        # 2. Verificar matrícula única
-        matricula = data.get('matricula')
+
+        # 2) Matrícula única
+        matricula = _none_if_empty(data.get("matricula"))
         if matricula and Aluno.query.filter_by(matricula=matricula).first():
             return jsonify({"erro": "Matrícula já cadastrada"}), 400
-        
-        # 3. Processar nome_completo se existir
-        nome_completo = data.get('nome_completo', '')
-        nome = data.get('nome', '')
-        sobrenome = data.get('sobrenome', '')
-        
+
+        # 3) Nome completo / nome / sobrenome
+        nome_completo = _none_if_empty(data.get("nome_completo")) or ""
+        nome = _none_if_empty(data.get("nome")) or ""
+        sobrenome = _none_if_empty(data.get("sobrenome")) or ""
+
         if nome_completo and not nome:
-            # Dividir nome_completo em nome e sobrenome
-            partes = nome_completo.strip().split(' ', 1)
-            nome = partes[0] if partes else ''
-            sobrenome = partes[1] if len(partes) > 1 else ''
+            partes = nome_completo.strip().split(" ", 1)
+            nome = partes[0] if partes else ""
+            sobrenome = partes[1] if len(partes) > 1 else ""
         elif nome and sobrenome and not nome_completo:
-            # Constrói nome_completo se não fornecido
-            nome_completo = f"{nome} {sobrenome}"
-        
-        # 4. Criar aluno COM CPF OBRIGATÓRIO
+            nome_completo = f"{nome} {sobrenome}".strip()
+
+        # nome_social guardado para setar depois, se existir no model
+        nome_social = _none_if_empty(data.get("nome_social"))
+
+        # 4) Campos principais
+        cidade = _none_if_empty(data.get("cidade")) or ""
+        bairro = _none_if_empty(data.get("bairro")) or ""
+        rua = _none_if_empty(data.get("rua")) or ""
+        telefone = only_digits(_none_if_empty(data.get("telefone"))) or None
+
+        empregado = (_norm(data.get("empregado")) or "nao").lower()
+        if empregado not in _EMPREGADO:
+            return jsonify({"erro": "empregado deve ser 'sim' ou 'nao'."}), 400
+
+        la = (_norm(data.get("linha_atendimento")) or "CAI").upper()
+        if la not in _LINHAS_AT:
+            return jsonify({"erro": "linha_atendimento deve ser CAI, CT ou CST."}), 400
+
+        escola_integrada = _norm(data.get("escola_integrada") or "Nenhuma")
+        if escola_integrada not in _ESCOLAS:
+            return jsonify({"erro": "escola_integrada deve ser SESI, SEDUC ou Nenhuma."}), 400
+
+        # Data nascimento + idade
+        data_nascimento = parse_date(_none_if_empty(data.get("data_nascimento")))
+        idade = None
+
+        idade_raw = _none_if_empty(data.get("idade"))
+        if idade_raw:
+            try:
+                idade = int(idade_raw)
+            except Exception:
+                return jsonify({"erro": "idade inválida (inteiro)."}), 400
+        else:
+            idade = _calc_idade(data_nascimento) if data_nascimento else None
+
+        if idade is None:
+            idade = 18
+
+        # 5) Responsável (obrigatório se menor)
+        responsavel_obj = None
+        if idade < 18:
+            r_nome = _none_if_empty(data.get("responsavel_nome_completo"))
+            r_parentesco = _none_if_empty(data.get("responsavel_parentesco"))
+            r_tel = only_digits(_none_if_empty(data.get("responsavel_telefone"))) or None
+
+            if not (r_nome and r_parentesco and r_tel):
+                return jsonify({
+                    "erro": "Aluno menor de idade: campos do responsável são obrigatórios",
+                    "faltando": [
+                        c for c in ["responsavel_nome_completo", "responsavel_parentesco", "responsavel_telefone"]
+                        if not _none_if_empty(data.get(c))
+                    ]
+                }), 400
+
+            responsavel_obj = Responsavel(
+                nome=r_nome,
+                sobrenome="",
+                parentesco=r_parentesco,
+                telefone=r_tel,
+                cidade=_none_if_empty(data.get("responsavel_cidade")),
+                bairro=_none_if_empty(data.get("responsavel_bairro")),
+                rua=_none_if_empty(data.get("responsavel_endereco")),
+            )
+            db.session.add(responsavel_obj)
+            db.session.flush()
+
+        # 6) Criar aluno (não passa nome_social no construtor)
         aluno = Aluno(
             nome=nome,
             sobrenome=sobrenome,
             nome_completo=nome_completo,
-            cpf=cpf_limpo,  # CPF OBRIGATÓRIO
+
+            cpf=cpf_limpo,
             matricula=matricula,
-            cidade=data.get('cidade', ''),
-            bairro=data.get('bairro', ''),
-            rua=data.get('rua', ''),
-            telefone=only_digits(data.get('telefone')),
-            # Campos com valores padrão
-            linha_atendimento=data.get('linha_atendimento', 'CAI'),
-            escola_integrada=data.get('escola_integrada', 'Nenhuma'),
-            empregado=data.get('empregado', 'nao'),
-            pessoa_com_deficiencia=str_to_bool(data.get('pessoa_com_deficiencia', False))
+
+            cidade=cidade,
+            bairro=bairro,
+            rua=rua,
+            telefone=telefone,
+
+            idade=idade,
+            empregado=empregado,
+
+            data_nascimento=data_nascimento,
+            linha_atendimento=la,
+            escola_integrada=escola_integrada,
+
+            curso=_none_if_empty(data.get("curso")),
+            turma=_none_if_empty(data.get("turma")),
+
+            mora_com_quem=_none_if_empty(data.get("mora_com_quem")),
+            sobre_aluno=_none_if_empty(data.get("sobre_aluno")),
+            data_inicio_curso=parse_date(_none_if_empty(data.get("data_inicio_curso"))),
+            empresa_contratante=_none_if_empty(data.get("empresa_contratante")),
+            pessoa_com_deficiencia=str_to_bool(_norm(data.get("pessoa_com_deficiencia"))),
+            outras_informacoes=_none_if_empty(data.get("outras_informacoes")),
+
+            responsavel_id=(responsavel_obj.id if responsavel_obj else None),
         )
-        
-        # Campo idade
-        idade = data.get('idade')
-        if idade:
-            try:
-                aluno.idade = int(idade)
-            except:
-                # Calcular a partir da data de nascimento
-                data_nascimento = data.get('data_nascimento')
-                if data_nascimento:
-                    try:
-                        aluno.data_nascimento = parse_date(data_nascimento)
-                        if aluno.data_nascimento:
-                            hoje = date.today()
-                            aluno.idade = hoje.year - aluno.data_nascimento.year - (
-                                (hoje.month, hoje.day) < (aluno.data_nascimento.month, aluno.data_nascimento.day)
-                            )
-                        else:
-                            aluno.idade = 18
-                    except:
-                        aluno.idade = 18
-                else:
-                    aluno.idade = 18
-        
-        # Data de nascimento
-        if data.get('data_nascimento'):
-            aluno.data_nascimento = parse_date(data.get('data_nascimento'))
-        
-        # Campos opcionais
-        if data.get('mora_com_quem'):
-            aluno.mora_com_quem = data.get('mora_com_quem')
-        if data.get('sobre_aluno'):
-            aluno.sobre_aluno = data.get('sobre_aluno')
-        if data.get('data_inicio_curso'):
-            aluno.data_inicio_curso = parse_date(data.get('data_inicio_curso'))
-        if data.get('empresa_contratante'):
-            aluno.empresa_contratante = data.get('empresa_contratante')
-        if data.get('outras_informacoes'):
-            aluno.outras_informacoes = data.get('outras_informacoes')
-        if data.get('curso'):
-            aluno.curso = data.get('curso')
-        if data.get('turma'):
-            aluno.turma = data.get('turma')
-        
-        # Processar foto
-        if 'foto' in request.files and request.files['foto'].filename:
-            foto = request.files['foto']
-            filename = _save_photo(foto, nome_completo or nome)
-            aluno.foto = filename
-        
-        # Normaliza dados (incluindo CPF já limpo)
+
+        # seta nome_social só se existir no model
+        if hasattr(Aluno, "nome_social"):
+            aluno.nome_social = nome_social
+
+        # Foto
+        if "foto" in request.files and request.files["foto"].filename:
+            foto = request.files["foto"]
+            aluno.foto = _save_photo(foto, nome_completo or nome)
+
         aluno.normalize()
-        
         db.session.add(aluno)
         db.session.commit()
-        
+
         return jsonify({
             "mensagem": "Aluno cadastrado com sucesso!",
             "aluno_id": aluno.id,
             "cpf": aluno.cpf,
             "matricula": aluno.matricula
         }), 201
-        
+
     except Exception as e:
         db.session.rollback()
         current_app.logger.error(f"Erro ao cadastrar aluno: {str(e)}", exc_info=True)
@@ -233,23 +295,17 @@ def cadastrar_aluno_com_cpf():
 # -------------------------
 @aluno_bp.route("/por-cpf/<string:cpf>", methods=["GET"])
 def consultar_aluno_por_cpf(cpf):
-    """
-    Consulta um aluno pelo CPF
-    """
     try:
-        # Limpar CPF
         cpf_limpo = only_digits(cpf)
-        
         if not cpf_limpo or len(cpf_limpo) != 11:
             return jsonify({"erro": "CPF inválido"}), 400
-        
+
         aluno = Aluno.query.filter_by(cpf=cpf_limpo).first()
-        
         if not aluno:
             return jsonify({"erro": "Aluno não encontrado"}), 404
-        
+
         return jsonify(_json_aluno(aluno)), 200
-        
+
     except Exception as e:
         current_app.logger.error(f"Erro ao consultar aluno por CPF: {str(e)}")
         return jsonify({"erro": f"Erro interno: {str(e)}"}), 500
@@ -262,46 +318,116 @@ def consultar_aluno_por_cpf(cpf):
 def listar_alunos():
     return jsonify({"mensagem": "Blueprint 'aluno_bp' ativo e funcionando corretamente!"}), 200
 
+
 # -------------------------
-# MODELO CSV (por NOME de curso/turma; IDs também aceitos)
+# MODELO CSV (layout atual, com responsável e nome_social)
 # -------------------------
 @aluno_bp.route("/csv_modelo", methods=["GET"])
 def csv_modelo_alunos():
-    """
-    CSV de exemplo:
-      - Usa 'curso_nome' e 'turma_nome' (opcionais). IDs também são aceitos como alternativa.
-    """
     output = io.StringIO()
     writer = csv.writer(output)
+
     headers = [
-        # obrigatórios
-        "nome","sobrenome","matricula","cidade","bairro","rua","idade",
-        "linha_atendimento","escola_integrada",
-        # nomes (preferenciais) - opcionais
-        "curso_nome","turma_nome",
-        # ids (alternativa) - opcionais
-        "curso_id","turma_id",
-        # outros opcionais
-        "telefone","data_nascimento","empregado","mora_com_quem","sobre_aluno",
-        "data_inicio_curso","empresa_contratante","pessoa_com_deficiencia","outras_informacoes",
-        "cpf"  # ✅ ADICIONADO CPF NO MODELO CSV
+        # Obrigatórios
+        "matricula",
+        "nome_completo",
+        "cpf",
+        "data_nascimento",
+        "cidade",
+        "bairro",
+        "rua",
+        "curso",
+        "turma",
+        "idade",
+        "empregado",
+        "linha_atendimento",
+        "escola_integrada",
+
+        # Opcionais
+        "nome_social",
+        "telefone",
+        "mora_com_quem",
+        "sobre_aluno",
+        "data_inicio_curso",
+        "empresa_contratante",
+        "pessoa_com_deficiencia",
+        "outras_informacoes",
+
+        # Responsável (obrigatório se idade < 18)
+        "responsavel_nome_completo",
+        "responsavel_parentesco",
+        "responsavel_telefone",
+        "responsavel_cidade",
+        "responsavel_bairro",
+        "responsavel_endereco",
+
+        # Compatibilidade (opcional)
+        "curso_nome",
+        "turma_nome",
+        "curso_id",
+        "turma_id",
     ]
     writer.writerow(headers)
+
+    # Exemplo adulto
     writer.writerow([
-        "Ana","Silva","MAT001","Belo Horizonte","Centro","Rua A","16",
-        "CAI","SESI",
-        "Informática Básica","Turma 101",
-        "","","(31) 99999-9999","2009-05-10","nao","","",
-        "2025-02-01","","false","","12345678901"
+        "MAT001",
+        "João da Silva",
+        "123.456.789-00",
+        "2000-06-15",
+        "Belo Horizonte",
+        "Centro",
+        "Rua das Flores, 123",
+        "Informática Básica",
+        "Turma A",
+        "24",
+        "sim",
+        "CAI",
+        "Nenhuma",
+        "",  # nome_social
+        "(31) 3333-4444",
+        "Pais",
+        "Aluno dedicado",
+        "2025-02-01",
+        "Empresa ABC",
+        "false",
+        "Observação qualquer",
+        "", "", "", "", "", "",  # responsável vazio
+        "Informática Básica", "Turma A", "", ""  # compat
     ])
+
+    # Exemplo menor
     writer.writerow([
-        "Bruno","Souza","MAT002","BH","Savassi","Rua B","19",
-        "CT","Nenhuma",
-        "", "",  # curso_nome, turma_nome
-        "2","12",  # usando IDs como alternativa
-        "","2006-11-20","sim","Pais","Aluno destaque",
-        "2025-03-01","Empresa X","true","Necessita adaptação de prova","98765432109"
+        "MAT002",
+        "Maria Oliveira",
+        "987.654.321-00",
+        "20/03/2010",
+        "Belo Horizonte",
+        "Savassi",
+        "Av. Brasil, 456",
+        "Administração",
+        "Turma B",
+        "14",
+        "nao",
+        "CT",
+        "SESI",
+        "Maria (nome social)",
+        "(31) 9999-8888",
+        "Pais",
+        "Boa aluna",
+        "01/03/2025",
+        "",
+        "true",
+        "Necessita adaptação",
+        "Carlos Oliveira",
+        "Pai",
+        "(31) 98888-7777",
+        "Belo Horizonte",
+        "Savassi",
+        "Av. Brasil, 456",
+        "Administração", "Turma B", "", ""  # compat
     ])
+
     output.seek(0)
     return send_file(
         io.BytesIO(output.getvalue().encode("utf-8-sig")),
@@ -310,14 +436,17 @@ def csv_modelo_alunos():
         download_name="modelo_alunos.csv",
     )
 
+
 # -------------------------
-# IMPORTAR CSV (aceita NOME ou ID; salva nomes; resolve FKs quando possível)
+# IMPORTAR CSV (igual ao cadastro; sem foto)
 # -------------------------
 @aluno_bp.route("/importar_csv", methods=["POST"])
 def importar_csv_alunos():
     """
     Importa um CSV e cria registros na tabela 'aluno'.
-    Agora com CPF obrigatório!
+    Igual ao cadastro (sem foto). CPF obrigatório.
+    Responsável obrigatório se idade < 18.
+    Aceita data_nascimento e data_inicio_curso em YYYY-MM-DD ou DD/MM/YYYY.
     """
     if "arquivo" not in request.files or not request.files["arquivo"].filename:
         return jsonify({"erro": "Envie um arquivo CSV no campo 'arquivo'."}), 400
@@ -328,15 +457,18 @@ def importar_csv_alunos():
         text = content.decode("utf-8-sig")
         reader = csv.DictReader(io.StringIO(text))
 
-        obrig = {
-            "nome","sobrenome","matricula","cidade","bairro","rua","idade",
-            "linha_atendimento","escola_integrada","cpf"  # ✅ CPF OBRIGATÓRIO AGORA
-        }
-
         if not reader.fieldnames:
             return jsonify({"erro": "CSV sem cabeçalho."}), 400
 
-        field_map = {(h or "").strip(): h for h in reader.fieldnames}
+        field_map = {(h or "").strip().lower(): h for h in reader.fieldnames}
+
+        obrig = {
+            "matricula", "nome_completo", "cpf", "data_nascimento",
+            "cidade", "bairro", "rua",
+            "curso", "turma",
+            "empregado", "linha_atendimento", "escola_integrada",
+        }
+
         missing_cols = obrig - set(field_map.keys())
         if missing_cols:
             return jsonify({"erro": f"CSV faltando colunas obrigatórias: {', '.join(sorted(missing_cols))}"}), 400
@@ -344,79 +476,109 @@ def importar_csv_alunos():
         sucesso = pulos = erros = 0
         rel = []
 
+        def col(row, key: str):
+            return row.get(field_map.get(key.lower(), key), "")
+
         for i, row in enumerate(reader, start=2):
             try:
-                def col(key):
-                    return row.get(field_map.get(key, key))
+                matricula = _none_if_empty(col(row, "matricula"))
+                nome_completo = _none_if_empty(col(row, "nome_completo"))
+                cpf_raw = _none_if_empty(col(row, "cpf"))
+                data_nascimento_raw = _none_if_empty(col(row, "data_nascimento"))
 
-                # -------- obrigatórios
-                nome = _none_if_empty(col("nome"))
-                sobrenome = _none_if_empty(col("sobrenome"))
-                matricula = _none_if_empty(col("matricula"))
-                cidade = _none_if_empty(col("cidade"))
-                bairro = _none_if_empty(col("bairro"))
-                rua = _none_if_empty(col("rua"))
-                idade_raw = _none_if_empty(col("idade"))
-                linha_atendimento = _none_if_empty(col("linha_atendimento"))
-                escola_integrada = _none_if_empty(col("escola_integrada"))
-                cpf_raw = _none_if_empty(col("cpf"))
+                cidade = _none_if_empty(col(row, "cidade"))
+                bairro = _none_if_empty(col(row, "bairro"))
+                rua = _none_if_empty(col(row, "rua"))
 
-                if not all([nome, sobrenome, matricula, cidade, bairro, rua, idade_raw,
-                            linha_atendimento, escola_integrada, cpf_raw]):
+                curso = _none_if_empty(col(row, "curso"))
+                turma = _none_if_empty(col(row, "turma"))
+
+                empregado = (_norm(col(row, "empregado")) or "nao").lower()
+                la = (_norm(col(row, "linha_atendimento")) or "CAI").upper()
+                escola_integrada = _none_if_empty(col(row, "escola_integrada")) or "Nenhuma"
+
+                if not all([matricula, nome_completo, cpf_raw, data_nascimento_raw, cidade, bairro, rua, curso, turma]):
                     raise ValueError("Campos obrigatórios vazios.")
 
-                # Valida CPF
-                cpf = only_digits(cpf_raw)
-                if not cpf or len(cpf) != 11:
-                    raise ValueError("CPF inválido (deve conter 11 dígitos).")
-                
-                # Verifica se CPF já existe
-                if Aluno.query.filter_by(cpf=cpf).first():
-                    pulos += 1
-                    rel.append(f"[Linha {i}] CPF '{cpf_raw}' já cadastrado — pulado.")
-                    continue
-
-                try:
-                    idade = int(idade_raw)
-                except Exception:
-                    raise ValueError("idade inválida (inteiro).")
-
-                la = linha_atendimento.upper()
+                if empregado not in _EMPREGADO:
+                    raise ValueError("empregado deve ser 'sim' ou 'nao'.")
                 if la not in _LINHAS_AT:
                     raise ValueError("linha_atendimento deve ser CAI, CT ou CST.")
                 if escola_integrada not in _ESCOLAS:
                     raise ValueError("escola_integrada deve ser SESI, SEDUC ou Nenhuma.")
 
-                # duplicidade de matrícula
+                cpf = only_digits(cpf_raw)
+                if not cpf or len(cpf) != 11:
+                    raise ValueError("CPF inválido (deve conter 11 dígitos).")
+                if Aluno.query.filter_by(cpf=cpf).first():
+                    pulos += 1
+                    rel.append(f"[Linha {i}] CPF '{cpf_raw}' já cadastrado — pulado.")
+                    continue
+
                 if Aluno.query.filter_by(matricula=matricula).first():
                     pulos += 1
                     rel.append(f"[Linha {i}] Matrícula '{matricula}' já existe — pulado.")
                     continue
 
-                # -------- opcionais simples
-                telefone = _none_if_empty(col("telefone"))
-                empregado = (_norm(col("empregado")) or "nao").lower()
-                if empregado not in _EMPREGADO:
-                    raise ValueError("empregado deve ser 'sim' ou 'nao'.")
+                data_nascimento = parse_date(data_nascimento_raw)
+                if not data_nascimento:
+                    raise ValueError("data_nascimento inválida (use YYYY-MM-DD ou DD/MM/YYYY).")
 
-                mora_com_quem = _none_if_empty(col("mora_com_quem"))
-                sobre_aluno = _none_if_empty(col("sobre_aluno"))
-                data_nascimento = parse_date(_none_if_empty(col("data_nascimento")))
-                data_inicio_curso = parse_date(_none_if_empty(col("data_inicio_curso")))
-                empresa_contratante = _none_if_empty(col("empresa_contratante"))
-                pcd = str_to_bool(_norm(col("pessoa_com_deficiencia")))
-                outras_informacoes = _none_if_empty(col("outras_informacoes"))
+                idade_raw = _none_if_empty(col(row, "idade"))
+                if idade_raw:
+                    try:
+                        idade = int(idade_raw)
+                    except Exception:
+                        raise ValueError("idade inválida (inteiro).")
+                else:
+                    idade = _calc_idade(data_nascimento)
+                    if idade is None:
+                        raise ValueError("Não foi possível calcular idade.")
 
-                # -------- curso/turma por NOME ou ID (suave)
-                curso_nome = _none_if_empty(col("curso_nome"))
-                turma_nome = _none_if_empty(col("turma_nome"))
-                curso_id_raw = _none_if_empty(col("curso_id"))
-                turma_id_raw = _none_if_empty(col("turma_id"))
+                partes = nome_completo.strip().split(" ", 1)
+                nome = partes[0] if partes else ""
+                sobrenome = partes[1] if len(partes) > 1 else ""
+
+                nome_social = _none_if_empty(col(row, "nome_social"))
+                telefone = _none_if_empty(col(row, "telefone"))
+                mora_com_quem = _none_if_empty(col(row, "mora_com_quem"))
+                sobre_aluno = _none_if_empty(col(row, "sobre_aluno"))
+                data_inicio_curso = parse_date(_none_if_empty(col(row, "data_inicio_curso")))
+                empresa_contratante = _none_if_empty(col(row, "empresa_contratante"))
+                pcd = str_to_bool(_norm(col(row, "pessoa_com_deficiencia")))
+                outras_informacoes = _none_if_empty(col(row, "outras_informacoes"))
+
+                responsavel_obj = None
+                if idade < 18:
+                    r_nome = _none_if_empty(col(row, "responsavel_nome_completo"))
+                    r_parentesco = _none_if_empty(col(row, "responsavel_parentesco"))
+                    r_tel = only_digits(_none_if_empty(col(row, "responsavel_telefone"))) or None
+                    if not (r_nome and r_parentesco and r_tel):
+                        pulos += 1
+                        rel.append(f"[Linha {i}] Menor de idade sem dados obrigatórios do responsável — pulado.")
+                        continue
+
+                    responsavel_obj = Responsavel(
+                        nome=r_nome,
+                        sobrenome="",
+                        parentesco=r_parentesco,
+                        telefone=r_tel,
+                        cidade=_none_if_empty(col(row, "responsavel_cidade")),
+                        bairro=_none_if_empty(col(row, "responsavel_bairro")),
+                        rua=_none_if_empty(col(row, "responsavel_endereco")),
+                    )
+                    db.session.add(responsavel_obj)
+                    db.session.flush()
+
+                # compat: tentar resolver curso/turma por id/nome (se vier)
+                curso_nome = _none_if_empty(col(row, "curso_nome"))
+                turma_nome = _none_if_empty(col(row, "turma_nome"))
+                curso_id_raw = _none_if_empty(col(row, "curso_id"))
+                turma_id_raw = _none_if_empty(col(row, "turma_id"))
 
                 resolved_curso = None
                 resolved_turma = None
 
-                # Tenta por ID, mas NÃO erra se não achar
                 if curso_id_raw:
                     try:
                         resolved_curso = Curso.query.get(int(curso_id_raw))
@@ -433,14 +595,12 @@ def importar_csv_alunos():
                     except Exception:
                         rel.append(f"[Linha {i}] Aviso: turma_id inválido — ignorado.")
 
-                # Coerência entre IDs se ambos existem; se incoerente, ignora a turma
                 if resolved_curso and resolved_turma and resolved_turma.curso_id != resolved_curso.id:
                     rel.append(f"[Linha {i}] Aviso: turma_id não pertence ao curso_id — turma ignorada.")
                     resolved_turma = None
 
-                # Tenta resolver por NOME quando ainda não resolvido
                 if not resolved_curso and curso_nome:
-                    resolved_curso = Curso.query.filter(Curso.nome.ilike(curco_nome)).first()
+                    resolved_curso = Curso.query.filter(Curso.nome.ilike(f"%{curso_nome}%")).first()
                     if not resolved_curso:
                         rel.append(f"[Linha {i}] Aviso: curso_nome '{curso_nome}' não encontrado — gravado apenas como texto.")
 
@@ -448,77 +608,83 @@ def importar_csv_alunos():
                     q_turma = Turma.query
                     if resolved_curso:
                         q_turma = q_turma.filter(Turma.curso_id == resolved_curso.id)
-                    resolved_turma = q_turma.filter(Turma.nome.ilike(turma_nome)).first()
+                    resolved_turma = q_turma.filter(Turma.nome.ilike(f"%{turma_nome}%")).first()
                     if not resolved_turma:
                         rel.append(f"[Linha {i}] Aviso: turma_nome '{turma_nome}' não encontrada — gravada apenas como texto.")
-                    # se achou turma e não havia curso, infere
                     if resolved_turma and not resolved_curso:
                         resolved_curso = resolved_turma.curso_relacionado
 
-                # Coerência final (se nome resolveu turma mas curso não bate)
                 if resolved_turma and resolved_curso and resolved_turma.curso_id != resolved_curso.id:
                     rel.append(f"[Linha {i}] Aviso: turma localizada não pertence ao curso localizado — turma ignorada.")
                     resolved_turma = None
 
                 curso_id_val = resolved_curso.id if resolved_curso else None
                 turma_id_val = resolved_turma.id if resolved_turma else None
-                curso_texto = (resolved_curso.nome if resolved_curso else curso_nome)
-                turma_texto = (resolved_turma.nome if resolved_turma else turma_nome)
-
-                # Constrói nome_completo
-                nome_completo = f"{nome} {sobrenome}".strip()
+                curso_texto = resolved_curso.nome if resolved_curso else (curso_nome or curso)
+                turma_texto = resolved_turma.nome if resolved_turma else (turma_nome or turma)
 
                 aluno = Aluno(
+                    cpf=cpf,
+                    matricula=matricula,
+
+                    nome_completo=nome_completo,
                     nome=nome,
                     sobrenome=sobrenome,
-                    nome_completo=nome_completo,
-                    cpf=cpf,  # ✅ CPF OBRIGATÓRIO
-                    matricula=matricula,
+
                     cidade=cidade,
                     bairro=bairro,
                     rua=rua,
+
                     idade=idade,
                     empregado=empregado,
-                    mora_com_quem=mora_com_quem,
-                    sobre_aluno=sobre_aluno,
-                    foto=None,
-                    telefone=only_digits(telefone),
+
+                    telefone=only_digits(telefone) if telefone else None,
                     data_nascimento=data_nascimento,
+
                     linha_atendimento=la,
-                    curso=curso_texto,     # salva nomes quando houver
-                    turma=turma_texto,     # salva nomes quando houver
+                    escola_integrada=escola_integrada,
+
+                    curso=curso_texto,
+                    turma=turma_texto,
+
                     data_inicio_curso=data_inicio_curso,
                     empresa_contratante=empresa_contratante,
-                    escola_integrada=escola_integrada,
+                    mora_com_quem=mora_com_quem,
+                    sobre_aluno=sobre_aluno,
                     pessoa_com_deficiencia=pcd,
                     outras_informacoes=outras_informacoes,
-                    curso_id=curso_id_val, # FKs somente se resolvidos
-                    turma_id=turma_id_val
+
+                    curso_id=curso_id_val,
+                    turma_id=turma_id_val,
+
+                    responsavel_id=(responsavel_obj.id if responsavel_obj else None),
+
+                    foto=None,
                 )
 
+                if hasattr(Aluno, "nome_social"):
+                    aluno.nome_social = nome_social
+
+                aluno.normalize()
                 db.session.add(aluno)
                 db.session.commit()
 
                 sucesso += 1
-                rel.append(f"[Linha {i}] OK: {nome} {sobrenome} (CPF: {cpf}).")
+                rel.append(f"[Linha {i}] OK: {nome_completo} (CPF: {cpf}).")
 
             except Exception as ex:
                 db.session.rollback()
                 erros += 1
                 rel.append(f"[Linha {i}] ERRO: {str(ex)}")
 
-        return jsonify({
-            "sucesso": sucesso,
-            "pulos": pulos,
-            "erros": erros,
-            "relatorio": rel
-        }), 200
+        return jsonify({"sucesso": sucesso, "pulos": pulos, "erros": erros, "relatorio": rel}), 200
 
     except UnicodeDecodeError:
         return jsonify({"erro": "Não foi possível ler o arquivo. Use CSV UTF-8."}), 400
     except Exception as e:
         db.session.rollback()
         return jsonify({"erro": "Falha ao processar CSV.", "detalhes": str(e)}), 500
+
 
 # -------------------------
 # EDITAR ALUNO (dados)
@@ -528,11 +694,17 @@ def editar_aluno(aluno_id: int):
     aluno = Aluno.query.get_or_404(aluno_id)
     data = request.get_json(silent=True) or {}
 
-    # Atualiza apenas campos enviados; strings vazias viram None
-    for field in ("cidade", "bairro", "rua", "telefone", "empresa_contratante",
-                  "mora_com_quem", "sobre_aluno", "outras_informacoes", "curso", "turma"):
+    # Campos que sempre existem
+    for field in (
+        "cidade", "bairro", "rua", "telefone", "empresa_contratante",
+        "mora_com_quem", "sobre_aluno", "outras_informacoes", "curso", "turma"
+    ):
         if field in data:
             setattr(aluno, field, _none_if_empty(data[field]))
+
+    # nome_social só se existir no model
+    if "nome_social" in data and hasattr(Aluno, "nome_social"):
+        aluno.nome_social = _none_if_empty(data["nome_social"])
 
     if "pessoa_com_deficiencia" in data:
         aluno.pessoa_com_deficiencia = bool(data["pessoa_com_deficiencia"])
@@ -543,7 +715,7 @@ def editar_aluno(aluno_id: int):
         aluno.data_inicio_curso = parse_date(_none_if_empty(data["data_inicio_curso"]))
 
     if "linha_atendimento" in data and data["linha_atendimento"]:
-        la = data["linha_atendimento"]
+        la = str(data["linha_atendimento"]).upper()
         if la not in _LINHAS_AT:
             return jsonify({"erro": "linha_atendimento inválida."}), 400
         aluno.linha_atendimento = la
@@ -554,7 +726,6 @@ def editar_aluno(aluno_id: int):
             return jsonify({"erro": "escola_integrada inválida."}), 400
         aluno.escola_integrada = ei
 
-    # Se vierem curso_nome/turma_nome na edição, também tento resolver os FKs (opcional)
     curso_nome = _none_if_empty(data.get("curso_nome"))
     turma_nome = _none_if_empty(data.get("turma_nome"))
     curso_id = data.get("curso_id", None)
@@ -568,6 +739,7 @@ def editar_aluno(aluno_id: int):
         if not t:
             return jsonify({"erro": "turma_id não encontrado."}), 400
         resolved_turma = t
+
     if curso_id not in (None, ""):
         c = Curso.query.get(int(curso_id))
         if not c:
@@ -575,12 +747,13 @@ def editar_aluno(aluno_id: int):
         resolved_curso = c
 
     if not resolved_curso and curso_nome:
-        resolved_curso = Curso.query.filter(Curso.nome.ilike(curso_nome)).first()
+        resolved_curso = Curso.query.filter(Curso.nome.ilike(f"%{curso_nome}%")).first()
+
     if not resolved_turma and turma_nome:
         q_turma = Turma.query
         if resolved_curso:
             q_turma = q_turma.filter(Turma.curso_id == resolved_curso.id)
-        resolved_turma = q_turma.filter(Turma.nome.ilike(turma_nome)).first()
+        resolved_turma = q_turma.filter(Turma.nome.ilike(f"%{turma_nome}%")).first()
 
     if resolved_turma and resolved_curso and resolved_turma.curso_id != resolved_curso.id:
         return jsonify({"erro": "A turma localizada não pertence ao curso localizado."}), 400
@@ -589,7 +762,6 @@ def editar_aluno(aluno_id: int):
         aluno.curso_id = resolved_curso.id
         aluno.curso = resolved_curso.nome
     elif "curso_id" in data or "curso_nome" in data:
-        # Se a edição explicitamente limpou
         if data.get("curso_id") in (None, "") and not curso_nome:
             aluno.curso_id = None
 
@@ -600,11 +772,10 @@ def editar_aluno(aluno_id: int):
         if data.get("turma_id") in (None, "") and not turma_nome:
             aluno.turma_id = None
 
-    # Normaliza dados após edição
     aluno.normalize()
-    
     db.session.commit()
     return jsonify(_json_aluno(aluno)), 200
+
 
 # -------------------------
 # TROCAR FOTO DO ALUNO
@@ -619,7 +790,7 @@ def trocar_foto(aluno_id: int):
     file = request.files["foto"]
     try:
         novo_filename = _save_photo(file, aluno.nome)
-        # remove antiga (se existir)
+
         if aluno.foto:
             try:
                 old_path = os.path.join(current_app.config["UPLOAD_FOLDER"], aluno.foto)
@@ -645,3 +816,31 @@ def trocar_foto(aluno_id: int):
         db.session.rollback()
         current_app.logger.exception("Erro ao trocar foto do aluno")
         return jsonify({"erro": "Falha ao atualizar foto.", "detalhes": str(e)}), 500
+
+
+# -------------------------
+# BUSCAR (CPF ou NOME) - /alunos/buscar
+# -------------------------
+@aluno_bp.route("/buscar", methods=["GET"])
+def buscar_aluno():
+    cpf_raw = request.args.get("cpf")
+    nome_raw = (request.args.get("nome") or "").strip()
+
+    # 1) Por CPF (prioridade)
+    if cpf_raw:
+        cpf = only_digits(cpf_raw)
+        if not cpf or len(cpf) != 11:
+            return jsonify({"erro": "Informe o CPF com 11 dígitos"}), 400
+
+        a = Aluno.query.filter_by(cpf=cpf).first()
+        if not a:
+            return jsonify([]), 200
+
+        return jsonify([_json_aluno(a)]), 200
+
+    # 2) Fallback por nome
+    if nome_raw:
+        q = Aluno.query.filter(Aluno.nome_completo.ilike(f"%{nome_raw}%")).limit(50).all()
+        return jsonify([_json_aluno(a) for a in q]), 200
+
+    return jsonify({"erro": "Informe cpf=... (11 dígitos) ou nome=..."}), 400

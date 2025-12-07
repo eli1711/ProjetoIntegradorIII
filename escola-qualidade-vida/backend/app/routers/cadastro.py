@@ -166,6 +166,10 @@ def cadastrar_aluno():
             nome=nome,
             sobrenome=sobrenome,
             
+            
+            nome_social=_none_if_empty(form.get("nome_social")),
+            
+            
             matricula=_norm(form.get("matricula")),
             cidade=_norm(form.get("municipio")),
             bairro=_norm(form.get("bairro")),
