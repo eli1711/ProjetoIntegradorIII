@@ -19,6 +19,9 @@ class Aluno(db.Model):
     # ✅ Campo nome_completo (opcional)
     nome_completo = db.Column(db.String(255), nullable=True)
     
+    # ✅ Campo nome_social (adicionado)
+    nome_social = db.Column(db.String(255), nullable=True)
+    
     # Campos originais da sua tabela
     nome = db.Column(db.String(255), nullable=False)
     sobrenome = db.Column(db.String(255), nullable=False)
@@ -72,6 +75,11 @@ class Aluno(db.Model):
         # Se não tiver nome_completo, constrói a partir de nome+sobrenome
         elif not self.nome_completo and self.nome and self.sobrenome:
             self.nome_completo = f"{self.nome} {self.sobrenome}"
+        
+        # Se tiver nome_social mas não tiver nome_completo, mantém nome_social separado
+        if self.nome_social and not self.nome_completo:
+            self.nome_completo = f"{self.nome} {self.sobrenome}"
 
     def __repr__(self):
-        return f"<Aluno {self.id} {self.nome} {self.sobrenome}>"
+        nome_exibicao = self.nome_social or self.nome
+        return f"<Aluno {self.id} {nome_exibicao} {self.sobrenome}>"

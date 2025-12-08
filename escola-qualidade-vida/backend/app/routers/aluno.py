@@ -153,10 +153,11 @@ def cadastrar_aluno_com_cpf():
         if matricula and Aluno.query.filter_by(matricula=matricula).first():
             return jsonify({"erro": "Matrícula já cadastrada"}), 400
 
-        # 3) Nome completo / nome / sobrenome
+        # 3) Nome completo / nome / sobrenome / nome_social
         nome_completo = _none_if_empty(data.get("nome_completo")) or ""
         nome = _none_if_empty(data.get("nome")) or ""
         sobrenome = _none_if_empty(data.get("sobrenome")) or ""
+        nome_social = _none_if_empty(data.get("nome_social"))
 
         if nome_completo and not nome:
             partes = nome_completo.strip().split(" ", 1)
@@ -164,9 +165,6 @@ def cadastrar_aluno_com_cpf():
             sobrenome = partes[1] if len(partes) > 1 else ""
         elif nome and sobrenome and not nome_completo:
             nome_completo = f"{nome} {sobrenome}".strip()
-
-        # nome_social guardado para setar depois, se existir no model
-        nome_social = _none_if_empty(data.get("nome_social"))
 
         # 4) Campos principais
         cidade = _none_if_empty(data.get("cidade")) or ""
@@ -230,11 +228,12 @@ def cadastrar_aluno_com_cpf():
             db.session.add(responsavel_obj)
             db.session.flush()
 
-        # 6) Criar aluno (não passa nome_social no construtor)
+        # 6) Criar aluno (agora com nome_social)
         aluno = Aluno(
             nome=nome,
             sobrenome=sobrenome,
             nome_completo=nome_completo,
+            nome_social=nome_social,
 
             cpf=cpf_limpo,
             matricula=matricula,
@@ -264,10 +263,6 @@ def cadastrar_aluno_com_cpf():
             responsavel_id=(responsavel_obj.id if responsavel_obj else None),
         )
 
-        # seta nome_social só se existir no model
-        if hasattr(Aluno, "nome_social"):
-            aluno.nome_social = nome_social
-
         # Foto
         if "foto" in request.files and request.files["foto"].filename:
             foto = request.files["foto"]
@@ -281,7 +276,8 @@ def cadastrar_aluno_com_cpf():
             "mensagem": "Aluno cadastrado com sucesso!",
             "aluno_id": aluno.id,
             "cpf": aluno.cpf,
-            "matricula": aluno.matricula
+            "matricula": aluno.matricula,
+            "nome_social": aluno.nome_social
         }), 201
 
     except Exception as e:
@@ -630,6 +626,7 @@ def importar_csv_alunos():
                     nome_completo=nome_completo,
                     nome=nome,
                     sobrenome=sobrenome,
+                    nome_social=nome_social,
 
                     cidade=cidade,
                     bairro=bairro,
@@ -662,15 +659,12 @@ def importar_csv_alunos():
                     foto=None,
                 )
 
-                if hasattr(Aluno, "nome_social"):
-                    aluno.nome_social = nome_social
-
                 aluno.normalize()
                 db.session.add(aluno)
                 db.session.commit()
 
                 sucesso += 1
-                rel.append(f"[Linha {i}] OK: {nome_completo} (CPF: {cpf}).")
+                rel.append(f"[Linha {i}] OK: {nome_completo} (CPF: {cpf}) - Nome social: {nome_social or 'Não informado'}.")
 
             except Exception as ex:
                 db.session.rollback()
@@ -702,8 +696,8 @@ def editar_aluno(aluno_id: int):
         if field in data:
             setattr(aluno, field, _none_if_empty(data[field]))
 
-    # nome_social só se existir no model
-    if "nome_social" in data and hasattr(Aluno, "nome_social"):
+    # nome_social
+    if "nome_social" in data:
         aluno.nome_social = _none_if_empty(data["nome_social"])
 
     if "pessoa_com_deficiencia" in data:
@@ -789,7 +783,7 @@ def trocar_foto(aluno_id: int):
 
     file = request.files["foto"]
     try:
-        novo_filename = _save_photo(file, aluno.nome)
+        novo_filename = _save_photo(file, aluno.nome_social or aluno.nome)
 
         if aluno.foto:
             try:
@@ -838,9 +832,14 @@ def buscar_aluno():
 
         return jsonify([_json_aluno(a)]), 200
 
-    # 2) Fallback por nome
+    # 2) Fallback por nome (incluindo nome_social)
     if nome_raw:
-        q = Aluno.query.filter(Aluno.nome_completo.ilike(f"%{nome_raw}%")).limit(50).all()
+        q = Aluno.query.filter(
+            (Aluno.nome_completo.ilike(f"%{nome_raw}%")) |
+            (Aluno.nome.ilike(f"%{nome_raw}%")) |
+            (Aluno.sobrenome.ilike(f"%{nome_raw}%")) |
+            (Aluno.nome_social.ilike(f"%{nome_raw}%"))
+        ).limit(50).all()
         return jsonify([_json_aluno(a) for a in q]), 200
 
     return jsonify({"erro": "Informe cpf=... (11 dígitos) ou nome=..."}), 400

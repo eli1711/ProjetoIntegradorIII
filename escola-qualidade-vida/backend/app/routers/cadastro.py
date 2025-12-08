@@ -166,9 +166,8 @@ def cadastrar_aluno():
             nome=nome,
             sobrenome=sobrenome,
             
-            
+            # ✅ Campo nome_social adicionado
             nome_social=_none_if_empty(form.get("nome_social")),
-            
             
             matricula=_norm(form.get("matricula")),
             cidade=_norm(form.get("municipio")),
@@ -206,7 +205,8 @@ def cadastrar_aluno():
         return jsonify({
             "mensagem": "Aluno cadastrado com sucesso!", 
             "id": aluno.id,
-            "cpf": aluno.cpf
+            "cpf": aluno.cpf,
+            "nome_social": aluno.nome_social
         }), 201
 
     except Exception as e:
