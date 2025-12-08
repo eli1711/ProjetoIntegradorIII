@@ -6,6 +6,7 @@ from datetime import datetime, date
 
 from flask import Blueprint, request, jsonify, send_file, current_app
 from werkzeug.utils import secure_filename
+from sqlalchemy import or_
 
 from app.extensions import db
 from app.models.aluno import Aluno, only_digits
@@ -566,7 +567,6 @@ def importar_csv_alunos():
                     db.session.add(responsavel_obj)
                     db.session.flush()
 
-                # compat: tentar resolver curso/turma por id/nome (se vier)
                 curso_nome = _none_if_empty(col(row, "curso_nome"))
                 turma_nome = _none_if_empty(col(row, "turma_nome"))
                 curso_id_raw = _none_if_empty(col(row, "curso_id"))
@@ -810,43 +810,6 @@ def trocar_foto(aluno_id: int):
         db.session.rollback()
         current_app.logger.exception("Erro ao trocar foto do aluno")
         return jsonify({"erro": "Falha ao atualizar foto.", "detalhes": str(e)}), 500
-#verificar
-@aluno_bp.route('/buscar', methods=['GET'])
-def buscar_alunos():
-    """Busca alunos por nome ou CPF"""
-    nome = request.args.get('nome')
-    cpf = request.args.get('cpf')
-    
-    try:
-        query = Aluno.query
-        
-        if nome:
-            query = query.filter(Aluno.nome.ilike(f'%{nome}%'))
-        
-        if cpf:
-            # Remove formatação do CPF para busca
-            cpf_limpo = ''.join(filter(str.isdigit, cpf))
-            query = query.filter(Aluno.cpf == cpf_limpo)
-        
-        alunos = query.limit(20).all()
-        
-        resultado = []
-        for aluno in alunos:
-            aluno_dict = {
-                'id': aluno.id,
-                'nome': aluno.nome,
-                'matricula': aluno.matricula,
-                'cpf': aluno.cpf,  # Adicionar CPF na resposta
-                'foto': aluno.foto,
-                'foto_url': aluno.foto_url
-            }
-            resultado.append(aluno_dict)
-        
-        return jsonify(resultado), 200
-        
-    except Exception as e:
-        return jsonify({'erro': 'Erro ao buscar alunos', 'detalhes': str(e)}), 500
-
 
 
 # -------------------------
@@ -854,29 +817,42 @@ def buscar_alunos():
 # -------------------------
 @aluno_bp.route("/buscar", methods=["GET"])
 def buscar_aluno():
-    cpf_raw = request.args.get("cpf")
-    nome_raw = (request.args.get("nome") or "").strip()
+    """
+    Endpoint único de busca. (remove duplicidade que causava 500)
+    - /alunos/buscar?cpf=xxxxxxxxxxx
+    - /alunos/buscar?nome=fulano
+    """
+    try:
+        cpf_raw = request.args.get("cpf")
+        nome_raw = (request.args.get("nome") or "").strip()
 
-    # 1) Por CPF (prioridade)
-    if cpf_raw:
-        cpf = only_digits(cpf_raw)
-        if not cpf or len(cpf) != 11:
-            return jsonify({"erro": "Informe o CPF com 11 dígitos"}), 400
+        # 1) Por CPF (prioridade)
+        if cpf_raw:
+            cpf = only_digits(cpf_raw)
+            if not cpf or len(cpf) != 11:
+                return jsonify({"erro": "Informe o CPF com 11 dígitos"}), 400
 
-        a = Aluno.query.filter_by(cpf=cpf).first()
-        if not a:
-            return jsonify([]), 200
+            a = Aluno.query.filter_by(cpf=cpf).first()
+            if not a:
+                return jsonify([]), 200
 
-        return jsonify([_json_aluno(a)]), 200
+            return jsonify([_json_aluno(a)]), 200
 
-    # 2) Fallback por nome (incluindo nome_social)
-    if nome_raw:
-        q = Aluno.query.filter(
-            (Aluno.nome_completo.ilike(f"%{nome_raw}%")) |
-            (Aluno.nome.ilike(f"%{nome_raw}%")) |
-            (Aluno.sobrenome.ilike(f"%{nome_raw}%")) |
-            (Aluno.nome_social.ilike(f"%{nome_raw}%"))
-        ).limit(50).all()
-        return jsonify([_json_aluno(a) for a in q]), 200
+        # 2) Por nome (fallback)
+        if nome_raw:
+            filters = [
+                Aluno.nome_completo.ilike(f"%{nome_raw}%"),
+                Aluno.nome.ilike(f"%{nome_raw}%"),
+                Aluno.sobrenome.ilike(f"%{nome_raw}%"),
+            ]
+            if hasattr(Aluno, "nome_social"):
+                filters.append(Aluno.nome_social.ilike(f"%{nome_raw}%"))
 
-    return jsonify({"erro": "Informe cpf=... (11 dígitos) ou nome=..."}), 400
+            q = Aluno.query.filter(or_(*filters)).limit(50).all()
+            return jsonify([_json_aluno(a) for a in q]), 200
+
+        return jsonify({"erro": "Informe cpf=... (11 dígitos) ou nome=..."}), 400
+
+    except Exception as e:
+        current_app.logger.exception("Erro no endpoint /alunos/buscar")
+        return jsonify({"erro": "Erro ao buscar alunos", "detalhes": str(e)}), 500

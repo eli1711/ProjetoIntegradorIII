@@ -1,51 +1,63 @@
 from flask import Blueprint, jsonify
-from flask_jwt_extended import jwt_required
-from app.services.permission_service import PermissionService, get_current_user
+from flask_jwt_extended import verify_jwt_in_request, get_jwt_identity
+from app.models import Usuario
+from app.services.permission_service import PermissionService
 
-permission_bp = Blueprint('permission', __name__)
 
-@permission_bp.route('/check_permission/<pagina>', methods=['GET'])
-@jwt_required()
-def check_permission(pagina):
-    """Verifica se usuário tem permissão para acessar uma página específica"""
+permission_bp = Blueprint("permission_bp", __name__)
+
+
+def _get_user_from_jwt():
+    verify_jwt_in_request()
+    ident = get_jwt_identity()
+
+    if isinstance(ident, dict):
+        user_id = ident.get("id") or ident.get("user_id")
+    else:
+        user_id = ident
+
+    if not user_id:
+        return None
+
     try:
-        user = get_current_user()
-        
-        if not user:
-            return jsonify({'error': 'Usuário não encontrado ou token inválido'}), 404
-        
-        has_access = PermissionService.has_permission(user.cargo, pagina)
-        
-        return jsonify({
-            'has_permission': has_access,
-            'cargo': user.cargo,
-            'pagina': pagina,
-            'user_id': user.id
-        }), 200
-        
-    except Exception as e:
-        print(f"❌ Erro ao verificar permissão: {e}")
-        return jsonify({'error': 'Erro ao verificar permissão'}), 500
+        user_id = int(user_id)
+    except (TypeError, ValueError):
+        return None
 
-@permission_bp.route('/user_permissions', methods=['GET'])
-@jwt_required()
-def get_user_permissions():
-    """Retorna todas as permissões do usuário atual"""
-    try:
-        user = get_current_user()
-        
-        if not user:
-            return jsonify({'error': 'Usuário não encontrado ou token inválido'}), 404
-        
-        permissions = PermissionService.get_user_permissions(user.cargo)
-        
+    return Usuario.query.get(user_id)
+
+
+@permission_bp.get("/user_permissions")
+def user_permissions():
+    user = _get_user_from_jwt()
+    if not user:
+        return jsonify({"error": "Usuário não encontrado"}), 404
+
+    perms = PermissionService.get_user_permissions(user.cargo)
+    return jsonify({
+        "user_id": user.id,
+        "cargo": user.cargo,
+        "permissions": perms
+    }), 200
+
+
+@permission_bp.get("/check_permission/<string:pagina>")
+def check_permission(pagina: str):
+    user = _get_user_from_jwt()
+    if not user:
+        return jsonify({"error": "Usuário não encontrado"}), 404
+
+    has_perm = PermissionService.has_permission(user.cargo, pagina)
+
+    if not has_perm:
         return jsonify({
-            'cargo': user.cargo,
-            'permissions': permissions,
-            'user_id': user.id,
-            'nome': user.nome
-        }), 200
-        
-    except Exception as e:
-        print(f"❌ Erro ao buscar permissões: {e}")
-        return jsonify({'error': 'Erro ao buscar permissões'}), 500
+            "has_permission": False,
+            "pagina": pagina,
+            "cargo": user.cargo
+        }), 403
+
+    return jsonify({
+        "has_permission": True,
+        "pagina": pagina,
+        "cargo": user.cargo
+    }), 200
