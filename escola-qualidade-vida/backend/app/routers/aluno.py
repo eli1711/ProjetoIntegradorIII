@@ -810,6 +810,43 @@ def trocar_foto(aluno_id: int):
         db.session.rollback()
         current_app.logger.exception("Erro ao trocar foto do aluno")
         return jsonify({"erro": "Falha ao atualizar foto.", "detalhes": str(e)}), 500
+#verificar
+@aluno_bp.route('/buscar', methods=['GET'])
+def buscar_alunos():
+    """Busca alunos por nome ou CPF"""
+    nome = request.args.get('nome')
+    cpf = request.args.get('cpf')
+    
+    try:
+        query = Aluno.query
+        
+        if nome:
+            query = query.filter(Aluno.nome.ilike(f'%{nome}%'))
+        
+        if cpf:
+            # Remove formatação do CPF para busca
+            cpf_limpo = ''.join(filter(str.isdigit, cpf))
+            query = query.filter(Aluno.cpf == cpf_limpo)
+        
+        alunos = query.limit(20).all()
+        
+        resultado = []
+        for aluno in alunos:
+            aluno_dict = {
+                'id': aluno.id,
+                'nome': aluno.nome,
+                'matricula': aluno.matricula,
+                'cpf': aluno.cpf,  # Adicionar CPF na resposta
+                'foto': aluno.foto,
+                'foto_url': aluno.foto_url
+            }
+            resultado.append(aluno_dict)
+        
+        return jsonify(resultado), 200
+        
+    except Exception as e:
+        return jsonify({'erro': 'Erro ao buscar alunos', 'detalhes': str(e)}), 500
+
 
 
 # -------------------------

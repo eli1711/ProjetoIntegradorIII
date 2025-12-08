@@ -5,7 +5,7 @@ document.addEventListener("DOMContentLoaded", function() {
   });
 
   // Variáveis globais
-  const buscarInput = document.getElementById("buscar_nome");
+  const buscarCpf = document.getElementById("buscar_cpf");
   const sugestoesUl = document.getElementById("sugestoes");
   const alunoSelecionadoDiv = document.getElementById("aluno_selecionado");
   const nomeExibido = document.getElementById("nome_exibido");
@@ -51,25 +51,32 @@ document.addEventListener("DOMContentLoaded", function() {
     }, 5000);
   }
 
-  // 🔍 Busca alunos conforme o usuário digita
-  buscarInput.addEventListener("input", async () => {
-    const nome = buscarInput.value.trim();
+  // Função para formatar CPF
+  function formatarCPF(cpf) {
+    if (!cpf) return '';
+    cpf = cpf.replace(/\D/g, '');
+    return cpf.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4');
+  }
+
+  // 🔍 Busca alunos por CPF conforme o usuário digita
+  buscarCpf.addEventListener("input", async () => {
+    const cpf = buscarCpf.value.trim().replace(/\D/g, '');
     sugestoesUl.innerHTML = "";
     
-    if (nome.length < 2) {
+    if (cpf.length !== 11) {
       sugestoesUl.style.display = "none";
       return;
     }
 
     try {
-      const response = await fetch(`http://localhost:5000/alunos/buscar?nome=${encodeURIComponent(nome)}`);
+      const response = await fetch(`http://localhost:5000/alunos/buscar?cpf=${cpf}`);
       const data = await response.json();
 
       if (response.ok && Array.isArray(data) && data.length > 0) {
         sugestoesUl.style.display = "block";
         data.forEach(aluno => {
           const li = document.createElement("li");
-          li.textContent = `${aluno.nome} (Matrícula: ${aluno.matricula || 'N/A'})`;
+          li.textContent = `${aluno.nome} (CPF: ${formatarCPF(aluno.cpf)})`;
           li.style.cursor = "pointer";
           li.style.padding = "10px 15px";
           li.style.borderBottom = "1px solid #eee";
@@ -99,7 +106,7 @@ document.addEventListener("DOMContentLoaded", function() {
   function selecionarAluno(aluno) {
     alunoSelecionadoDiv.style.display = "flex";
     nomeExibido.textContent = aluno.nome;
-    matriculaExibida.textContent = `Matrícula: ${aluno.matricula || 'N/A'}`;
+    matriculaExibida.textContent = `CPF: ${formatarCPF(aluno.cpf)}`;
     alunoIdInput.value = aluno.id;
 
     // Monta URL da foto
@@ -113,7 +120,7 @@ document.addEventListener("DOMContentLoaded", function() {
 
     sugestoesUl.innerHTML = "";
     sugestoesUl.style.display = "none";
-    buscarInput.value = aluno.nome;
+    buscarCpf.value = formatarCPF(aluno.cpf);
   }
 
   // 📤 Envio do formulário de ocorrência
@@ -123,7 +130,7 @@ document.addEventListener("DOMContentLoaded", function() {
     // Validação básica: precisa ter aluno escolhido
     if (!alunoIdInput.value) {
       mostrarAlerta("Selecione um aluno antes de cadastrar a ocorrência.", "erro");
-      buscarInput.focus();
+      buscarCpf.focus();
       return;
     }
 
@@ -163,7 +170,7 @@ document.addEventListener("DOMContentLoaded", function() {
         form.reset();
         alunoSelecionadoDiv.style.display = "none";
         alunoIdInput.value = "";
-        buscarInput.value = "";
+        buscarCpf.value = "";
         fotoExibida.src = "";
         nomeExibido.textContent = "";
         matriculaExibida.textContent = "";
