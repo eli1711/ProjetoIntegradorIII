@@ -13,9 +13,9 @@
       href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;500;600;700&family=Poppins:wght@300;400;500;600&display=swap"
       rel="stylesheet"
     />
-    >
     <script src="js/navbar-protection.js"></script>
   </head>
+
   <body>
     <header>
       <div class="header-content">
@@ -31,108 +31,70 @@
 
           <ul id="navMenu">
             <li>
-              <a href="./principal.html" class="active"
-                ><i class="fas fa-home"></i> Home</a
-              >
+              <a href="./principal.html" class="active"><i class="fas fa-home"></i> Home</a>
             </li>
 
             <li class="dropdown">
-              <a href="#"
-                ><i class="fas fa-user-graduate"></i> Alunos
-                <i class="fas fa-chevron-down"></i
-              ></a>
+              <a href="#"><i class="fas fa-user-graduate"></i> Alunos <i class="fas fa-chevron-down"></i></a>
               <div class="dropdown-content">
-                <a href="./cadastroAluno.html"
-                  ><i class="fas fa-user-plus"></i> Cadastrar Aluno</a
-                >
-                <a href="./consultaAluno.html"
-                  ><i class="fas fa-search"></i> Consultar Alunos</a
-                >
-                <a href="./importar_alunos.html"
-                  ><i class="fas fa-file-csv"></i> Importar CSV</a
-                >
+                <a href="./cadastroAluno.html"><i class="fas fa-user-plus"></i> Cadastrar Aluno</a>
+                <a href="./consultaAluno.html"><i class="fas fa-search"></i> Consultar Alunos</a>
+                <a href="./importar_alunos.html"><i class="fas fa-file-csv"></i> Importar CSV</a>
               </div>
             </li>
 
-            <li>
-              <a href="./turmas.html"
-                ><i class="fas fa-chalkboard"></i> Turmas</a
-              >
-            </li>
-
-            <li>
-              <a href="./ocorrencias.html"
-                ><i class="fas fa-exclamation-triangle"></i> Ocorrências</a
-              >
-            </li>
-
-            <li>
-              <a href="./dashboard.html">
-                <i class="fas fa-history"></i> Dashboard</a>
-            </li>
-
-            <li>
-              <a href="./criar_usuario.html"
-                ><i class="fas fa-user-cog"></i> Usuários</a
-              >
-            </li>
+            <li><a href="./turmas.html"><i class="fas fa-chalkboard"></i> Turmas</a></li>
+            <li><a href="./ocorrencias.html"><i class="fas fa-exclamation-triangle"></i> Ocorrências</a></li>
+            <li><a href="./dashboard.html"><i class="fas fa-history"></i> Dashboard</a></li>
+            <li><a href="./criar_usuario.html"><i class="fas fa-user-cog"></i> Usuários</a></li>
           </ul>
         </nav>
       </div>
     </header>
+
     <div class="container">
       <!-- FORM CRIAR TURMA -->
       <div class="form-container">
         <div class="form-header">
           <h2><i class="fas fa-users"></i> Criar Turma</h2>
         </div>
-        <div class="form-content">
-          <div id="alerta"></div>
 
-          <form
-            id="formTurma"
-            method="POST"
-            action="http://localhost:5000/turmas/"
-          >
+        <div class="form-content">
+          <div id="alerta" style="display:none;margin-bottom:12px;"></div>
+
+          <form id="formTurma">
             <div class="form-grid">
               <div>
-                <label for="nome">Nome da Turma</label>
+                <label for="nome">Nome da Turma *</label>
                 <input type="text" id="nome" name="nome" required />
               </div>
 
               <div>
-                <label for="semestre">Semestre</label>
-                <select id="semestre" name="semestre" required>
-                  <option value="">Selecione</option>
+                <label for="curso_id">Curso *</label>
+                <select id="curso_id" name="curso_id" required>
+                  <option value="">Carregando...</option>
+                </select>
+              </div>
+
+              <!-- ✅ Agora opcionais -->
+              <div>
+                <label for="semestre">Semestre (opcional)</label>
+                <select id="semestre" name="semestre">
+                  <option value="">Automático</option>
                   <option value="1">1º semestre</option>
                   <option value="2">2º semestre</option>
                 </select>
               </div>
 
               <div>
-                <label for="curso_id">Curso</label>
-                <select id="curso_id" name="curso_id" required>
-                  <option value="">Carregando...</option>
-                </select>
+                <label for="data_inicio">Data de Início (opcional)</label>
+                <input type="date" id="data_inicio" name="data_inicio" />
               </div>
 
               <div>
-                <label for="data_inicio">Data de Início</label>
-                <input
-                  type="date"
-                  id="data_inicio"
-                  name="data_inicio"
-                  required
-                />
-              </div>
-
-              <div>
-                <label for="data_fim"
-                  >Data de Término
-                  <span class="note"
-                    >(preencher apenas ao encerrar o semestre)</span
-                  ></label
-                >
+                <label for="data_fim">
+                  Data de Término <span class="note">(opcional)</span>
+                </label>
                 <input type="date" id="data_fim" name="data_fim" disabled />
               </div>
             </div>
@@ -145,8 +107,8 @@
           </form>
 
           <p class="note" style="margin-top: 1rem">
-            Dica: deixe a <b>Data de Término</b> vazia durante o semestre. Ao
-            final, use o botão <b>Finalizar</b> na lista de turmas abaixo.
+            As turmas criadas automaticamente no cadastro/importação de alunos
+            também aparecem nesta lista.
           </p>
         </div>
       </div>
@@ -162,6 +124,7 @@
                 <option value="">Todos</option>
               </select>
             </div>
+
             <div>
               <label for="filtroStatus">Status</label>
               <select id="filtroStatus">
@@ -170,12 +133,13 @@
                 <option value="finalizadas">Finalizadas</option>
               </select>
             </div>
-            <button class="btn-sm btn-outline" id="btnRecarregar">
+
+            <button class="btn-sm btn-outline" id="btnRecarregar" type="button">
               <i class="fas fa-rotate-right"></i> Recarregar
             </button>
           </div>
 
-          <div style="overflow-x: auto">
+          <div style="overflow-x:auto">
             <table>
               <thead>
                 <tr>
@@ -186,13 +150,11 @@
                   <th>Início</th>
                   <th>Término</th>
                   <th>Status</th>
-                  <th style="width: 220px">Ações</th>
+                  <th style="width:220px">Ações</th>
                 </tr>
               </thead>
               <tbody id="tbodyTurmas">
-                <tr>
-                  <td colspan="8">Carregando...</td>
-                </tr>
+                <tr><td colspan="8">Carregando...</td></tr>
               </tbody>
             </table>
           </div>
@@ -201,10 +163,12 @@
     </div>
 
     <script>
+      const API = "http://localhost:5000";
+
       const alertaDiv = document.getElementById("alerta");
       const dataFim = document.getElementById("data_fim");
 
-      // Habilita o campo data_fim somente se o usuário clicar duas vezes (proteção simples)
+      // proteção simples para habilitar data_fim
       let enableClicks = 0;
       dataFim.addEventListener("click", () => {
         enableClicks++;
@@ -213,81 +177,71 @@
 
       function showAlert(tipo, msg) {
         alertaDiv.style.display = "block";
-        alertaDiv.className =
-          tipo === "success" ? "alert-success" : "alert-error";
+        alertaDiv.className = tipo === "success" ? "alert-success" : "alert-error";
         alertaDiv.textContent = msg;
         setTimeout(() => (alertaDiv.style.display = "none"), 5000);
       }
 
-      // -------- Carregar CURSOS (para form e filtros) --------
+      // -------- Cursos (form e filtro) --------
       async function loadCursos(selecionarIdAposCriar = null) {
         const selCriar = document.getElementById("curso_id");
         const selFiltro = document.getElementById("filtroCurso");
+
         try {
-          const res = await fetch("http://localhost:5000/cursos/");
+          const res = await fetch(`${API}/cursos/`);
           const data = await res.json();
 
-          // Select do formulário
           selCriar.innerHTML = '<option value="">Selecione</option>';
           (data || []).forEach((c) => {
             selCriar.innerHTML += `<option value="${c.id}">${c.nome}</option>`;
           });
-          // opção especial para criar um novo curso
           selCriar.innerHTML += `<option value="__novo__">+ Novo curso…</option>`;
 
-          // Select do filtro
           selFiltro.innerHTML = '<option value="">Todos</option>';
           (data || []).forEach((c) => {
             selFiltro.innerHTML += `<option value="${c.id}">${c.nome}</option>`;
           });
 
-          // se acabamos de criar um curso, seleciona-o
-          if (selecionarIdAposCriar) {
-            selCriar.value = String(selecionarIdAposCriar);
-          }
+          if (selecionarIdAposCriar) selCriar.value = String(selecionarIdAposCriar);
         } catch (e) {
           selCriar.innerHTML = '<option value="">Erro ao carregar</option>';
           console.error(e);
         }
       }
 
-      // Detecta escolha "+ Novo curso…"
-      document
-        .getElementById("curso_id")
-        .addEventListener("change", async (e) => {
-          if (e.target.value === "__novo__") {
-            const nome = prompt("Nome do novo curso:");
-            if (!nome || !nome.trim()) {
-              e.target.value = "";
-              return;
-            }
-            try {
-              const novoId = await criarCursoNoServidor(nome.trim());
-              showAlert("success", "Curso criado com sucesso!");
-              await loadCursos(novoId);
-            } catch (errMsg) {
-              showAlert("error", errMsg || "Não foi possível criar o curso.");
-              e.target.value = "";
-            }
+      document.getElementById("curso_id").addEventListener("change", async (e) => {
+        if (e.target.value === "__novo__") {
+          const nome = prompt("Nome do novo curso:");
+          if (!nome || !nome.trim()) {
+            e.target.value = "";
+            return;
           }
-        });
+          try {
+            const novoId = await criarCursoNoServidor(nome.trim());
+            showAlert("success", "Curso criado com sucesso!");
+            await loadCursos(novoId);
+          } catch (errMsg) {
+            showAlert("error", errMsg || "Não foi possível criar o curso.");
+            e.target.value = "";
+          }
+        }
+      });
 
       async function criarCursoNoServidor(nome) {
-        const res = await fetch("http://localhost:5000/cursos/", {
+        const res = await fetch(`${API}/cursos/`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ nome }),
         });
         const data = await res.json().catch(() => ({}));
         if (!res.ok) {
-          // Se backend devolver 409 com id existente, aproveita para selecioná-lo
           if (res.status === 409 && data.id) return data.id;
           throw data.erro || data.message || "Erro ao criar curso";
         }
-        return data.id; // espera { id, nome, ... }
+        return data.id;
       }
 
-      // -------- Listagem / Finalização --------
+      // -------- Listagem --------
       const tbody = document.getElementById("tbodyTurmas");
       const filtroCurso = document.getElementById("filtroCurso");
       const filtroStatus = document.getElementById("filtroStatus");
@@ -295,14 +249,13 @@
 
       async function loadTurmas() {
         tbody.innerHTML = `<tr><td colspan="8">Carregando...</td></tr>`;
+
         const params = new URLSearchParams();
-        if (filtroStatus.value) params.set("status", filtroStatus.value); // todas | ativas | finalizadas
+        if (filtroStatus.value) params.set("status", filtroStatus.value);
         if (filtroCurso.value) params.set("curso_id", filtroCurso.value);
 
         try {
-          const res = await fetch(
-            `http://localhost:5000/turmas/?${params.toString()}`
-          );
+          const res = await fetch(`${API}/turmas/?${params.toString()}`);
           const data = await res.json();
 
           if (!Array.isArray(data) || data.length === 0) {
@@ -314,36 +267,36 @@
           data.forEach((t) => {
             const tr = document.createElement("tr");
             tr.innerHTML = `
-            <td>${t.id}</td>
-            <td>${t.nome}</td>
-            <td>${t.curso_nome ?? "-"}</td>
-            <td>${t.semestre}</td>
-            <td>${t.data_inicio ?? "-"}</td>
-            <td>${t.data_fim ?? "-"}</td>
-            <td>
-              ${
-                t.ativa
-                  ? '<span class="pill pill-green">Ativa</span>'
-                  : '<span class="pill pill-gray">Finalizada</span>'
-              }
-            </td>
-            <td>
-              <div class="tools">
-                <button class="btn-sm btn-outline" onclick="copiarId(${t.id})">
-                  <i class="fa-regular fa-copy"></i> ID
-                </button>
+              <td>${t.id}</td>
+              <td>${t.nome}</td>
+              <td>${t.curso_nome ?? "-"}</td>
+              <td>${t.semestre ?? "-"}</td>
+              <td>${t.data_inicio ?? "-"}</td>
+              <td>${t.data_fim ?? "-"}</td>
+              <td>
                 ${
                   t.ativa
-                    ? `
-                  <button class="btn-sm btn-danger" onclick="finalizarTurma(${t.id})">
-                    <i class="fa-solid fa-flag-checkered"></i> Finalizar
-                  </button>
-                `
-                    : ""
+                    ? '<span class="pill pill-green">Ativa</span>'
+                    : '<span class="pill pill-gray">Finalizada</span>'
                 }
-              </div>
-            </td>
-          `;
+              </td>
+              <td>
+                <div class="tools">
+                  <button class="btn-sm btn-outline" type="button" onclick="copiarId(${t.id})">
+                    <i class="fa-regular fa-copy"></i> ID
+                  </button>
+                  ${
+                    t.ativa
+                      ? `
+                        <button class="btn-sm btn-danger" type="button" onclick="finalizarTurma(${t.id})">
+                          <i class="fa-solid fa-flag-checkered"></i> Finalizar
+                        </button>
+                      `
+                      : ""
+                  }
+                </div>
+              </td>
+            `;
             tbody.appendChild(tr);
           });
         } catch (e) {
@@ -353,22 +306,16 @@
       }
 
       async function finalizarTurma(id) {
-        if (
-          !confirm(
-            "Deseja finalizar esta turma? A data de término será hoje (você pode editar depois)."
-          )
-        )
-          return;
+        if (!confirm("Deseja finalizar esta turma? A data de término será hoje.")) return;
+
         try {
-          const res = await fetch(
-            `http://localhost:5000/turmas/${id}/finalizar`,
-            {
-              method: "PATCH",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({}), // usa data de hoje
-            }
-          );
-          const data = await res.json();
+          const res = await fetch(`${API}/turmas/${id}/finalizar`, {
+            method: "PATCH",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({}),
+          });
+          const data = await res.json().catch(() => ({}));
+
           if (res.ok) {
             showAlert("success", data.mensagem || "Turma finalizada!");
             filtroStatus.value = "todas";
@@ -386,14 +333,57 @@
         showAlert("success", `ID ${id} copiado!`);
       }
 
-      btnRecarregar.addEventListener("click", (e) => {
+      // -------- Criar turma --------
+      const formTurma = document.getElementById("formTurma");
+
+      formTurma.addEventListener("submit", async (e) => {
         e.preventDefault();
-        loadTurmas();
+
+        const nome = document.getElementById("nome").value.trim();
+        const curso_id = document.getElementById("curso_id").value;
+        const semestre = document.getElementById("semestre").value;
+        const data_inicio = document.getElementById("data_inicio").value;
+        const data_fim = document.getElementById("data_fim").disabled ? "" : document.getElementById("data_fim").value;
+
+        if (!nome) return showAlert("error", "Informe o nome da turma.");
+        if (!curso_id) return showAlert("error", "Selecione o curso.");
+
+        const payload = { nome, curso_id };
+        if (semestre) payload.semestre = semestre;
+        if (data_inicio) payload.data_inicio = data_inicio;
+        if (data_fim) payload.data_fim = data_fim;
+
+        try {
+          const res = await fetch(`${API}/turmas/`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(payload),
+          });
+
+          const data = await res.json().catch(() => ({}));
+          if (!res.ok) {
+            showAlert("error", data.erro || "Erro ao criar turma");
+            return;
+          }
+
+          showAlert("success", data.mensagem || "Turma criada!");
+          formTurma.reset();
+          enableClicks = 0;
+          document.getElementById("data_fim").disabled = true;
+
+          await loadTurmas();
+        } catch (e) {
+          console.error(e);
+          showAlert("error", "Falha ao comunicar com o servidor.");
+        }
       });
+
+      // filtros
+      btnRecarregar.addEventListener("click", loadTurmas);
       filtroCurso.addEventListener("change", loadTurmas);
       filtroStatus.addEventListener("change", loadTurmas);
 
-      // Init (mostra TODAS por padrão)
+      // init
       filtroStatus.value = "todas";
       loadCursos().then(loadTurmas);
     </script>

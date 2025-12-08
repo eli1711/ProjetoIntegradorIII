@@ -62,7 +62,6 @@
     const resultadoDiv = document.getElementById("resultadoConsulta");
     const btn = document.getElementById("consultarButton");
 
-    // -------- helpers ----------
     function safe(v, fb = "Não informado") {
       return (v === null || v === undefined || v === "") ? fb : v;
     }
@@ -80,7 +79,7 @@
     }
 
     function getToken() {
-      return localStorage.getItem("access_token");
+      return localStorage.getItem("access_token"); // se não tiver auth, pode deixar vazio
     }
 
     function logoutAndRedirect() {
@@ -98,12 +97,12 @@
       const headers = new Headers(options.headers || {});
       const isFormData = options.body instanceof FormData;
 
+      // só seta JSON quando NÃO é FormData
       if (!isFormData && !headers.has("Content-Type")) {
         headers.set("Content-Type", "application/json");
       }
-      if (token) {
-        headers.set("Authorization", `Bearer ${token}`);
-      }
+
+      if (token) headers.set("Authorization", `Bearer ${token}`);
 
       let res;
       try {
@@ -133,14 +132,12 @@
       return await res.json();
     }
 
-    // --------- selects ----------
     async function loadCursosSelect(selectEl, selected) {
       try {
         const res = await apiFetch("/cursos/", { method: "GET" });
         const data = await safeJson(res);
 
         if (!res.ok) {
-          console.warn("Falha ao carregar cursos:", res.status, data);
           selectEl.innerHTML = '<option value="">Erro ao carregar</option>';
           return;
         }
@@ -169,7 +166,6 @@
         const data = await safeJson(res);
 
         if (!res.ok) {
-          console.warn("Falha ao carregar turmas:", res.status, data);
           selectEl.innerHTML = '<option value="">Erro ao carregar</option>';
           return;
         }
@@ -193,7 +189,6 @@
       }
     }
 
-    // --------- buscar ----------
     btn.addEventListener("click", async () => {
       const cpfInput = document.getElementById("alunoCpf").value.trim();
       const cpfDigits = digitsOnly(cpfInput);
@@ -215,7 +210,6 @@
         resultadoDiv.innerHTML = "";
 
         if (!response.ok) {
-          console.error("❌ Erro do backend:", response.status, data);
           alert(data?.erro || "Falha ao buscar aluno.");
           resultadoDiv.innerHTML = "<p style='color:red;'>Erro ao consultar alunos.</p>";
           return;
@@ -253,7 +247,7 @@
           <p><strong>Matrícula:</strong> ${safe(aluno.matricula)}</p>
           <p><strong>CPF:</strong> ${safe(aluno.cpf)}</p>
 
-          <p><strong>Nome social:</strong> <span class="v-nome-social">${safe(aluno.nome_social, "Não informado")}</span></p>
+          <p><strong>Nome Social:</strong> <span class="v-nome-social">${safe(aluno.nome_social, "Não informado")}</span></p>
 
           <p><strong>Curso:</strong> <span class="v-curso">${safe(aluno.curso)}</span></p>
           <p><strong>Turma:</strong> <span class="v-turma">${safe(turmaRotulo)}</span></p>
@@ -284,9 +278,8 @@
               </div>
 
               <div style="grid-column:1/-1">
-                <label>Nome social</label>
-                <input name="nome_social" value="${aluno.nome_social || ''}" placeholder="Digite o nome social (opcional)">
-                <div class="muted">Se deixar vazio, o backend pode limpar o nome social (dependendo da regra).</div>
+                <label>Nome Social</label>
+                <input name="nome_social" value="${aluno.nome_social || ''}" placeholder="Ex.: Nome social do aluno">
               </div>
 
               <div>
@@ -349,6 +342,7 @@
                 <label>Empresa Contratante</label>
                 <input name="empresa_contratante" value="${aluno.empresa_contratante || ''}">
               </div>
+
               <div>
                 <label>Mora com quem</label>
                 <input name="mora_com_quem" value="${aluno.mora_com_quem || ''}">
@@ -378,15 +372,6 @@
               <button type="button" class="btn btn-cancel">Cancelar</button>
             </div>
           </form>
-
-          <details>
-            <summary><strong>Ocorrências (${aluno.ocorrencias?.length || 0})</strong></summary>
-            ${
-              aluno.ocorrencias && aluno.ocorrencias.length
-                ? aluno.ocorrencias.map(oc => `<p>📅 ${safe(oc.data_ocorrencia)} — <strong>${safe(oc.tipo)}</strong>: ${safe(oc.descricao)}</p>`).join("")
-                : "<p>Sem ocorrências registradas.</p>"
-            }
-          </details>
         </div>
       `;
 
@@ -399,12 +384,9 @@
       const selectCurso = card.querySelector(".f-curso");
       const selectTurma = card.querySelector(".f-turma");
 
-      // selects
       loadCursosSelect(selectCurso, aluno.curso_id || "");
       selectCurso.addEventListener("change", () => loadTurmasSelect(selectTurma, selectCurso.value, ""));
-      if (aluno.curso_id) {
-        loadTurmasSelect(selectTurma, aluno.curso_id, aluno.turma_id || "");
-      }
+      if (aluno.curso_id) loadTurmasSelect(selectTurma, aluno.curso_id, aluno.turma_id || "");
 
       editBtn.addEventListener("click", () => {
         formEl.style.display = (formEl.style.display === "none" || formEl.style.display === "") ? "block" : "none";
@@ -417,7 +399,7 @@
 
       saveBtn.addEventListener("click", async () => {
         try {
-          // 1) Trocar foto (se existir)
+          // 1) Trocar foto
           const fileInput = formEl.querySelector('input[name="foto"]');
           if (fileInput.files && fileInput.files[0]) {
             const fd = new FormData();
@@ -432,7 +414,6 @@
             }
 
             const newUrl = `${upData.foto_url}?t=${Date.now()}`;
-
             if (fotoEl.tagName.toLowerCase() === "img") {
               fotoEl.src = newUrl;
             } else {
@@ -447,7 +428,7 @@
             }
           }
 
-          // 2) PATCH dos campos (incluindo nome_social)
+          // 2) PATCH dos campos (inclui nome_social)
           const payload = Object.fromEntries(new FormData(formEl).entries());
           delete payload.foto;
 
@@ -455,13 +436,8 @@
             payload.pessoa_com_deficiencia = String(payload.pessoa_com_deficiencia) === "true";
           }
 
-          // Se quiser permitir "limpar" nome_social, NÃO delete quando for ""
-          // Se quiser impedir limpar, descomente a linha abaixo:
-          // if (payload.nome_social === "") delete payload.nome_social;
-
           Object.keys(payload).forEach((k) => {
-            // mantém nome_social mesmo vazio caso você queira limpar no backend
-            if (k !== "nome_social" && payload[k] === "") delete payload[k];
+            if (payload[k] === "") delete payload[k];
           });
 
           const resp = await apiFetch(`/alunos/${aluno.id}`, {
@@ -475,7 +451,7 @@
             return;
           }
 
-          // Atualiza visual
+          card.querySelector(".v-nome-social").textContent = safe(dataUpd.nome_social, "Não informado");
           card.querySelector(".v-cidade").textContent = safe(dataUpd.cidade);
           card.querySelector(".v-bairro").textContent = safe(dataUpd.bairro);
           card.querySelector(".v-rua").textContent = safe(dataUpd.rua);
@@ -488,10 +464,8 @@
           card.querySelector(".v-mora").textContent = safe(dataUpd.mora_com_quem);
           card.querySelector(".v-sobre").textContent = safe(dataUpd.sobre_aluno);
           card.querySelector(".v-pcd").textContent = boolLabel(dataUpd.pessoa_com_deficiencia);
+          card.querySelector(".v-outras").textContent = safe(dataUpd.outras_informacoes);
           card.querySelector(".v-curso").textContent = safe(dataUpd.curso);
-
-          // ✅ nome_social atualizado no card
-          card.querySelector(".v-nome-social").textContent = safe(dataUpd.nome_social, "Não informado");
 
           const rot = dataUpd.turma_nome
             ? `${dataUpd.turma_nome}${dataUpd.turma_semestre ? ` (Sem ${dataUpd.turma_semestre})` : ""}`

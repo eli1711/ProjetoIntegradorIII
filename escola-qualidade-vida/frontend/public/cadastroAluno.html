@@ -5,17 +5,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Cadastro de Aluno</title>
     <link rel="stylesheet" href="css/cadastroAluno.css" />
-    <link
-      rel="stylesheet"
-      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
-    />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
     <script src="js/navbar-protection.js"></script>
-    <link
-      href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;500;600;700&family=Poppins:wght@300;400;500;600&display=swap"
-      rel="stylesheet"
-    />
-    <script src="js/navbar-protection.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;500;600;700&family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet" />
   </head>
+
   <body>
     <header>
       <div class="header-content">
@@ -31,52 +25,22 @@
 
           <ul id="navMenu">
             <li>
-              <a href="./principal.html" class="active"
-                ><i class="fas fa-home"></i> Home</a
-              >
+              <a href="./principal.html" class="active"><i class="fas fa-home"></i> Home</a>
             </li>
 
             <li class="dropdown">
-              <a href="#"
-                ><i class="fas fa-user-graduate"></i> Alunos
-                <i class="fas fa-chevron-down"></i
-              ></a>
+              <a href="#"><i class="fas fa-user-graduate"></i> Alunos <i class="fas fa-chevron-down"></i></a>
               <div class="dropdown-content">
-                <a href="./cadastroAluno.html"
-                  ><i class="fas fa-user-plus"></i> Cadastrar Aluno</a
-                >
-                <a href="./consultaAluno.html"
-                  ><i class="fas fa-search"></i> Consultar Alunos</a
-                >
-                <a href="./importar_alunos.html"
-                  ><i class="fas fa-file-csv"></i> Importar CSV</a
-                >
+                <a href="./cadastroAluno.html"><i class="fas fa-user-plus"></i> Cadastrar Aluno</a>
+                <a href="./consultaAluno.html"><i class="fas fa-search"></i> Consultar Alunos</a>
+                <a href="./importar_alunos.html"><i class="fas fa-file-csv"></i> Importar CSV</a>
               </div>
             </li>
 
-            <li>
-              <a href="./turmas.html"
-                ><i class="fas fa-chalkboard"></i> Turmas</a
-              >
-            </li>
-
-            <li>
-              <a href="./ocorrencias.html"
-                ><i class="fas fa-exclamation-triangle"></i> Ocorrências</a
-              >
-            </li>
-
-            <li>
-              <a href="./dashboard.html">
-                <i class="fas fa-history"></i> Dashboard</a
-              >
-            </li>
-
-            <li>
-              <a href="./criar_usuario.html"
-                ><i class="fas fa-user-cog"></i> Usuários</a
-              >
-            </li>
+            <li><a href="./turmas.html"><i class="fas fa-chalkboard"></i> Turmas</a></li>
+            <li><a href="./ocorrencias.html"><i class="fas fa-exclamation-triangle"></i> Ocorrências</a></li>
+            <li><a href="./dashboard.html"><i class="fas fa-history"></i> Dashboard</a></li>
+            <li><a href="./criar_usuario.html"><i class="fas fa-user-cog"></i> Usuários</a></li>
           </ul>
         </nav>
       </div>
@@ -89,18 +53,12 @@
         </div>
 
         <div class="form-content">
-          <div id="alerta" style="display: none; margin-bottom: 20px; padding: 10px; border-radius: 4px;"></div>
+          <div id="alerta" style="display:none;margin-bottom:20px;padding:10px;border-radius:4px;"></div>
 
-          <form
-            id="cadastroAlunoForm"
-            method="POST"
-            enctype="multipart/form-data"
-            action="http://localhost:5000/cadastro/alunos"
-          >
+          <form id="cadastroAlunoForm" method="POST" enctype="multipart/form-data" action="http://localhost:5000/alunos/cadastrar">
             <div class="form-section">
-              <h3 class="section-title">
-                <i class="fas fa-user"></i> Dados Pessoais
-              </h3>
+              <h3 class="section-title"><i class="fas fa-user"></i> Dados Pessoais</h3>
+
               <div class="form-grid">
                 <div class="form-group">
                   <label for="matricula">Nº de Matrícula: *</label>
@@ -108,35 +66,28 @@
                 </div>
 
                 <div class="form-group">
-                  <label for="nome_completo">Nome: *</label>
+                  <label for="nome_completo">Nome completo: *</label>
                   <input type="text" id="nome_completo" name="nome_completo" required />
                 </div>
 
                 <div class="form-group">
+                  <label for="nome_social">Nome Social (opcional):</label>
+                  <input type="text" id="nome_social" name="nome_social" />
+                </div>
+
+                <div class="form-group">
                   <label for="cpf">CPF: *</label>
-                  <input type="text" id="cpf" name="cpf" inputmode="numeric" required 
-                         placeholder="000.000.000-00" />
+                  <input type="text" id="cpf" name="cpf" inputmode="numeric" required placeholder="000.000.000-00" />
                 </div>
 
                 <div class="form-group">
                   <label for="data_nascimento">Data de Nascimento: *</label>
-                  <input
-                    type="date"
-                    id="data_nascimento"
-                    name="data_nascimento"
-                    required
-                  />
+                  <input type="date" id="data_nascimento" name="data_nascimento" required />
                 </div>
 
                 <div class="form-group">
-                  <label for="endereco">Endereço: *</label>
-                  <input type="text" id="endereco" name="endereco" required />
-                </div>
-
-                <div class="form-group">
-                  <label for="cep">CEP: *</label>
-                  <input type="text" id="cep" name="cep" inputmode="numeric" required 
-                         placeholder="00000-000" />
+                  <label for="rua">Endereço (Rua): *</label>
+                  <input type="text" id="rua" name="rua" required />
                 </div>
 
                 <div class="form-group">
@@ -145,127 +96,64 @@
                 </div>
 
                 <div class="form-group">
-                  <label for="municipio">Município: *</label>
-                  <input type="text" id="municipio" name="municipio" required />
+                  <label for="cidade">Cidade: *</label>
+                  <input type="text" id="cidade" name="cidade" required />
                 </div>
 
                 <div class="form-group">
                   <label for="telefone">Telefone:</label>
-                  <input
-                    type="text"
-                    id="telefone"
-                    name="telefone"
-                    inputmode="tel"
-                    placeholder="(00) 0000-0000"
-                  />
-                </div>
-
-                <div class="form-group">
-                  <label for="celular">Celular:</label>
-                  <input
-                    type="text"
-                    id="celular"
-                    name="celular"
-                    inputmode="tel"
-                    placeholder="(00) 00000-0000"
-                  />
-                </div>
-
-                <div class="form-group">
-                  <label for="nome_social">Nome Social (opcional):</label>
-                  <input type="text" id="nome_social" name="nome_social" />
+                  <input type="text" id="telefone" name="telefone" inputmode="tel" placeholder="(00) 0000-0000" />
                 </div>
               </div>
             </div>
 
             <div class="form-section">
-              <h3 class="section-title">
-                <i class="fas fa-user-friends"></i> Dados do Responsável (se menor)
-              </h3>
+              <h3 class="section-title"><i class="fas fa-user-friends"></i> Dados do Responsável (se menor)</h3>
 
-              <div
-                id="responsavelSection"
-                class="conditional-section"
-                style="display: none"
-              >
+              <div id="responsavelSection" class="conditional-section" style="display:none">
                 <div class="form-grid">
                   <div class="form-group">
                     <label for="responsavel_nome_completo">Nome completo: *</label>
-                    <input
-                      type="text"
-                      id="responsavel_nome_completo"
-                      name="responsavel_nome_completo"
-                    />
+                    <input type="text" id="responsavel_nome_completo" name="responsavel_nome_completo" />
                   </div>
+
                   <div class="form-group">
                     <label for="responsavel_parentesco">Parentesco: *</label>
-                    <input
-                      type="text"
-                      id="responsavel_parentesco"
-                      name="responsavel_parentesco"
-                    />
+                    <input type="text" id="responsavel_parentesco" name="responsavel_parentesco" />
                   </div>
+
                   <div class="form-group">
                     <label for="responsavel_telefone">Telefone: *</label>
-                    <input
-                      type="text"
-                      id="responsavel_telefone"
-                      name="responsavel_telefone"
-                      placeholder="(00) 00000-0000"
-                    />
+                    <input type="text" id="responsavel_telefone" name="responsavel_telefone" placeholder="(00) 00000-0000" />
                   </div>
 
                   <div class="form-group">
                     <label for="responsavel_endereco">Endereço (opcional):</label>
-                    <input
-                      type="text"
-                      id="responsavel_endereco"
-                      name="responsavel_endereco"
-                    />
+                    <input type="text" id="responsavel_endereco" name="responsavel_endereco" />
                   </div>
-                  <div class="form-group">
-                    <label for="responsavel_cep">CEP (opcional):</label>
-                    <input
-                      type="text"
-                      id="responsavel_cep"
-                      name="responsavel_cep"
-                      placeholder="00000-000"
-                    />
-                  </div>
+
                   <div class="form-group">
                     <label for="responsavel_bairro">Bairro (opcional):</label>
-                    <input
-                      type="text"
-                      id="responsavel_bairro"
-                      name="responsavel_bairro"
-                    />
+                    <input type="text" id="responsavel_bairro" name="responsavel_bairro" />
                   </div>
+
                   <div class="form-group">
-                    <label for="responsavel_municipio">Município (opcional):</label>
-                    <input
-                      type="text"
-                      id="responsavel_municipio"
-                      name="responsavel_municipio"
-                    />
+                    <label for="responsavel_cidade">Cidade (opcional):</label>
+                    <input type="text" id="responsavel_cidade" name="responsavel_cidade" />
                   </div>
                 </div>
+
                 <p class="note">* Campos obrigatórios para alunos menores de 18 anos</p>
               </div>
             </div>
 
             <div class="form-section">
-              <h3 class="section-title">
-                <i class="fas fa-graduation-cap"></i> Dados Acadêmicos
-              </h3>
+              <h3 class="section-title"><i class="fas fa-graduation-cap"></i> Dados Acadêmicos</h3>
+
               <div class="form-grid">
                 <div class="form-group">
                   <label for="curso">Curso: *</label>
                   <input type="text" id="curso" name="curso" required />
-                </div>
-
-                <div class="form-group">
-                  <label for="tipo_curso">Tipo de Curso: *</label>
-                  <input type="text" id="tipo_curso" name="tipo_curso" required />
                 </div>
 
                 <div class="form-group">
@@ -274,75 +162,66 @@
                 </div>
 
                 <div class="form-group">
-                  <label for="parceria_novo_ensino_medio">Parceria Novo Ensino Médio:</label>
-                  <input
-                    type="text"
-                    id="parceria_novo_ensino_medio"
-                    name="parceria_novo_ensino_medio"
-                  />
+                  <label for="linha_atendimento">Linha de Atendimento: *</label>
+                  <select id="linha_atendimento" name="linha_atendimento" required>
+                    <option value="CAI">CAI</option>
+                    <option value="CT">CT</option>
+                    <option value="CST">CST</option>
+                  </select>
+                </div>
+
+                <div class="form-group">
+                  <label for="escola_integrada">Escola Integrada: *</label>
+                  <select id="escola_integrada" name="escola_integrada" required>
+                    <option value="Nenhuma">Nenhuma</option>
+                    <option value="SESI">SESI</option>
+                    <option value="SEDUC">SEDUC</option>
+                  </select>
+                </div>
+
+                <div class="form-group">
+                  <label for="empregado">Empregado? *</label>
+                  <select id="empregado" name="empregado" required>
+                    <option value="nao" selected>Não</option>
+                    <option value="sim">Sim</option>
+                  </select>
+                </div>
+
+                <div class="form-group">
+                  <label for="data_inicio_curso">Data de Início do Curso (opcional):</label>
+                  <input type="date" id="data_inicio_curso" name="data_inicio_curso" />
+                </div>
+
+                <div class="form-group">
+                  <label for="empresa_contratante">Empresa contratante (opcional):</label>
+                  <input type="text" id="empresa_contratante" name="empresa_contratante" />
                 </div>
               </div>
             </div>
 
             <div class="form-section">
-              <h3 class="section-title">
-                <i class="fas fa-briefcase"></i> Aprendizagem (opcional)
-              </h3>
-              <div class="form-grid">
-                <div class="form-group">
-                  <label for="empresa_aprendizagem">Empresa contrato de aprendizagem:</label>
-                  <input
-                    type="text"
-                    id="empresa_aprendizagem"
-                    name="empresa_aprendizagem"
-                  />
-                </div>
-                <div class="form-group">
-                  <label for="cnpj_empresa">CNPJ da empresa:</label>
-                  <input
-                    type="text"
-                    id="cnpj_empresa"
-                    name="cnpj_empresa"
-                    inputmode="numeric"
-                    placeholder="00.000.000/0000-00"
-                  />
-                </div>
-              </div>
-            </div>
+              <h3 class="section-title"><i class="fas fa-info-circle"></i> Complementares</h3>
 
-            <div class="form-section">
-              <h3 class="section-title">
-                <i class="fas fa-info-circle"></i> Complementares
-              </h3>
               <div class="form-grid">
                 <div class="form-group">
                   <div class="checkbox-group">
-                    <input
-                      type="checkbox"
-                      id="pne"
-                      name="pne"
-                    />
-                    <label for="pne">Portador de Necessidades Especiais?</label>
+                    <input type="checkbox" id="pessoa_com_deficiencia" name="pessoa_com_deficiencia" />
+                    <label for="pessoa_com_deficiencia">Pessoa com deficiência?</label>
                   </div>
                 </div>
 
-                <div
-                  id="pneSection"
-                  class="conditional-section"
-                  style="display: none"
-                >
-                  <div class="form-group">
-                    <label for="pne_descricao">Descrição PNE (opcional):</label>
-                    <input
-                      type="text"
-                      id="pne_descricao"
-                      name="pne_descricao"
-                    />
-                  </div>
+                <div class="form-group" style="grid-column: 1/-1;">
+                  <label for="sobre_aluno">Sobre o aluno (opcional):</label>
+                  <textarea id="sobre_aluno" name="sobre_aluno"></textarea>
+                </div>
+
+                <div class="form-group" style="grid-column: 1/-1;">
+                  <label for="outras_informacoes">Outras informações (opcional):</label>
+                  <textarea id="outras_informacoes" name="outras_informacoes"></textarea>
                 </div>
 
                 <div class="form-group">
-                  <label for="foto">Foto:</label>
+                  <label for="foto">Foto (opcional):</label>
                   <input type="file" id="foto" name="foto" accept="image/*" />
                 </div>
               </div>
@@ -359,10 +238,7 @@
     </div>
 
     <footer>
-      <p>
-        &copy; 2024 Departamento de Qualidade de Vida - Todos os direitos
-        reservados.
-      </p>
+      <p>&copy; 2024 Departamento de Qualidade de Vida - Todos os direitos reservados.</p>
     </footer>
 
     <script>
@@ -373,33 +249,16 @@
         const nascInput = document.getElementById("data_nascimento");
         const responsavelSection = document.getElementById("responsavelSection");
 
-        const pneCheckbox = document.getElementById("pne");
-        const pneSection = document.getElementById("pneSection");
-
-        // Formatar CPF
         const cpfInput = document.getElementById("cpf");
+
         cpfInput.addEventListener("input", function(e) {
           let value = e.target.value.replace(/\D/g, "");
           if (value.length > 11) value = value.substring(0, 11);
-          
-          if (value.length > 9) {
-            value = value.replace(/^(\d{3})(\d{3})(\d{3})(\d{2}).*/, "$1.$2.$3-$4");
-          } else if (value.length > 6) {
-            value = value.replace(/^(\d{3})(\d{3})(\d{1,3})/, "$1.$2.$3");
-          } else if (value.length > 3) {
-            value = value.replace(/^(\d{3})(\d{1,3})/, "$1.$2");
-          }
-          e.target.value = value;
-        });
 
-        // Formatar CEP
-        const cepInput = document.getElementById("cep");
-        cepInput.addEventListener("input", function(e) {
-          let value = e.target.value.replace(/\D/g, "");
-          if (value.length > 8) value = value.substring(0, 8);
-          if (value.length > 5) {
-            value = value.replace(/^(\d{5})(\d{1,3})/, "$1-$2");
-          }
+          if (value.length > 9) value = value.replace(/^(\d{3})(\d{3})(\d{3})(\d{2}).*/, "$1.$2.$3-$4");
+          else if (value.length > 6) value = value.replace(/^(\d{3})(\d{3})(\d{1,3})/, "$1.$2.$3");
+          else if (value.length > 3) value = value.replace(/^(\d{3})(\d{1,3})/, "$1.$2");
+
           e.target.value = value;
         });
 
@@ -435,24 +294,14 @@
           const menor = (idade !== null && idade < 18);
           responsavelSection.style.display = menor ? "block" : "none";
 
-          // torna obrigatórios se menor
           ["responsavel_nome_completo","responsavel_parentesco","responsavel_telefone"].forEach(id => {
             const el = document.getElementById(id);
-            if (el) {
-              el.required = menor;
-            }
+            if (el) el.required = menor;
           });
         }
 
-        function togglePNE() {
-          pneSection.style.display = pneCheckbox.checked ? "block" : "none";
-        }
-
         nascInput.addEventListener("change", toggleResponsavel);
-        pneCheckbox.addEventListener("change", togglePNE);
-
         toggleResponsavel();
-        togglePNE();
 
         form.addEventListener("submit", async (e) => {
           e.preventDefault();
@@ -464,20 +313,14 @@
 
           try {
             const fd = new FormData(form);
-            
-            // Validação de CPF
+
+            // ✅ checkbox -> "true"/"" (backend entende via str_to_bool)
+            const pcd = document.getElementById("pessoa_com_deficiencia").checked;
+            fd.set("pessoa_com_deficiencia", pcd ? "true" : "false");
+
             const cpfValue = cpfInput.value.replace(/\D/g, "");
             if (cpfValue.length !== 11) {
               showAlert("error", "CPF deve conter 11 dígitos");
-              btn.disabled = false;
-              btn.innerHTML = original;
-              return;
-            }
-            
-            // Validação de CEP
-            const cepValue = cepInput.value.replace(/\D/g, "");
-            if (cepValue.length !== 8) {
-              showAlert("error", "CEP deve conter 8 dígitos");
               btn.disabled = false;
               btn.innerHTML = original;
               return;
@@ -490,7 +333,6 @@
               showAlert("success", data.mensagem || "Aluno cadastrado com sucesso!");
               form.reset();
               toggleResponsavel();
-              togglePNE();
             } else {
               showAlert("error", data.erro || "Erro no cadastro");
             }
