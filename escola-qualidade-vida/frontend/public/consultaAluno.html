@@ -96,8 +96,8 @@
       const token = getToken();
 
       const headers = new Headers(options.headers || {});
-      // NÃO setar Content-Type quando for FormData (browser seta boundary sozinho)
       const isFormData = options.body instanceof FormData;
+
       if (!isFormData && !headers.has("Content-Type")) {
         headers.set("Content-Type", "application/json");
       }
@@ -116,7 +116,6 @@
         throw new Error("Erro de rede ao comunicar com o servidor.");
       }
 
-      // Se for 401, provavelmente token expirado
       if (res.status === 401) {
         logoutAndRedirect();
         throw new Error("Não autorizado (token expirado).");
@@ -199,7 +198,6 @@
       const cpfInput = document.getElementById("alunoCpf").value.trim();
       const cpfDigits = digitsOnly(cpfInput);
 
-      // validação simples no front (evita chamar backend à toa)
       if (!cpfDigits || cpfDigits.length !== 11) {
         alert("Informe um CPF válido com 11 dígitos.");
         return;
@@ -255,6 +253,8 @@
           <p><strong>Matrícula:</strong> ${safe(aluno.matricula)}</p>
           <p><strong>CPF:</strong> ${safe(aluno.cpf)}</p>
 
+          <p><strong>Nome social:</strong> <span class="v-nome-social">${safe(aluno.nome_social, "Não informado")}</span></p>
+
           <p><strong>Curso:</strong> <span class="v-curso">${safe(aluno.curso)}</span></p>
           <p><strong>Turma:</strong> <span class="v-turma">${safe(turmaRotulo)}</span></p>
           <p><strong>Cidade:</strong> <span class="v-cidade">${safe(aluno.cidade)}</span></p>
@@ -281,6 +281,12 @@
                 <label>Trocar foto</label>
                 <input type="file" name="foto" accept="image/*">
                 <div class="muted">Ao salvar, a nova foto será enviada e a antiga removida.</div>
+              </div>
+
+              <div style="grid-column:1/-1">
+                <label>Nome social</label>
+                <input name="nome_social" value="${aluno.nome_social || ''}" placeholder="Digite o nome social (opcional)">
+                <div class="muted">Se deixar vazio, o backend pode limpar o nome social (dependendo da regra).</div>
               </div>
 
               <div>
@@ -430,7 +436,6 @@
             if (fotoEl.tagName.toLowerCase() === "img") {
               fotoEl.src = newUrl;
             } else {
-              // era div "Sem Foto" -> vira img
               const wrapper = fotoEl.parentElement;
               fotoEl.remove();
               const newImg = document.createElement("img");
@@ -438,11 +443,11 @@
               newImg.src = newUrl;
               newImg.alt = `Foto de ${safe(aluno.nome, "Aluno")}`;
               wrapper.insertBefore(newImg, wrapper.firstChild);
-              fotoEl = newImg; // ✅ atualiza referência
+              fotoEl = newImg;
             }
           }
 
-          // 2) PATCH dos campos
+          // 2) PATCH dos campos (incluindo nome_social)
           const payload = Object.fromEntries(new FormData(formEl).entries());
           delete payload.foto;
 
@@ -450,8 +455,13 @@
             payload.pessoa_com_deficiencia = String(payload.pessoa_com_deficiencia) === "true";
           }
 
+          // Se quiser permitir "limpar" nome_social, NÃO delete quando for ""
+          // Se quiser impedir limpar, descomente a linha abaixo:
+          // if (payload.nome_social === "") delete payload.nome_social;
+
           Object.keys(payload).forEach((k) => {
-            if (payload[k] === "") delete payload[k];
+            // mantém nome_social mesmo vazio caso você queira limpar no backend
+            if (k !== "nome_social" && payload[k] === "") delete payload[k];
           });
 
           const resp = await apiFetch(`/alunos/${aluno.id}`, {
@@ -479,6 +489,9 @@
           card.querySelector(".v-sobre").textContent = safe(dataUpd.sobre_aluno);
           card.querySelector(".v-pcd").textContent = boolLabel(dataUpd.pessoa_com_deficiencia);
           card.querySelector(".v-curso").textContent = safe(dataUpd.curso);
+
+          // ✅ nome_social atualizado no card
+          card.querySelector(".v-nome-social").textContent = safe(dataUpd.nome_social, "Não informado");
 
           const rot = dataUpd.turma_nome
             ? `${dataUpd.turma_nome}${dataUpd.turma_semestre ? ` (Sem ${dataUpd.turma_semestre})` : ""}`
