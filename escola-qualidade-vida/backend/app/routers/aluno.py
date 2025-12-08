@@ -6,7 +6,7 @@ from datetime import datetime, date
 
 from flask import Blueprint, request, jsonify, send_file, current_app
 from werkzeug.utils import secure_filename
-from sqlalchemy import or_, func
+from sqlalchemy import or_
 
 from app.extensions import db
 from app.models.aluno import Aluno, only_digits
@@ -51,14 +51,6 @@ def _calc_idade(dt: date | None) -> int | None:
     hoje = date.today()
     return hoje.year - dt.year - ((hoje.month, hoje.day) < (dt.month, dt.day))
 
-# Domínios válidos
-_LINHAS_AT = {"CAI", "CT", "CST"}
-_ESCOLAS = {"SESI", "SEDUC", "Nenhuma"}
-_EMPREGADO = {"sim", "nao"}
-
-# -------------------------
-# Upload de fotos
-# -------------------------
 ALLOWED_EXTS = {".jpg", ".jpeg", ".png", ".gif", ".webp"}
 
 def _save_photo(file_storage, desired_name_base: str) -> str:
@@ -83,54 +75,6 @@ def _save_photo(file_storage, desired_name_base: str) -> str:
     current_app.logger.info(f"🖼️ Foto salva em: {dest}")
     return filename
 
-# -------------------------
-# Resolver / Criar Curso e Turma automaticamente
-# -------------------------
-def _norm_key(s: str) -> str:
-    return (s or "").strip()
-
-def _get_or_create_curso_by_nome(curso_nome: str) -> Curso | None:
-    curso_nome = _norm_key(curso_nome)
-    if not curso_nome:
-        return None
-
-    curso = Curso.query.filter(func.lower(Curso.nome) == curso_nome.lower()).first()
-    if curso:
-        return curso
-
-    curso = Curso(nome=curso_nome)
-    db.session.add(curso)
-    db.session.flush()  # garante id
-    return curso
-
-def _get_or_create_turma_by_nome_e_curso(turma_nome: str, curso: Curso | None) -> Turma | None:
-    turma_nome = _norm_key(turma_nome)
-    if not turma_nome or not curso:
-        return None
-
-    turma = Turma.query.filter(
-        Turma.curso_id == curso.id,
-        func.lower(Turma.nome) == turma_nome.lower()
-    ).first()
-    if turma:
-        return turma
-
-    # ✅ ignorar data_inicio/data_fim/semestre "de verdade"
-    # mas preencher defaults mínimos para não quebrar models que exigem esses campos
-    turma = Turma(
-        nome=turma_nome,
-        curso_id=curso.id,
-        semestre="1",           # default
-        data_inicio=date.today(),  # default
-        data_fim=None
-    )
-    db.session.add(turma)
-    db.session.flush()
-    return turma
-
-# -------------------------
-# Serialização do aluno
-# -------------------------
 def _json_aluno(a: Aluno):
     turma = getattr(a, "turma_relacionada", None)
     curso = getattr(a, "curso_relacionado", None)
@@ -175,19 +119,70 @@ def _json_aluno(a: Aluno):
         "outras_informacoes": getattr(a, "outras_informacoes", None),
     }
 
+# Domínios válidos
+_LINHAS_AT = {"CAI", "CT", "CST"}
+_ESCOLAS = {"SESI", "SEDUC", "Nenhuma"}
+_EMPREGADO = {"sim", "nao"}
+
 # -------------------------
-# CADASTRAR ALUNO (CPF obrigatório)
+# AUTO-CREATE: Curso e Turma
+# -------------------------
+def _get_or_create_curso(nome_curso: str | None) -> Curso | None:
+    nome_curso = _none_if_empty(nome_curso)
+    if not nome_curso:
+        return None
+
+    # tenta achar igual
+    c = Curso.query.filter(Curso.nome.ilike(nome_curso)).first()
+    if c:
+        return c
+
+    # cria
+    c = Curso(nome=nome_curso)
+    db.session.add(c)
+    db.session.flush()  # pega id sem commit
+    return c
+
+def _get_or_create_turma(nome_turma: str | None, curso: Curso | None) -> Turma | None:
+    nome_turma = _none_if_empty(nome_turma)
+    if not nome_turma or not curso:
+        return None
+
+    # procura turma com mesmo nome dentro do curso
+    t = Turma.query.filter(
+        Turma.curso_id == curso.id,
+        Turma.nome.ilike(nome_turma),
+    ).first()
+    if t:
+        return t
+
+    # cria turma "mínima" ignorando semestre/início/fim informados
+    # (ajuste se sua model permitir NULL nesses campos)
+    t = Turma(
+        nome=nome_turma,
+        curso_id=curso.id,
+        semestre="1",            # default
+        data_inicio=date.today(), # default
+        data_fim=None,
+    )
+    db.session.add(t)
+    db.session.flush()
+    return t
+
+# -------------------------
+# CADASTRAR ALUNO COM CPF OBRIGATÓRIO
 # -------------------------
 @aluno_bp.route("/cadastrar", methods=["POST"])
 def cadastrar_aluno_com_cpf():
     """
     Cadastra um novo aluno via formulário web com CPF OBRIGATÓRIO.
-    Também garante que Curso e Turma existam no banco, criando se necessário.
+    Cria Curso/Turma automaticamente quando vierem preenchidos.
     """
     try:
         data = request.form
         current_app.logger.info(f"Dados recebidos para cadastro: {dict(data)}")
 
+        # 1) CPF obrigatório
         cpf = data.get("cpf")
         if not cpf:
             return jsonify({"erro": "CPF é obrigatório"}), 400
@@ -199,11 +194,12 @@ def cadastrar_aluno_com_cpf():
         if Aluno.query.filter_by(cpf=cpf_limpo).first():
             return jsonify({"erro": "CPF já cadastrado"}), 400
 
+        # 2) Matrícula única
         matricula = _none_if_empty(data.get("matricula"))
         if matricula and Aluno.query.filter_by(matricula=matricula).first():
             return jsonify({"erro": "Matrícula já cadastrada"}), 400
 
-        # Nome
+        # 3) Nome completo / nome / sobrenome / nome_social
         nome_completo = _none_if_empty(data.get("nome_completo")) or ""
         nome = _none_if_empty(data.get("nome")) or ""
         sobrenome = _none_if_empty(data.get("sobrenome")) or ""
@@ -216,7 +212,7 @@ def cadastrar_aluno_com_cpf():
         elif nome and sobrenome and not nome_completo:
             nome_completo = f"{nome} {sobrenome}".strip()
 
-        # Endereço/contato
+        # 4) Campos principais
         cidade = _none_if_empty(data.get("cidade")) or ""
         bairro = _none_if_empty(data.get("bairro")) or ""
         rua = _none_if_empty(data.get("rua")) or ""
@@ -234,10 +230,8 @@ def cadastrar_aluno_com_cpf():
         if escola_integrada not in _ESCOLAS:
             return jsonify({"erro": "escola_integrada deve ser SESI, SEDUC ou Nenhuma."}), 400
 
-        # Nascimento / idade
+        # Data nascimento + idade
         data_nascimento = parse_date(_none_if_empty(data.get("data_nascimento")))
-        idade = None
-
         idade_raw = _none_if_empty(data.get("idade"))
         if idade_raw:
             try:
@@ -250,7 +244,7 @@ def cadastrar_aluno_com_cpf():
         if idade is None:
             idade = 18
 
-        # Responsável se menor
+        # 5) Responsável (obrigatório se menor)
         responsavel_obj = None
         if idade < 18:
             r_nome = _none_if_empty(data.get("responsavel_nome_completo"))
@@ -278,19 +272,14 @@ def cadastrar_aluno_com_cpf():
             db.session.add(responsavel_obj)
             db.session.flush()
 
-        # ✅ Curso/Turma: cria/resolve e grava ids
-        curso_texto = _none_if_empty(data.get("curso"))
-        turma_texto = _none_if_empty(data.get("turma"))
+        # 6) Curso/Turma: cria automaticamente se vier preenchido
+        curso_txt = _none_if_empty(data.get("curso"))
+        turma_txt = _none_if_empty(data.get("turma"))
 
-        resolved_curso = _get_or_create_curso_by_nome(curso_texto)
-        resolved_turma = _get_or_create_turma_by_nome_e_curso(turma_texto, resolved_curso)
+        resolved_curso = _get_or_create_curso(curso_txt) if curso_txt else None
+        resolved_turma = _get_or_create_turma(turma_txt, resolved_curso) if turma_txt and resolved_curso else None
 
-        curso_id_val = resolved_curso.id if resolved_curso else None
-        turma_id_val = resolved_turma.id if resolved_turma else None
-
-        curso_final = resolved_curso.nome if resolved_curso else curso_texto
-        turma_final = resolved_turma.nome if resolved_turma else turma_texto
-
+        # 7) Criar aluno
         aluno = Aluno(
             nome=nome,
             sobrenome=sobrenome,
@@ -312,10 +301,10 @@ def cadastrar_aluno_com_cpf():
             linha_atendimento=la,
             escola_integrada=escola_integrada,
 
-            curso=curso_final,
-            turma=turma_final,
-            curso_id=curso_id_val,
-            turma_id=turma_id_val,
+            curso=(resolved_curso.nome if resolved_curso else curso_txt),
+            turma=(resolved_turma.nome if resolved_turma else turma_txt),
+            curso_id=(resolved_curso.id if resolved_curso else None),
+            turma_id=(resolved_turma.id if resolved_turma else None),
 
             mora_com_quem=_none_if_empty(data.get("mora_com_quem")),
             sobre_aluno=_none_if_empty(data.get("sobre_aluno")),
@@ -343,40 +332,13 @@ def cadastrar_aluno_com_cpf():
             "matricula": aluno.matricula,
             "nome_social": aluno.nome_social,
             "curso_id": aluno.curso_id,
-            "turma_id": aluno.turma_id
+            "turma_id": aluno.turma_id,
         }), 201
 
     except Exception as e:
         db.session.rollback()
         current_app.logger.error(f"Erro ao cadastrar aluno: {str(e)}", exc_info=True)
         return jsonify({"erro": f"Erro interno: {str(e)}"}), 500
-
-# -------------------------
-# CONSULTAR ALUNO POR CPF
-# -------------------------
-@aluno_bp.route("/por-cpf/<string:cpf>", methods=["GET"])
-def consultar_aluno_por_cpf(cpf):
-    try:
-        cpf_limpo = only_digits(cpf)
-        if not cpf_limpo or len(cpf_limpo) != 11:
-            return jsonify({"erro": "CPF inválido"}), 400
-
-        aluno = Aluno.query.filter_by(cpf=cpf_limpo).first()
-        if not aluno:
-            return jsonify({"erro": "Aluno não encontrado"}), 404
-
-        return jsonify(_json_aluno(aluno)), 200
-
-    except Exception as e:
-        current_app.logger.error(f"Erro ao consultar aluno por CPF: {str(e)}")
-        return jsonify({"erro": f"Erro interno: {str(e)}"}), 500
-
-# -------------------------
-# Saúde
-# -------------------------
-@aluno_bp.route("/", methods=["GET"])
-def listar_alunos():
-    return jsonify({"mensagem": "Blueprint 'aluno_bp' ativo e funcionando corretamente!"}), 200
 
 # -------------------------
 # MODELO CSV
@@ -400,7 +362,6 @@ def csv_modelo_alunos():
         "empregado",
         "linha_atendimento",
         "escola_integrada",
-
         "nome_social",
         "telefone",
         "mora_com_quem",
@@ -409,18 +370,12 @@ def csv_modelo_alunos():
         "empresa_contratante",
         "pessoa_com_deficiencia",
         "outras_informacoes",
-
         "responsavel_nome_completo",
         "responsavel_parentesco",
         "responsavel_telefone",
         "responsavel_cidade",
         "responsavel_bairro",
         "responsavel_endereco",
-
-        "curso_nome",
-        "turma_nome",
-        "curso_id",
-        "turma_id",
     ]
     writer.writerow(headers)
 
@@ -447,38 +402,6 @@ def csv_modelo_alunos():
         "false",
         "Observação qualquer",
         "", "", "", "", "", "",
-        "Informática Básica", "Turma A", "", ""
-    ])
-
-    writer.writerow([
-        "MAT002",
-        "Maria Oliveira",
-        "987.654.321-00",
-        "20/03/2010",
-        "Belo Horizonte",
-        "Savassi",
-        "Av. Brasil, 456",
-        "Administração",
-        "Turma B",
-        "14",
-        "nao",
-        "CT",
-        "SESI",
-        "Maria (nome social)",
-        "(31) 9999-8888",
-        "Pais",
-        "Boa aluna",
-        "01/03/2025",
-        "",
-        "true",
-        "Necessita adaptação",
-        "Carlos Oliveira",
-        "Pai",
-        "(31) 98888-7777",
-        "Belo Horizonte",
-        "Savassi",
-        "Av. Brasil, 456",
-        "Administração", "Turma B", "", ""
     ])
 
     output.seek(0)
@@ -490,7 +413,7 @@ def csv_modelo_alunos():
     )
 
 # -------------------------
-# IMPORTAR CSV
+# IMPORTAR CSV (cria Curso/Turma automaticamente)
 # -------------------------
 @aluno_bp.route("/importar_csv", methods=["POST"])
 def importar_csv_alunos():
@@ -498,10 +421,7 @@ def importar_csv_alunos():
     Importa um CSV e cria registros na tabela 'aluno'.
     CPF obrigatório.
     Responsável obrigatório se idade < 18.
-    Aceita datas em YYYY-MM-DD ou DD/MM/YYYY.
-
-    ✅ Agora também garante que Curso e Turma existam no banco,
-    criando automaticamente quando vierem por texto.
+    Cria Curso/Turma automaticamente quando 'curso' e 'turma' vierem preenchidos.
     """
     if "arquivo" not in request.files or not request.files["arquivo"].filename:
         return jsonify({"erro": "Envie um arquivo CSV no campo 'arquivo'."}), 400
@@ -545,14 +465,14 @@ def importar_csv_alunos():
                 bairro = _none_if_empty(col(row, "bairro"))
                 rua = _none_if_empty(col(row, "rua"))
 
-                curso = _none_if_empty(col(row, "curso"))
-                turma = _none_if_empty(col(row, "turma"))
+                curso_txt = _none_if_empty(col(row, "curso"))
+                turma_txt = _none_if_empty(col(row, "turma"))
 
                 empregado = (_norm(col(row, "empregado")) or "nao").lower()
                 la = (_norm(col(row, "linha_atendimento")) or "CAI").upper()
                 escola_integrada = _none_if_empty(col(row, "escola_integrada")) or "Nenhuma"
 
-                if not all([matricula, nome_completo, cpf_raw, data_nascimento_raw, cidade, bairro, rua, curso, turma]):
+                if not all([matricula, nome_completo, cpf_raw, data_nascimento_raw, cidade, bairro, rua, curso_txt, turma_txt]):
                     raise ValueError("Campos obrigatórios vazios.")
 
                 if empregado not in _EMPREGADO:
@@ -625,51 +545,9 @@ def importar_csv_alunos():
                     db.session.add(responsavel_obj)
                     db.session.flush()
 
-                # compat
-                curso_nome = _none_if_empty(col(row, "curso_nome"))
-                turma_nome = _none_if_empty(col(row, "turma_nome"))
-                curso_id_raw = _none_if_empty(col(row, "curso_id"))
-                turma_id_raw = _none_if_empty(col(row, "turma_id"))
-
-                resolved_curso = None
-                resolved_turma = None
-
-                if curso_id_raw:
-                    try:
-                        resolved_curso = Curso.query.get(int(curso_id_raw))
-                        if not resolved_curso:
-                            rel.append(f"[Linha {i}] Aviso: curso_id '{curso_id_raw}' não encontrado — ignorado.")
-                    except Exception:
-                        rel.append(f"[Linha {i}] Aviso: curso_id inválido — ignorado.")
-
-                if turma_id_raw:
-                    try:
-                        resolved_turma = Turma.query.get(int(turma_id_raw))
-                        if not resolved_turma:
-                            rel.append(f"[Linha {i}] Aviso: turma_id '{turma_id_raw}' não encontrado — ignorado.")
-                    except Exception:
-                        rel.append(f"[Linha {i}] Aviso: turma_id inválido — ignorado.")
-
-                # nome que veio no CSV (prioridade)
-                curso_text_input = curso_nome or curso
-                turma_text_input = turma_nome or turma
-
-                # ✅ garante criação por texto se ainda não resolveu
-                if not resolved_curso:
-                    resolved_curso = _get_or_create_curso_by_nome(curso_text_input)
-
-                if resolved_curso and not resolved_turma:
-                    resolved_turma = _get_or_create_turma_by_nome_e_curso(turma_text_input, resolved_curso)
-
-                if resolved_turma and resolved_curso and resolved_turma.curso_id != resolved_curso.id:
-                    rel.append(f"[Linha {i}] Aviso: turma localizada não pertence ao curso localizado — turma ignorada.")
-                    resolved_turma = None
-
-                curso_id_val = resolved_curso.id if resolved_curso else None
-                turma_id_val = resolved_turma.id if resolved_turma else None
-
-                curso_texto = resolved_curso.nome if resolved_curso else curso_text_input
-                turma_texto = resolved_turma.nome if resolved_turma else turma_text_input
+                # ✅ Cria curso e turma automaticamente
+                resolved_curso = _get_or_create_curso(curso_txt)
+                resolved_turma = _get_or_create_turma(turma_txt, resolved_curso)
 
                 aluno = Aluno(
                     cpf=cpf,
@@ -693,10 +571,10 @@ def importar_csv_alunos():
                     linha_atendimento=la,
                     escola_integrada=escola_integrada,
 
-                    curso=curso_texto,
-                    turma=turma_texto,
-                    curso_id=curso_id_val,
-                    turma_id=turma_id_val,
+                    curso=(resolved_curso.nome if resolved_curso else curso_txt),
+                    turma=(resolved_turma.nome if resolved_turma else turma_txt),
+                    curso_id=(resolved_curso.id if resolved_curso else None),
+                    turma_id=(resolved_turma.id if resolved_turma else None),
 
                     data_inicio_curso=data_inicio_curso,
                     empresa_contratante=empresa_contratante,
@@ -706,7 +584,6 @@ def importar_csv_alunos():
                     outras_informacoes=outras_informacoes,
 
                     responsavel_id=(responsavel_obj.id if responsavel_obj else None),
-
                     foto=None,
                 )
 
@@ -715,7 +592,7 @@ def importar_csv_alunos():
                 db.session.commit()
 
                 sucesso += 1
-                rel.append(f"[Linha {i}] OK: {nome_completo} (CPF: {cpf}) - Nome social: {nome_social or 'Não informado'}.")
+                rel.append(f"[Linha {i}] OK: {nome_completo} (CPF: {cpf}) - Turma criada/associada: {turma_txt}.")
 
             except Exception as ex:
                 db.session.rollback()
@@ -731,7 +608,7 @@ def importar_csv_alunos():
         return jsonify({"erro": "Falha ao processar CSV.", "detalhes": str(e)}), 500
 
 # -------------------------
-# EDITAR ALUNO (PATCH)
+# EDITAR ALUNO (dados)
 # -------------------------
 @aluno_bp.route("/<int:aluno_id>", methods=["PATCH"])
 def editar_aluno(aluno_id: int):
@@ -745,7 +622,6 @@ def editar_aluno(aluno_id: int):
         if field in data:
             setattr(aluno, field, _none_if_empty(data[field]))
 
-    # nome_social
     if "nome_social" in data:
         aluno.nome_social = _none_if_empty(data["nome_social"])
 
@@ -769,58 +645,30 @@ def editar_aluno(aluno_id: int):
             return jsonify({"erro": "escola_integrada inválida."}), 400
         aluno.escola_integrada = ei
 
-    curso_nome = _none_if_empty(data.get("curso_nome"))
-    turma_nome = _none_if_empty(data.get("turma_nome"))
+    # Se vierem ids, valida e aplica
     curso_id = data.get("curso_id", None)
     turma_id = data.get("turma_id", None)
-
-    resolved_curso = None
-    resolved_turma = None
-
-    if turma_id not in (None, ""):
-        t = Turma.query.get(int(turma_id))
-        if not t:
-            return jsonify({"erro": "turma_id não encontrado."}), 400
-        resolved_turma = t
 
     if curso_id not in (None, ""):
         c = Curso.query.get(int(curso_id))
         if not c:
             return jsonify({"erro": "curso_id não encontrado."}), 400
-        resolved_curso = c
+        aluno.curso_id = c.id
+        aluno.curso = c.nome
 
-    if not resolved_curso and curso_nome:
-        resolved_curso = Curso.query.filter(Curso.nome.ilike(f"%{curso_nome}%")).first()
-
-    if not resolved_turma and turma_nome:
-        q_turma = Turma.query
-        if resolved_curso:
-            q_turma = q_turma.filter(Turma.curso_id == resolved_curso.id)
-        resolved_turma = q_turma.filter(Turma.nome.ilike(f"%{turma_nome}%")).first()
-
-    if resolved_turma and resolved_curso and resolved_turma.curso_id != resolved_curso.id:
-        return jsonify({"erro": "A turma localizada não pertence ao curso localizado."}), 400
-
-    if resolved_curso:
-        aluno.curso_id = resolved_curso.id
-        aluno.curso = resolved_curso.nome
-    elif "curso_id" in data or "curso_nome" in data:
-        if data.get("curso_id") in (None, "") and not curso_nome:
-            aluno.curso_id = None
-
-    if resolved_turma:
-        aluno.turma_id = resolved_turma.id
-        aluno.turma = resolved_turma.nome
-    elif "turma_id" in data or "turma_nome" in data:
-        if data.get("turma_id") in (None, "") and not turma_nome:
-            aluno.turma_id = None
+    if turma_id not in (None, ""):
+        t = Turma.query.get(int(turma_id))
+        if not t:
+            return jsonify({"erro": "turma_id não encontrado."}), 400
+        aluno.turma_id = t.id
+        aluno.turma = t.nome
 
     aluno.normalize()
     db.session.commit()
     return jsonify(_json_aluno(aluno)), 200
 
 # -------------------------
-# TROCAR FOTO
+# TROCAR FOTO DO ALUNO
 # -------------------------
 @aluno_bp.route("/<int:aluno_id>/foto", methods=["PUT"])
 def trocar_foto(aluno_id: int):
@@ -864,11 +712,6 @@ def trocar_foto(aluno_id: int):
 # -------------------------
 @aluno_bp.route("/buscar", methods=["GET"])
 def buscar_aluno():
-    """
-    Endpoint único de busca.
-    - /alunos/buscar?cpf=xxxxxxxxxxx
-    - /alunos/buscar?nome=fulano
-    """
     try:
         cpf_raw = request.args.get("cpf")
         nome_raw = (request.args.get("nome") or "").strip()
