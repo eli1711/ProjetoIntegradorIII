@@ -41,7 +41,7 @@ services:
       FRONTEND_URL: http://localhost:8080
       DEBUG: "False"
       ENVIRONMENT: production
-      RESET_DB: "1"   # <<< AQUI
+      RESET_DB: "0"   # <<< AQUI
     ports:
       - "5000:5000"
     depends_on:
