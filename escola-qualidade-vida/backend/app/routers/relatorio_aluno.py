@@ -6,6 +6,15 @@ app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql://usuario:senha@localhost/nome_do
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db = SQLAlchemy(app)
 
+# Definição do modelo Curso
+class Curso(db.Model):
+    __tablename__ = 'cursos'
+    id = db.Column(db.Integer, primary_key=True)
+    nome = db.Column(db.String(255), nullable=False)
+
+    # Relacionamento com Aluno
+    alunos = db.relationship('Aluno', backref='curso', lazy=True)
+
 # Definição do modelo Aluno
 class Aluno(db.Model):
     __tablename__ = 'alunos'
@@ -14,6 +23,12 @@ class Aluno(db.Model):
     nome = db.Column(db.String(255), nullable=False)
     turma = db.Column(db.String(50), nullable=False)
     periodo = db.Column(db.String(50), nullable=False)
+    
+    # Relacionamento com Curso
+    curso_id = db.Column(db.Integer, db.ForeignKey('cursos.id'), nullable=False)
+
+    # Campo para foto do aluno
+    foto = db.Column(db.String(255), nullable=True)
 
 # Definição do modelo Ocorrencia
 class Ocorrencia(db.Model):
@@ -25,7 +40,7 @@ class Ocorrencia(db.Model):
     data_ocorrencia = db.Column(db.Date, nullable=False)
 
 # Rota para buscar alunos com filtros
-@consulta_aluno_bp.route('/alunos/buscar', methods=['GET'])
+@app.route('/alunos/buscar', methods=['GET'])
 def buscar_alunos():
     nome = request.args.get('nome', '')
     matricula = request.args.get('matricula', '')
@@ -51,10 +66,16 @@ def buscar_alunos():
             alunos_data.append({
                 'id': aluno.id,
                 'nome': aluno.nome,
+                'matricula': aluno.matricula,
+                'turma': aluno.turma,
+                'periodo': aluno.periodo,
                 'curso': aluno.curso.nome,  # Inclui o nome do curso
-                'foto': aluno.foto
+                'foto': aluno.foto          # Inclui a foto do aluno (se presente)
             })
         
         return jsonify(alunos_data)
 
     return jsonify({"erro": "Nenhum aluno encontrado."}), 404
+
+if __name__ == '__main__':
+    app.run(debug=True)

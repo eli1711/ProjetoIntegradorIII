@@ -1,4 +1,3 @@
-# app/routers/aluno.py
 import os
 import csv
 import io
@@ -232,6 +231,7 @@ def cadastrar_aluno_com_cpf():
 
         # Data nascimento + idade
         data_nascimento = parse_date(_none_if_empty(data.get("data_nascimento")))
+
         idade_raw = _none_if_empty(data.get("idade"))
         if idade_raw:
             try:
@@ -606,141 +606,3 @@ def importar_csv_alunos():
     except Exception as e:
         db.session.rollback()
         return jsonify({"erro": "Falha ao processar CSV.", "detalhes": str(e)}), 500
-
-# -------------------------
-# EDITAR ALUNO (dados)
-# -------------------------
-@aluno_bp.route("/<int:aluno_id>", methods=["PATCH"])
-def editar_aluno(aluno_id: int):
-    aluno = Aluno.query.get_or_404(aluno_id)
-    data = request.get_json(silent=True) or {}
-
-    for field in (
-        "cidade", "bairro", "rua", "telefone", "empresa_contratante",
-        "mora_com_quem", "sobre_aluno", "outras_informacoes", "curso", "turma"
-    ):
-        if field in data:
-            setattr(aluno, field, _none_if_empty(data[field]))
-
-    if "nome_social" in data:
-        aluno.nome_social = _none_if_empty(data["nome_social"])
-
-    if "pessoa_com_deficiencia" in data:
-        aluno.pessoa_com_deficiencia = bool(data["pessoa_com_deficiencia"])
-
-    if "data_nascimento" in data:
-        aluno.data_nascimento = parse_date(_none_if_empty(data["data_nascimento"]))
-    if "data_inicio_curso" in data:
-        aluno.data_inicio_curso = parse_date(_none_if_empty(data["data_inicio_curso"]))
-
-    if "linha_atendimento" in data and data["linha_atendimento"]:
-        la = str(data["linha_atendimento"]).upper()
-        if la not in _LINHAS_AT:
-            return jsonify({"erro": "linha_atendimento inválida."}), 400
-        aluno.linha_atendimento = la
-
-    if "escola_integrada" in data and data["escola_integrada"]:
-        ei = data["escola_integrada"]
-        if ei not in _ESCOLAS:
-            return jsonify({"erro": "escola_integrada inválida."}), 400
-        aluno.escola_integrada = ei
-
-    # Se vierem ids, valida e aplica
-    curso_id = data.get("curso_id", None)
-    turma_id = data.get("turma_id", None)
-
-    if curso_id not in (None, ""):
-        c = Curso.query.get(int(curso_id))
-        if not c:
-            return jsonify({"erro": "curso_id não encontrado."}), 400
-        aluno.curso_id = c.id
-        aluno.curso = c.nome
-
-    if turma_id not in (None, ""):
-        t = Turma.query.get(int(turma_id))
-        if not t:
-            return jsonify({"erro": "turma_id não encontrado."}), 400
-        aluno.turma_id = t.id
-        aluno.turma = t.nome
-
-    aluno.normalize()
-    db.session.commit()
-    return jsonify(_json_aluno(aluno)), 200
-
-# -------------------------
-# TROCAR FOTO DO ALUNO
-# -------------------------
-@aluno_bp.route("/<int:aluno_id>/foto", methods=["PUT"])
-def trocar_foto(aluno_id: int):
-    aluno = Aluno.query.get_or_404(aluno_id)
-
-    if "foto" not in request.files or not request.files["foto"].filename:
-        return jsonify({"erro": "Envie a imagem no campo 'foto'."}), 400
-
-    file = request.files["foto"]
-    try:
-        novo_filename = _save_photo(file, aluno.nome_social or aluno.nome)
-
-        if aluno.foto:
-            try:
-                old_path = os.path.join(current_app.config["UPLOAD_FOLDER"], aluno.foto)
-                if os.path.exists(old_path):
-                    os.remove(old_path)
-                    current_app.logger.info(f"🗑️ Foto antiga removida: {old_path}")
-            except Exception:
-                pass
-
-        aluno.foto = novo_filename
-        db.session.commit()
-
-        return jsonify({
-            "mensagem": "Foto atualizada com sucesso!",
-            "aluno_id": aluno.id,
-            "foto": aluno.foto,
-            "foto_url": f"/uploads/{aluno.foto}"
-        }), 200
-
-    except ValueError as ve:
-        return jsonify({"erro": str(ve)}), 400
-    except Exception as e:
-        db.session.rollback()
-        current_app.logger.exception("Erro ao trocar foto do aluno")
-        return jsonify({"erro": "Falha ao atualizar foto.", "detalhes": str(e)}), 500
-
-# -------------------------
-# BUSCAR (CPF ou NOME) - /alunos/buscar
-# -------------------------
-@aluno_bp.route("/buscar", methods=["GET"])
-def buscar_aluno():
-    try:
-        cpf_raw = request.args.get("cpf")
-        nome_raw = (request.args.get("nome") or "").strip()
-
-        if cpf_raw:
-            cpf = only_digits(cpf_raw)
-            if not cpf or len(cpf) != 11:
-                return jsonify({"erro": "Informe o CPF com 11 dígitos"}), 400
-
-            a = Aluno.query.filter_by(cpf=cpf).first()
-            if not a:
-                return jsonify([]), 200
-
-            return jsonify([_json_aluno(a)]), 200
-
-        if nome_raw:
-            filters = [
-                Aluno.nome_completo.ilike(f"%{nome_raw}%"),
-                Aluno.nome.ilike(f"%{nome_raw}%"),
-                Aluno.sobrenome.ilike(f"%{nome_raw}%"),
-            ]
-            if hasattr(Aluno, "nome_social"):
-                filters.append(Aluno.nome_social.ilike(f"%{nome_raw}%"))
-
-            q = Aluno.query.filter(or_(*filters)).limit(50).all()
-            return jsonify([_json_aluno(a) for a in q]), 200
-
-        return jsonify({"erro": "Informe cpf=... (11 dígitos) ou nome=..."}), 400
-
-    except Exception as e:
-        current_app.logger.exception("Erro no endpoint /alunos/buscar")
-        return jsonify({"erro": "Erro ao buscar alunos", "detalhes": str(e)}), 500

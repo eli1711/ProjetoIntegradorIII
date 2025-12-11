@@ -17,6 +17,7 @@ from app.routers.uploads_routes import upload_bp
 from app.routers.usuario_routes import usuario_bp
 from app.routers.permission_routes import permission_bp
 from app.routers.debug_routes import debug_bp
+from .routers.dashboard import dashboard_bp 
 
 
 def create_app():
@@ -130,3 +131,4 @@ def _register_blueprints(app):
     app.register_blueprint(usuario_bp)
     app.register_blueprint(permission_bp)
     app.register_blueprint(debug_bp)
+    app.register_blueprint(dashboard_bp)

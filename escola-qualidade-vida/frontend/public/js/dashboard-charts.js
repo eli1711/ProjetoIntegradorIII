@@ -1,163 +1,82 @@
-// Variáveis para guardar as instâncias dos gráficos (permite destruir e recriar)
-let chartInstanceAlunos = null;
-let chartInstanceOcorrencias = null;
-let chartInstanceEscolas = null;
+// Função para carregar cursos
+async function carregarCursos() {
+  const cursoFiltro = document.getElementById('cursoFiltro');
+  const response = await fetch('http://localhost:5000/cursos/');
+  const cursos = await response.json();
+  cursos.forEach(curso => {
+    const option = document.createElement('option');
+    option.value = curso.id;
+    option.textContent = curso.nome;
+    cursoFiltro.appendChild(option);
+  });
+}
 
-// Paleta de cores baseada no CSS do SENAI
-const COLORS = {
-    primary: '#c40000',    // Vermelho
-    secondary: '#000283',  // Azul Escuro
-    success: '#27854d',    // Verde
-    warning: '#ffc107',    // Amarelo
-    info: '#17a2b8',       // Azul Claro
-    gray: '#6c757d'        // Cinza
-};
+// Função para carregar tipos de ocorrências
+async function carregarOcorrencias() {
+  const ocorrenciaFiltro = document.getElementById('ocorrenciaFiltro');
+  const response = await fetch('http://localhost:5000/ocorrencias/tipos');
+  const tipos = await response.json();
+  tipos.forEach(tipo => {
+    const option = document.createElement('option');
+    option.value = tipo;
+    option.textContent = tipo;
+    ocorrenciaFiltro.appendChild(option);
+  });
+} 
 
-/**
- * Função principal chamada pelo render() do HTML
- */
-function renderCharts(alunos, turmas, mapOcorrPorAluno) {
-    
-    // Verifica se o Chart.js foi carregado
-    if (typeof Chart === 'undefined') {
-        console.warn("Chart.js não encontrado. Verifique o CDN no HTML.");
-        return;
-    }
+async function aplicarFiltros() {
+  const alunoFiltro = document.getElementById('buscaAluno').value;
+  const cursoFiltro = document.getElementById('cursoFiltro').value;
+  const ocorrenciaFiltro = document.getElementById('ocorrenciaFiltro').value;
 
-    // --- 1. PROCESSAMENTO DE DADOS ---
+  // Requisição para pegar dados filtrados
+  const response = await fetch(`http://localhost:5000/dashboard?aluno=${alunoFiltro}&curso=${cursoFiltro}&ocorrencia=${ocorrenciaFiltro}`);
+  const dados = await response.json();
 
-    // A. Contagem de Alunos por Curso
-    const countCurso = {};
-    alunos.forEach(a => {
-        let curso = a.curso_nome || a.curso;
-        // Tenta buscar nome do curso na turma se não tiver no aluno
-        if (!curso && a.turma_id) {
-            const t = turmas.find(tr => tr.id == a.turma_id);
-            if (t) curso = t.curso_nome;
-        }
-        curso = curso || "Não Identificado";
-        countCurso[curso] = (countCurso[curso] || 0) + 1;
+  // Exibindo as estatísticas
+  document.getElementById('kpiMediaIdade').textContent = dados.mediaIdades;
+  document.getElementById('kpiPCD').textContent = dados.alunosPCD;
+  document.getElementById('kpiTurmasAtivas').textContent = dados.turmasAtivas;
+  document.getElementById('kpiTurmasFinalizadas').textContent = dados.turmasFinalizadas;
+
+  // Exibindo as ocorrências
+  const listaOcorrencias = document.getElementById('listaOcorrencias');
+  listaOcorrencias.innerHTML = '';
+  dados.ocorrencias.forEach(ocorrencia => {
+    const li = document.createElement('li');
+    li.textContent = `${ocorrencia.tipo} - ${ocorrencia.descricao}`;
+    li.addEventListener('click', () => {
+      alert(`Detalhes da Ocorrência:\n\nTipo: ${ocorrencia.tipo}\nDescrição: ${ocorrencia.descricao}`);
     });
+    listaOcorrencias.appendChild(li);
+  });
 
-    // Ordena (maior para menor) e pega Top 8
-    const sortedCursos = Object.entries(countCurso)
-        .sort((a, b) => b[1] - a[1])
-        .slice(0, 8);
+  // Atualizar os gráficos (Função que já existe no seu código)
+  renderCharts(dados);
+}
 
-    // B. Contagem de Ocorrências por Curso
-    const countOcorrCurso = {};
-    alunos.forEach(a => {
-        let curso = a.curso_nome || a.curso;
-        if (!curso && a.turma_id) {
-            const t = turmas.find(tr => tr.id == a.turma_id);
-            if (t) curso = t.curso_nome;
-        }
-        curso = curso || "Outros";
+// Evento de clique no botão "Aplicar Filtros"
+document.getElementById('btnAplicar').addEventListener('click', aplicarFiltros);
 
-        const qtd = mapOcorrPorAluno.get(a.id) || 0;
-        if (qtd > 0) {
-            countOcorrCurso[curso] = (countOcorrCurso[curso] || 0) + qtd;
-        }
-    });
-
-    // Ordena e pega Top 8
-    const sortedOcorr = Object.entries(countOcorrCurso)
-        .sort((a, b) => b[1] - a[1])
-        .slice(0, 8);
-
-    // C. Distribuição por Escola Integrada
-    const countEscola = {};
-    alunos.forEach(a => {
-        const esc = a.escola_integrada || a.escola || "Não Informado";
-        countEscola[esc] = (countEscola[esc] || 0) + 1;
-    });
-
-    // Top 5 escolas
-    const sortedEscolas = Object.entries(countEscola)
-        .sort((a, b) => b[1] - a[1])
-        .slice(0, 5);
-
-
-    // --- 2. CRIAÇÃO DOS GRÁFICOS ---
-
-    // Gráfico 1: Alunos por Curso (Barras Horizontais)
-    const ctxAlunos = document.getElementById('chartAlunosCurso');
-    if (ctxAlunos) {
-        if (chartInstanceAlunos) chartInstanceAlunos.destroy();
-
-        chartInstanceAlunos = new Chart(ctxAlunos.getContext('2d'), {
-            type: 'bar',
-            data: {
-                labels: sortedCursos.map(i => i[0]),
-                datasets: [{
-                    label: 'Alunos',
-                    data: sortedCursos.map(i => i[1]),
-                    backgroundColor: COLORS.secondary,
-                    borderRadius: 4
-                }]
-            },
-            options: {
-                indexAxis: 'y', // Deitado
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                    title: { display: true, text: 'Top Cursos (Qtd. Alunos)', font: { size: 16 } },
-                    legend: { display: false }
-                }
-            }
-        });
+function renderCharts(dados) {
+  // Exemplo para renderizar um gráfico de barras com os dados dos alunos por curso
+  const ctx = document.getElementById('chartAlunosCurso').getContext('2d');
+  const chart = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: ['Curso A', 'Curso B', 'Curso C'],  // Exemplo, substitua com os cursos reais
+      datasets: [{
+        label: 'Número de Alunos',
+        data: [dados.alunosCursoA, dados.alunosCursoB, dados.alunosCursoC], // Substitua com os dados reais
+        backgroundColor: ['rgba(255, 99, 132, 0.2)', 'rgba(54, 162, 235, 0.2)', 'rgba(255, 206, 86, 0.2)'],
+        borderColor: ['rgba(255, 99, 132, 1)', 'rgba(54, 162, 235, 1)', 'rgba(255, 206, 86, 1)'],
+        borderWidth: 1
+      }]
+    },
+    options: {
+      scales: {
+        y: { beginAtZero: true }
+      }
     }
-
-    // Gráfico 2: Ocorrências por Curso (Barras Verticais)
-    const ctxOcorr = document.getElementById('chartOcorrenciasCurso');
-    if (ctxOcorr) {
-        if (chartInstanceOcorrencias) chartInstanceOcorrencias.destroy();
-
-        chartInstanceOcorrencias = new Chart(ctxOcorr.getContext('2d'), {
-            type: 'bar',
-            data: {
-                labels: sortedOcorr.map(i => i[0]),
-                datasets: [{
-                    label: 'Ocorrências',
-                    data: sortedOcorr.map(i => i[1]),
-                    backgroundColor: COLORS.primary,
-                    borderRadius: 4
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                    title: { display: true, text: 'Ocorrências por Curso', font: { size: 16 } },
-                    legend: { display: false }
-                }
-            }
-        });
-    }
-
-    // Gráfico 3: Escolas Integradas (Rosquinha)
-    const ctxEscola = document.getElementById('chartEscolas');
-    if (ctxEscola) {
-        if (chartInstanceEscolas) chartInstanceEscolas.destroy();
-
-        chartInstanceEscolas = new Chart(ctxEscola.getContext('2d'), {
-            type: 'doughnut',
-            data: {
-                labels: sortedEscolas.map(i => i[0]),
-                datasets: [{
-                    data: sortedEscolas.map(i => i[1]),
-                    backgroundColor: [COLORS.secondary, COLORS.primary, COLORS.success, COLORS.warning, COLORS.info],
-                    borderWidth: 1
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                    title: { display: true, text: 'Origem Escolar', font: { size: 16 } },
-                    legend: { position: 'bottom', labels: { boxWidth: 10, usePointStyle: true } }
-                }
-            }
-        });
-    }
+  });
 }

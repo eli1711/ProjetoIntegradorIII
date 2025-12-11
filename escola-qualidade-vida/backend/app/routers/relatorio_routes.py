@@ -1,7 +1,5 @@
-# Conteúdo corrigido para: app/routes.py
-
 from flask import Blueprint, request, jsonify
-from .models import Aluno, db # Importe 'db' aqui
+from .models import Aluno, db  # Importe 'db' aqui
 
 api_bp = Blueprint('api', __name__)
 
@@ -41,5 +39,5 @@ def buscar_alunos():
 
     except Exception as e:
         # Se algo der errado no servidor, retorna um erro claro
-        print(f"Ocorreu um erro: {e}") # Loga o erro no terminal do backend
-        return jsonify({"erro": "Ocorreu um erro interno no servidor"}), 500s
+        print(f"Ocorreu um erro: {e}")  # Loga o erro no terminal do backend
+        return jsonify({"erro": "Ocorreu um erro interno no servidor"}), 500
