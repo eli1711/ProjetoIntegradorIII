@@ -32,6 +32,15 @@
       background-color: #5a6268;
     }
     
+    .btn-teste {
+      background-color: #28a745;
+      color: white;
+    }
+    
+    .btn-teste:hover {
+      background-color: #218838;
+    }
+    
     .table-container {
       overflow-x: auto;
       margin-top: 20px;
@@ -216,6 +225,30 @@
       0% { transform: rotate(0deg); }
       100% { transform: rotate(360deg); }
     }
+    
+    .aviso {
+      background-color: #fff3cd;
+      border: 1px solid #ffeaa7;
+      color: #856404;
+      padding: 12px 15px;
+      border-radius: 4px;
+      margin-bottom: 20px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    
+    .aviso.erro {
+      background-color: #f8d7da;
+      border-color: #f5c6cb;
+      color: #721c24;
+    }
+    
+    .aviso.sucesso {
+      background-color: #d4edda;
+      border-color: #c3e6cb;
+      color: #155724;
+    }
   </style>
 </head>
 <body>
@@ -226,6 +259,9 @@
   </div>
 
   <main>
+    <!-- Área para avisos -->
+    <div id="areaAvisos"></div>
+
     <!-- Filtros -->
     <section class="filters">
       <div class="group">
@@ -253,6 +289,16 @@
       <div class="group">
         <button id="btnAplicar" class="btn">
           <i class="fa-solid fa-filter"></i> Aplicar
+        </button>
+      </div>
+      <div class="group">
+        <button id="btnLimpar" class="btn btn-limpar">
+          <i class="fa-solid fa-eraser"></i> Limpar
+        </button>
+      </div>
+      <div class="group">
+        <button id="btnTeste" class="btn btn-teste">
+          <i class="fa-solid fa-bug"></i> Testar
         </button>
       </div>
     </section>
@@ -323,6 +369,11 @@
           </thead>
           <tbody id="corpoTabelaAlunos">
             <!-- Dados serão inseridos aqui via JavaScript -->
+            <tr>
+              <td colspan="8" style="text-align: center; padding: 30px; color: #666;">
+                Carregando dados do dashboard...
+              </td>
+            </tr>
           </tbody>
         </table>
       </div>
@@ -342,119 +393,25 @@
     let chartEscolas = null;
 
     // Carregar dados do dashboard
-    // Carregar dados do dashboard
+    // NO dashboard.html - APENAS a função carregarDashboard atualizada:
 async function carregarDashboard() {
   try {
-    // Mostrar indicador de carregamento
     mostrarCarregamento(true);
+    limparAvisos();
     
-    // Pegar valores dos filtros
-    const statusTurma = document.getElementById('statusTurma').value;
-    const cursoFiltro = document.getElementById('cursoFiltro').value;
-    const alunoFiltro = document.getElementById('buscaAluno').value.trim();
-    const turmaFiltro = document.getElementById('buscaTurma').value.trim();
+    console.log('Buscando dados do dashboard...');
     
-    // Construir URL com parâmetros
-    let url = 'http://localhost:5000/dashboard?';
-    const params = new URLSearchParams();
+    // URL SIMPLES - sem parâmetros inicialmente
+    const url = 'http://localhost:5000/dashboard';
     
-    if (statusTurma && statusTurma !== 'todas') params.append('status', statusTurma);
-    if (cursoFiltro) params.append('curso', cursoFiltro);
-    if (alunoFiltro) params.append('aluno', alunoFiltro);
-    if (turmaFiltro) params.append('turma', turmaFiltro);
+    const response = await fetch(url);
     
-    url += params.toString();
-    
-    console.log('Buscando dados da URL:', url);
-    
-    // SISTEMA COM FALLBACK
-    let dados = null;
-    let usandoBackup = false;
-    
-    try {
-      const response = await fetch(url);
-      if (!response.ok) {
-        console.warn(`Erro no endpoint principal (${response.status}), tentando backup...`);
-        throw new Error(`Erro HTTP ${response.status}`);
-      }
-      dados = await response.json();
-      console.log('Dados recebidos do endpoint principal:', dados);
-    } catch (error) {
-      console.warn('Usando endpoint de backup:', error.message);
-      
-      // Tentar endpoint de backup
-      const backupUrl = 'http://localhost:5000/alunos/dashboard_data';
-      try {
-        console.log('Tentando endpoint de backup:', backupUrl);
-        const backupResponse = await fetch(backupUrl);
-        if (backupResponse.ok) {
-          dados = await backupResponse.json();
-          dados.usandoBackup = true; // Flag para identificar que está usando backup
-          usandoBackup = true;
-          console.log('Dados recebidos do backup:', dados);
-        } else {
-          throw new Error(`Backup também falhou (${backupResponse.status})`);
-        }
-      } catch (backupError) {
-        // Se ambos falharem, criar dados mínimos
-        console.error('Ambos os endpoints falharam:', backupError.message);
-        dados = {
-          totalAlunos: 0,
-          alunosPCD: 0,
-          mediaIdade: 0,
-          turmasAtivas: 0,
-          turmasFinalizadas: 0,
-          totalOcorrencias: 0,
-          alunosFiltrados: [],
-          graficos: {
-            alunosPorCurso: {},
-            ocorrenciasPorTipo: {},
-            escolas: {}
-          },
-          erro: 'Não foi possível carregar dados do servidor'
-        };
-      }
+    if (!response.ok) {
+      throw new Error(`Erro ${response.status}: ${response.statusText}`);
     }
     
-    // Se estiver usando backup, mostrar aviso discreto
-    if (usandoBackup) {
-      console.warn('ATENÇÃO: Usando dados de backup. Algumas funcionalidades podem estar limitadas.');
-      
-      // Mostrar aviso visual sutil (opcional)
-      const aviso = document.getElementById('avisoBackup');
-      if (!aviso) {
-        const avisoDiv = document.createElement('div');
-        avisoDiv.id = 'avisoBackup';
-        avisoDiv.style.cssText = `
-          background-color: #fff3cd;
-          border: 1px solid #ffeaa7;
-          color: #856404;
-          padding: 10px 15px;
-          border-radius: 4px;
-          margin: 10px 0;
-          font-size: 14px;
-          display: flex;
-          align-items: center;
-          gap: 10px;
-        `;
-        avisoDiv.innerHTML = `
-          <i class="fas fa-exclamation-triangle"></i>
-          <span>Usando dados básicos do sistema. Alguns filtros podem não funcionar completamente.</span>
-        `;
-        
-        const main = document.querySelector('main');
-        if (main) {
-          main.insertBefore(avisoDiv, main.firstChild);
-          
-          // Remover aviso após 10 segundos
-          setTimeout(() => {
-            avisoDiv.style.opacity = '0';
-            avisoDiv.style.transition = 'opacity 0.5s';
-            setTimeout(() => avisoDiv.remove(), 500);
-          }, 10000);
-        }
-      }
-    }
+    const dados = await response.json();
+    console.log('Dados recebidos:', dados);
     
     // Atualizar KPIs
     atualizarKPIs(dados);
@@ -467,33 +424,24 @@ async function carregarDashboard() {
     // Renderizar tabela de alunos
     if (dados.alunosFiltrados) {
       renderizarTabelaAlunos(dados.alunosFiltrados);
-    }
-    
-    // Se houver erro nos dados, mostrar mensagem
-    if (dados.erro && !usandoBackup) {
-      console.error('Erro nos dados:', dados.erro);
       
-      // Mostrar mensagem de erro sutil na tabela
-      const tbody = document.getElementById('corpoTabelaAlunos');
-      if (tbody) {
-        tbody.innerHTML = '';
-        const row = tbody.insertRow();
-        const cell = row.insertCell();
-        cell.colSpan = 8;
-        cell.innerHTML = `
-          <div style="text-align: center; padding: 30px; color: #dc3545;">
-            <i class="fas fa-exclamation-circle" style="font-size: 24px; margin-bottom: 10px;"></i>
-            <p style="margin: 10px 0;">${dados.erro}</p>
-            <small>Tente recarregar a página ou verificar a conexão com o servidor.</small>
-          </div>
-        `;
+      // Mostrar mensagem se nenhum aluno
+      if (dados.alunosFiltrados.length === 0) {
+        mostrarAviso('Nenhum aluno encontrado no sistema.', 'info');
+      } else {
+        mostrarAviso(`Carregados ${dados.alunosFiltrados.length} alunos`, 'sucesso');
       }
     }
     
-  } catch (error) {
-    console.error('Erro crítico ao carregar dashboard:', error);
+    if (dados.mensagem) {
+      mostrarAviso(dados.mensagem, 'info');
+    }
     
-    // Mostrar mensagem de erro amigável
+  } catch (error) {
+    console.error('Erro ao carregar dashboard:', error);
+    mostrarAviso(`Erro: ${error.message}`, 'erro');
+    
+    // Mostrar mensagem de erro na tabela
     const tbody = document.getElementById('corpoTabelaAlunos');
     if (tbody) {
       tbody.innerHTML = '';
@@ -501,38 +449,18 @@ async function carregarDashboard() {
       const cell = row.insertCell();
       cell.colSpan = 8;
       cell.innerHTML = `
-        <div style="text-align: center; padding: 40px; color: #721c24; background-color: #f8d7da; border-radius: 8px;">
-          <i class="fas fa-server" style="font-size: 48px; margin-bottom: 20px; color: #dc3545;"></i>
-          <h3 style="margin: 0 0 10px 0;">Erro de conexão</h3>
-          <p style="margin: 0 0 20px 0;">Não foi possível conectar ao servidor. Verifique:</p>
-          <ul style="text-align: left; display: inline-block; margin: 0 auto 20px auto;">
-            <li>Se o servidor Flask está rodando</li>
-            <li>Sua conexão com a internet</li>
-            <li>Se a porta 5000 está acessível</li>
-          </ul>
-          <button onclick="carregarDashboard()" style="
-            background-color: #dc3545;
-            color: white;
-            border: none;
-            padding: 10px 20px;
-            border-radius: 4px;
-            cursor: pointer;
-            font-size: 14px;
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-          ">
-            <i class="fas fa-redo"></i> Tentar novamente
+        <div style="text-align: center; padding: 30px; color: #666;">
+          <i class="fas fa-exclamation-triangle" style="font-size: 36px; margin-bottom: 15px; color: #dc3545;"></i>
+          <h4 style="margin: 0 0 10px 0;">Não foi possível carregar os dados</h4>
+          <p style="margin: 0 0 15px 0;">${error.message}</p>
+          <button onclick="location.reload()" class="btn" style="background-color: #dc3545;">
+            <i class="fas fa-redo"></i> Recarregar página
           </button>
         </div>
       `;
     }
     
-    // Também mostrar alerta
-    alert(`Erro ao carregar dados do dashboard: ${error.message}\n\nTente recarregar a página.`);
-    
   } finally {
-    // Sempre esconder o indicador de carregamento
     mostrarCarregamento(false);
   }
 }
@@ -572,10 +500,10 @@ async function carregarDashboard() {
         if (cursos.length === 0) {
           ctx1.style.display = 'none';
           const parent = ctx1.parentElement;
-          if (parent.querySelector('.sem-dados')) {
-            parent.querySelector('.sem-dados').remove();
+          const semDados = parent.querySelector('.sem-dados');
+          if (!semDados) {
+            parent.innerHTML += '<p class="sem-dados">Nenhum dado disponível para alunos por curso</p>';
           }
-          parent.innerHTML += '<p class="sem-dados">Nenhum dado disponível para alunos por curso</p>';
         } else {
           ctx1.style.display = 'block';
           // Remover mensagem de sem dados se existir
@@ -637,10 +565,10 @@ async function carregarDashboard() {
         if (tipos.length === 0) {
           ctx2.style.display = 'none';
           const parent = ctx2.parentElement;
-          if (parent.querySelector('.sem-dados')) {
-            parent.querySelector('.sem-dados').remove();
+          const semDados = parent.querySelector('.sem-dados');
+          if (!semDados) {
+            parent.innerHTML += '<p class="sem-dados">Nenhuma ocorrência registrada</p>';
           }
-          parent.innerHTML += '<p class="sem-dados">Nenhuma ocorrência registrada</p>';
         } else {
           ctx2.style.display = 'block';
           // Remover mensagem de sem dados se existir
@@ -701,10 +629,10 @@ async function carregarDashboard() {
         if (escolas.length === 0) {
           ctx3.style.display = 'none';
           const parent = ctx3.parentElement;
-          if (parent.querySelector('.sem-dados')) {
-            parent.querySelector('.sem-dados').remove();
+          const semDados = parent.querySelector('.sem-dados');
+          if (!semDados) {
+            parent.innerHTML += '<p class="sem-dados">Nenhum dado disponível para escolas</p>';
           }
-          parent.innerHTML += '<p class="sem-dados">Nenhum dado disponível para escolas</p>';
         } else {
           ctx3.style.display = 'block';
           // Remover mensagem de sem dados se existir
@@ -768,15 +696,18 @@ async function carregarDashboard() {
         const row = tbody.insertRow();
         const cell = row.insertCell();
         cell.colSpan = 8;
-        cell.textContent = 'Nenhum aluno encontrado com os filtros aplicados';
-        cell.style.textAlign = 'center';
-        cell.style.padding = '20px';
-        cell.style.color = '#666';
+        cell.innerHTML = `
+          <div style="text-align: center; padding: 40px; color: #666;">
+            <i class="fas fa-user-slash" style="font-size: 48px; margin-bottom: 20px; opacity: 0.3;"></i>
+            <h3 style="margin: 0 0 10px 0;">Nenhum aluno encontrado</h3>
+            <p style="margin: 0;">Tente ajustar os filtros de busca</p>
+          </div>
+        `;
         return;
       }
       
       // Adicionar cada aluno na tabela
-      alunos.forEach(aluno => {
+      alunos.forEach((aluno, index) => {
         const row = tbody.insertRow();
         
         // ID
@@ -812,7 +743,7 @@ async function carregarDashboard() {
         cellOcorrencias.textContent = aluno.ocorrencias || 0;
         
         // Adicionar classe para zebrado
-        if (tbody.rows.length % 2 === 0) {
+        if (index % 2 === 0) {
           row.classList.add('zebrado');
         }
       });
@@ -821,7 +752,7 @@ async function carregarDashboard() {
     // Carregar cursos para o filtro
     async function carregarCursos() {
       try {
-        const response = await fetch('http://localhost:5000/cursos/');
+        const response = await fetch('http://localhost:5000/dashboard/cursos-list');
         if (!response.ok) {
           throw new Error(`Erro ao buscar cursos: ${response.status}`);
         }
@@ -848,8 +779,48 @@ async function carregarDashboard() {
         console.log(`${cursos.length} cursos carregados no filtro`);
       } catch (error) {
         console.error('Erro ao carregar cursos:', error);
-        // Não mostrar alerta para evitar interromper o usuário
+        mostrarAviso('Não foi possível carregar a lista de cursos', 'erro');
       }
+    }
+
+    // Testar conexão e diagnóstico
+    async function testarConexao() {
+  try {
+    mostrarCarregamento(true);
+    
+    const response = await fetch('http://localhost:5000/dashboard/diagnostico');
+    const data = await response.json();
+    
+    console.log('Diagnóstico:', data);
+    
+    if (data.status === 'OK') {
+      alert(`✅ SISTEMA OPERANDO\n\n` +
+            `• Alunos: ${data.totais?.alunos || 0}\n` +
+            `• Turmas: ${data.totais?.turmas || 0}\n` +
+            `• Cursos: ${data.totais?.cursos || 0}\n` +
+            `• Ocorrências: ${data.totais?.ocorrencias || 0}\n\n` +
+            `${data.mensagem || ''}`);
+    } else {
+      alert(`❌ PROBLEMA DETECTADO\n\n${data.erro || 'Erro desconhecido'}`);
+    }
+    
+  } catch (error) {
+    alert(`❌ ERRO DE CONEXÃO\n\nVerifique se o servidor Flask está rodando na porta 5000.`);
+    console.error('Erro no teste:', error);
+  } finally {
+    mostrarCarregamento(false);
+  }
+}
+
+    // Limpar filtros
+    function limparFiltros() {
+      document.getElementById('buscaAluno').value = '';
+      document.getElementById('buscaTurma').value = '';
+      document.getElementById('statusTurma').value = 'todas';
+      document.getElementById('cursoFiltro').value = '';
+      
+      // Recarregar dashboard
+      carregarDashboard();
     }
 
     // Mostrar/ocultar indicador de carregamento
@@ -876,39 +847,53 @@ async function carregarDashboard() {
       }
     }
 
-    // Limpar filtros
-    function limparFiltros() {
-      document.getElementById('buscaAluno').value = '';
-      document.getElementById('buscaTurma').value = '';
-      document.getElementById('statusTurma').value = 'todas';
-      document.getElementById('cursoFiltro').value = '';
+    // Mostrar aviso
+    function mostrarAviso(mensagem, tipo = 'info') {
+      const areaAvisos = document.getElementById('areaAvisos');
+      if (!areaAvisos) return;
       
-      // Recarregar dashboard
-      carregarDashboard();
+      const aviso = document.createElement('div');
+      aviso.className = `aviso ${tipo}`;
+      
+      let icon = 'fa-info-circle';
+      if (tipo === 'erro') icon = 'fa-exclamation-triangle';
+      if (tipo === 'sucesso') icon = 'fa-check-circle';
+      
+      aviso.innerHTML = `
+        <i class="fas ${icon}"></i>
+        <span>${mensagem}</span>
+        <button onclick="this.parentElement.remove()" style="
+          margin-left: auto;
+          background: none;
+          border: none;
+          color: inherit;
+          cursor: pointer;
+          font-size: 16px;
+        ">
+          <i class="fas fa-times"></i>
+        </button>
+      `;
+      
+      areaAvisos.appendChild(aviso);
+      
+      // Remover automaticamente após 10 segundos
+      setTimeout(() => {
+        if (aviso.parentElement) {
+          aviso.style.opacity = '0';
+          aviso.style.transition = 'opacity 0.5s';
+          setTimeout(() => {
+            if (aviso.parentElement) aviso.remove();
+          }, 500);
+        }
+      }, 10000);
     }
 
-    // Adicionar botão de limpar filtros
-    function adicionarBotaoLimpar() {
-      const filtersSection = document.querySelector('.filters');
-      if (!filtersSection) {
-        console.error('Seção de filtros não encontrada');
-        return;
+    // Limpar avisos
+    function limparAvisos() {
+      const areaAvisos = document.getElementById('areaAvisos');
+      if (areaAvisos) {
+        areaAvisos.innerHTML = '';
       }
-      
-      // Verificar se o botão já existe
-      if (document.getElementById('btnLimpar')) return;
-      
-      const limparBtn = document.createElement('button');
-      limparBtn.id = 'btnLimpar';
-      limparBtn.className = 'btn btn-limpar';
-      limparBtn.innerHTML = '<i class="fa-solid fa-eraser"></i> Limpar';
-      limparBtn.addEventListener('click', limparFiltros);
-      
-      // Adicionar ao container de filtros
-      const group = document.createElement('div');
-      group.className = 'group';
-      group.appendChild(limparBtn);
-      filtersSection.appendChild(group);
     }
 
     // Inicializar quando a página carregar
@@ -918,9 +903,6 @@ async function carregarDashboard() {
       // Carregar cursos no filtro
       carregarCursos();
       
-      // Adicionar botão de limpar filtros
-      adicionarBotaoLimpar();
-      
       // Carregar dados do dashboard
       carregarDashboard();
       
@@ -928,8 +910,18 @@ async function carregarDashboard() {
       const btnAplicar = document.getElementById('btnAplicar');
       if (btnAplicar) {
         btnAplicar.addEventListener('click', carregarDashboard);
-      } else {
-        console.error('Botão btnAplicar não encontrado');
+      }
+      
+      // Configurar botão de limpar
+      const btnLimpar = document.getElementById('btnLimpar');
+      if (btnLimpar) {
+        btnLimpar.addEventListener('click', limparFiltros);
+      }
+      
+      // Configurar botão de teste
+      const btnTeste = document.getElementById('btnTeste');
+      if (btnTeste) {
+        btnTeste.addEventListener('click', testarConexao);
       }
       
       // Configurar busca por Enter
@@ -949,6 +941,9 @@ async function carregarDashboard() {
       }
       
       console.log('Dashboard inicializado com sucesso');
+      
+      // Mostrar aviso inicial
+      mostrarAviso('Carregando dados do dashboard...', 'info');
     });
   </script>
   
