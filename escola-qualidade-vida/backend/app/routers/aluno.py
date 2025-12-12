@@ -606,3 +606,82 @@ def importar_csv_alunos():
     except Exception as e:
         db.session.rollback()
         return jsonify({"erro": "Falha ao processar CSV.", "detalhes": str(e)}), 500
+
+
+# -------------------------
+# DASHBOARD BACKUP - Retorna dados básicos para o dashboard
+# -------------------------
+@aluno_bp.route("/dashboard_data", methods=["GET"])
+def dashboard_data():
+    """
+    Endpoint de backup para fornecer dados ao dashboard.
+    """
+    try:
+        # Totais básicos
+        total_alunos = Aluno.query.count()
+        alunos_pcd = Aluno.query.filter_by(pessoa_com_deficiencia=True).count()
+        
+        # Média de idade
+        from sqlalchemy import func
+        media_idade_result = db.session.query(func.avg(Aluno.idade)).scalar()
+        media_idade = round(media_idade_result, 1) if media_idade_result else 0
+        
+        # Alunos por curso (simples)
+        alunos_por_curso = {}
+        alunos = Aluno.query.all()
+        for aluno in alunos:
+            curso = aluno.curso or 'Sem Curso'
+            alunos_por_curso[curso] = alunos_por_curso.get(curso, 0) + 1
+        
+        # Escolas
+        escolas = {}
+        for aluno in alunos:
+            escola = aluno.escola_integrada or 'Nenhuma'
+            escolas[escola] = escolas.get(escola, 0) + 1
+        
+        # Lista de alunos (limitada para performance)
+        alunos_lista = []
+        for aluno in alunos[:50]:  # Limitar a 50 alunos
+            alunos_lista.append({
+                'id': aluno.id,
+                'nome': aluno.nome_social or aluno.nome or aluno.nome_completo or '',
+                'turma': aluno.turma or '',
+                'curso': aluno.curso or '',
+                'idade': aluno.idade or 0,
+                'escola_integrada': aluno.escola_integrada or 'Nenhuma',
+                'pessoa_com_deficiencia': bool(aluno.pessoa_com_deficiencia),
+                'ocorrencias': 0  # Placeholder
+            })
+        
+        return jsonify({
+            'totalAlunos': total_alunos,
+            'alunosPCD': alunos_pcd,
+            'mediaIdade': media_idade,
+            'turmasAtivas': 0,  # Placeholder
+            'turmasFinalizadas': 0,  # Placeholder
+            'totalOcorrencias': 0,  # Placeholder
+            'alunosFiltrados': alunos_lista,
+            'graficos': {
+                'alunosPorCurso': alunos_por_curso,
+                'ocorrenciasPorTipo': {},  # Placeholder
+                'escolas': escolas
+            }
+        }), 200
+        
+    except Exception as e:
+        current_app.logger.error(f"Erro em dashboard_data: {str(e)}", exc_info=True)
+        return jsonify({
+            'erro': 'Dados temporariamente indisponíveis',
+            'totalAlunos': 0,
+            'alunosPCD': 0,
+            'mediaIdade': 0,
+            'turmasAtivas': 0,
+            'turmasFinalizadas': 0,
+            'totalOcorrencias': 0,
+            'alunosFiltrados': [],
+            'graficos': {
+                'alunosPorCurso': {},
+                'ocorrenciasPorTipo': {},
+                'escolas': {}
+            }
+        }), 200

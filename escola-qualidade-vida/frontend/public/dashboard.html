@@ -3,25 +3,230 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Histórico e Indicadores</title>
+  <title>Dashboard - Histórico e Indicadores</title>
   <link rel="stylesheet" href="./css/dashboard.css" />
-  <link
-    rel="stylesheet"
-    href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
-  />
-  <script src="js/navbar-protection.js"></script>
-  <link
-    href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600;700&family=Poppins:wght@500;600&display=swap"
-    rel="stylesheet"
-  />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600;700&family=Poppins:wght@500;600&display=swap" rel="stylesheet" />
+  <style>
+    /* Estilos adicionais para o dashboard */
+    .sem-dados {
+      text-align: center;
+      padding: 40px;
+      color: #666;
+      font-style: italic;
+      background: #f9f9f9;
+      border-radius: 8px;
+      margin: 10px;
+    }
+    
+    .zebrado {
+      background-color: #f9f9f9;
+    }
+    
+    .btn-limpar {
+      background-color: #6c757d;
+      color: white;
+    }
+    
+    .btn-limpar:hover {
+      background-color: #5a6268;
+    }
+    
+    .table-container {
+      overflow-x: auto;
+      margin-top: 20px;
+      border-radius: 8px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    
+    #tabelaAlunos {
+      width: 100%;
+      border-collapse: collapse;
+      min-width: 800px;
+    }
+    
+    #tabelaAlunos th {
+      background-color: #4a6fa5;
+      color: white;
+      padding: 12px 15px;
+      text-align: left;
+      font-weight: 600;
+    }
+    
+    #tabelaAlunos td {
+      padding: 12px 15px;
+      border-bottom: 1px solid #ddd;
+    }
+    
+    #tabelaAlunos tr:hover {
+      background-color: #f5f5f5;
+    }
+    
+    .charts-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+      gap: 20px;
+      margin-top: 20px;
+    }
+    
+    .chart-card {
+      background: white;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      min-height: 300px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    
+    .kpis {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 20px;
+      margin-top: 20px;
+    }
+    
+    .kpi {
+      background: white;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      text-align: center;
+    }
+    
+    .kpi h3 {
+      margin: 0 0 10px 0;
+      color: #555;
+      font-size: 14px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    
+    .kpi .value {
+      font-size: 32px;
+      font-weight: 700;
+      color: #4a6fa5;
+    }
+    
+    .filters {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 15px;
+      background: white;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      margin-bottom: 30px;
+    }
+    
+    .group {
+      display: flex;
+      flex-direction: column;
+    }
+    
+    .group label {
+      margin-bottom: 5px;
+      font-weight: 600;
+      color: #555;
+    }
+    
+    .group select,
+    .group input {
+      padding: 10px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      font-size: 14px;
+    }
+    
+    .btn {
+      padding: 10px 20px;
+      background-color: #4a6fa5;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      transition: background-color 0.3s;
+      margin-top: 23px;
+    }
+    
+    .btn:hover {
+      background-color: #3a5a80;
+    }
+    
+    .section {
+      margin-bottom: 40px;
+    }
+    
+    .section h2 {
+      color: #333;
+      border-bottom: 2px solid #4a6fa5;
+      padding-bottom: 10px;
+      margin-bottom: 20px;
+    }
+    
+    body {
+      font-family: 'Open Sans', sans-serif;
+      background-color: #f5f7fa;
+      color: #333;
+      margin: 0;
+      padding: 20px;
+    }
+    
+    main {
+      max-width: 1400px;
+      margin: 0 auto;
+    }
+    
+    .loading {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(255, 255, 255, 0.8);
+      z-index: 1000;
+      justify-content: center;
+      align-items: center;
+      flex-direction: column;
+    }
+    
+    .loading.active {
+      display: flex;
+    }
+    
+    .spinner {
+      width: 50px;
+      height: 50px;
+      border: 5px solid #f3f3f3;
+      border-top: 5px solid #4a6fa5;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+      margin-bottom: 15px;
+    }
+    
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+  </style>
 </head>
 <body>
-  <header>
-    <!-- Código de navegação e logo -->
-  </header>
+  <!-- Loading overlay -->
+  <div id="loadingOverlay" class="loading">
+    <div class="spinner"></div>
+    <p>Carregando dados do dashboard...</p>
+  </div>
 
   <main>
-    <!-- Filtros, gráficos e tabelas -->
+    <!-- Filtros -->
     <section class="filters">
       <div class="group">
         <label for="statusTurma">Status da Turma</label>
@@ -34,7 +239,7 @@
       <div class="group">
         <label for="cursoFiltro">Curso</label>
         <select id="cursoFiltro">
-          <option value="">Todos</option>
+          <option value="">Todos os Cursos</option>
         </select>
       </div>
       <div class="group">
@@ -52,7 +257,7 @@
       </div>
     </section>
 
-    <!-- Seções com gráficos e tabelas -->
+    <!-- Indicadores Gerais -->
     <section class="section">
       <h2>Indicadores Gerais</h2>
       <div class="kpis">
@@ -83,6 +288,7 @@
       </div>
     </section>
 
+    <!-- Visão Gráfica -->
     <section class="section">
       <h2>Visão Gráfica</h2>
       <div class="charts-grid">
@@ -97,77 +303,660 @@
         </div>
       </div>
     </section>
+
+    <!-- Lista de Alunos -->
+    <section class="section">
+      <h2>Lista de Alunos</h2>
+      <div class="table-container">
+        <table id="tabelaAlunos">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Nome</th>
+              <th>Turma</th>
+              <th>Curso</th>
+              <th>Idade</th>
+              <th>Escola Integrada</th>
+              <th>PCD</th>
+              <th>Ocorrências</th>
+            </tr>
+          </thead>
+          <tbody id="corpoTabelaAlunos">
+            <!-- Dados serão inseridos aqui via JavaScript -->
+          </tbody>
+        </table>
+      </div>
+    </section>
   </main>
 
+  <!-- Chart.js -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-
+  
+  <!-- JavaScript do Dashboard EMBUTIDO -->
   <script>
-    // Função para buscar dados da API (alunos, turmas, ocorrências)
-    async function fetchData() {
-      const response = await fetch("http://localhost:5000/alunos/buscar");
-      const data = await response.json();
-      return data;
+    // dashboard-charts.js - CÓDIGO COMPLETO EMBUTIDO
+    
+    // Variáveis globais para os gráficos
+    let chartAlunosCurso = null;
+    let chartOcorrenciasCurso = null;
+    let chartEscolas = null;
+
+    // Carregar dados do dashboard
+    // Carregar dados do dashboard
+async function carregarDashboard() {
+  try {
+    // Mostrar indicador de carregamento
+    mostrarCarregamento(true);
+    
+    // Pegar valores dos filtros
+    const statusTurma = document.getElementById('statusTurma').value;
+    const cursoFiltro = document.getElementById('cursoFiltro').value;
+    const alunoFiltro = document.getElementById('buscaAluno').value.trim();
+    const turmaFiltro = document.getElementById('buscaTurma').value.trim();
+    
+    // Construir URL com parâmetros
+    let url = 'http://localhost:5000/dashboard?';
+    const params = new URLSearchParams();
+    
+    if (statusTurma && statusTurma !== 'todas') params.append('status', statusTurma);
+    if (cursoFiltro) params.append('curso', cursoFiltro);
+    if (alunoFiltro) params.append('aluno', alunoFiltro);
+    if (turmaFiltro) params.append('turma', turmaFiltro);
+    
+    url += params.toString();
+    
+    console.log('Buscando dados da URL:', url);
+    
+    // SISTEMA COM FALLBACK
+    let dados = null;
+    let usandoBackup = false;
+    
+    try {
+      const response = await fetch(url);
+      if (!response.ok) {
+        console.warn(`Erro no endpoint principal (${response.status}), tentando backup...`);
+        throw new Error(`Erro HTTP ${response.status}`);
+      }
+      dados = await response.json();
+      console.log('Dados recebidos do endpoint principal:', dados);
+    } catch (error) {
+      console.warn('Usando endpoint de backup:', error.message);
+      
+      // Tentar endpoint de backup
+      const backupUrl = 'http://localhost:5000/alunos/dashboard_data';
+      try {
+        console.log('Tentando endpoint de backup:', backupUrl);
+        const backupResponse = await fetch(backupUrl);
+        if (backupResponse.ok) {
+          dados = await backupResponse.json();
+          dados.usandoBackup = true; // Flag para identificar que está usando backup
+          usandoBackup = true;
+          console.log('Dados recebidos do backup:', dados);
+        } else {
+          throw new Error(`Backup também falhou (${backupResponse.status})`);
+        }
+      } catch (backupError) {
+        // Se ambos falharem, criar dados mínimos
+        console.error('Ambos os endpoints falharam:', backupError.message);
+        dados = {
+          totalAlunos: 0,
+          alunosPCD: 0,
+          mediaIdade: 0,
+          turmasAtivas: 0,
+          turmasFinalizadas: 0,
+          totalOcorrencias: 0,
+          alunosFiltrados: [],
+          graficos: {
+            alunosPorCurso: {},
+            ocorrenciasPorTipo: {},
+            escolas: {}
+          },
+          erro: 'Não foi possível carregar dados do servidor'
+        };
+      }
     }
-
-    // Função para aplicar filtros na busca
-    async function applyFilters() {
-      const alunoSearch = document.getElementById("buscaAluno").value;
-      const turmaSearch = document.getElementById("buscaTurma").value;
-
-      // Filtra os alunos de acordo com os campos de busca
-      let alunos = await fetchData();
-      alunos = alunos.filter((aluno) => aluno.nome.includes(alunoSearch));
-
-      // Exibe os resultados na tabela e nos gráficos
-      renderTable(alunos);
-      renderCharts(alunos);
-    }
-
-    // Função que renderiza a tabela de alunos com base nos filtros aplicados
-    function renderTable(alunos) {
-      const tableBody = document.getElementById('tblAlunos').getElementsByTagName('tbody')[0];
-      tableBody.innerHTML = ''; // Limpa a tabela existente
-
-      alunos.forEach(aluno => {
-        const row = tableBody.insertRow();
-        row.innerHTML = `
-          <td>${aluno.id}</td>
-          <td>${aluno.nome}</td>
-          <td>${aluno.turma}</td>
-          <td>${aluno.curso}</td>
-          <td>${aluno.idade}</td>
-          <td>${aluno.escola_integrada}</td>
-          <td>${aluno.pessoa_com_deficiencia ? 'Sim' : 'Não'}</td>
-          <td>${aluno.ocorrencias.length}</td>
+    
+    // Se estiver usando backup, mostrar aviso discreto
+    if (usandoBackup) {
+      console.warn('ATENÇÃO: Usando dados de backup. Algumas funcionalidades podem estar limitadas.');
+      
+      // Mostrar aviso visual sutil (opcional)
+      const aviso = document.getElementById('avisoBackup');
+      if (!aviso) {
+        const avisoDiv = document.createElement('div');
+        avisoDiv.id = 'avisoBackup';
+        avisoDiv.style.cssText = `
+          background-color: #fff3cd;
+          border: 1px solid #ffeaa7;
+          color: #856404;
+          padding: 10px 15px;
+          border-radius: 4px;
+          margin: 10px 0;
+          font-size: 14px;
+          display: flex;
+          align-items: center;
+          gap: 10px;
         `;
-      });
+        avisoDiv.innerHTML = `
+          <i class="fas fa-exclamation-triangle"></i>
+          <span>Usando dados básicos do sistema. Alguns filtros podem não funcionar completamente.</span>
+        `;
+        
+        const main = document.querySelector('main');
+        if (main) {
+          main.insertBefore(avisoDiv, main.firstChild);
+          
+          // Remover aviso após 10 segundos
+          setTimeout(() => {
+            avisoDiv.style.opacity = '0';
+            avisoDiv.style.transition = 'opacity 0.5s';
+            setTimeout(() => avisoDiv.remove(), 500);
+          }, 10000);
+        }
+      }
+    }
+    
+    // Atualizar KPIs
+    atualizarKPIs(dados);
+    
+    // Renderizar gráficos
+    if (dados.graficos) {
+      renderizarGraficos(dados.graficos);
+    }
+    
+    // Renderizar tabela de alunos
+    if (dados.alunosFiltrados) {
+      renderizarTabelaAlunos(dados.alunosFiltrados);
+    }
+    
+    // Se houver erro nos dados, mostrar mensagem
+    if (dados.erro && !usandoBackup) {
+      console.error('Erro nos dados:', dados.erro);
+      
+      // Mostrar mensagem de erro sutil na tabela
+      const tbody = document.getElementById('corpoTabelaAlunos');
+      if (tbody) {
+        tbody.innerHTML = '';
+        const row = tbody.insertRow();
+        const cell = row.insertCell();
+        cell.colSpan = 8;
+        cell.innerHTML = `
+          <div style="text-align: center; padding: 30px; color: #dc3545;">
+            <i class="fas fa-exclamation-circle" style="font-size: 24px; margin-bottom: 10px;"></i>
+            <p style="margin: 10px 0;">${dados.erro}</p>
+            <small>Tente recarregar a página ou verificar a conexão com o servidor.</small>
+          </div>
+        `;
+      }
+    }
+    
+  } catch (error) {
+    console.error('Erro crítico ao carregar dashboard:', error);
+    
+    // Mostrar mensagem de erro amigável
+    const tbody = document.getElementById('corpoTabelaAlunos');
+    if (tbody) {
+      tbody.innerHTML = '';
+      const row = tbody.insertRow();
+      const cell = row.insertCell();
+      cell.colSpan = 8;
+      cell.innerHTML = `
+        <div style="text-align: center; padding: 40px; color: #721c24; background-color: #f8d7da; border-radius: 8px;">
+          <i class="fas fa-server" style="font-size: 48px; margin-bottom: 20px; color: #dc3545;"></i>
+          <h3 style="margin: 0 0 10px 0;">Erro de conexão</h3>
+          <p style="margin: 0 0 20px 0;">Não foi possível conectar ao servidor. Verifique:</p>
+          <ul style="text-align: left; display: inline-block; margin: 0 auto 20px auto;">
+            <li>Se o servidor Flask está rodando</li>
+            <li>Sua conexão com a internet</li>
+            <li>Se a porta 5000 está acessível</li>
+          </ul>
+          <button onclick="carregarDashboard()" style="
+            background-color: #dc3545;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+          ">
+            <i class="fas fa-redo"></i> Tentar novamente
+          </button>
+        </div>
+      `;
+    }
+    
+    // Também mostrar alerta
+    alert(`Erro ao carregar dados do dashboard: ${error.message}\n\nTente recarregar a página.`);
+    
+  } finally {
+    // Sempre esconder o indicador de carregamento
+    mostrarCarregamento(false);
+  }
+}
+
+    // Atualizar KPIs
+    function atualizarKPIs(dados) {
+      // Função auxiliar para formatar números
+      const formatarNumero = (valor) => {
+        if (valor === undefined || valor === null) return '-';
+        if (valor === 0) return '0';
+        return Number.isInteger(valor) ? valor.toString() : valor.toFixed(1);
+      };
+      
+      // Atualizar cada KPI
+      document.getElementById('kpiTotalAlunos').textContent = formatarNumero(dados.totalAlunos);
+      document.getElementById('kpiPCD').textContent = formatarNumero(dados.alunosPCD);
+      document.getElementById('kpiMediaIdade').textContent = formatarNumero(dados.mediaIdade);
+      document.getElementById('kpiTurmasAtivas').textContent = formatarNumero(dados.turmasAtivas);
+      document.getElementById('kpiTurmasFinalizadas').textContent = formatarNumero(dados.turmasFinalizadas);
+      document.getElementById('kpiOcorrencias').textContent = formatarNumero(dados.totalOcorrencias);
     }
 
-    // Função para renderizar gráficos
-    function renderCharts(alunos) {
-      const ctx = document.getElementById('chartAlunosCurso').getContext('2d');
-      const chart = new Chart(ctx, {
-        type: 'bar',
-        data: {
-          labels: ['Curso A', 'Curso B', 'Curso C'],
-          datasets: [{
-            label: 'Número de Alunos',
-            data: [50, 70, 30], // Substitua com os dados reais
-            backgroundColor: ['rgba(255, 99, 132, 0.2)', 'rgba(54, 162, 235, 0.2)', 'rgba(255, 206, 86, 0.2)'],
-            borderColor: ['rgba(255, 99, 132, 1)', 'rgba(54, 162, 235, 1)', 'rgba(255, 206, 86, 1)'],
-            borderWidth: 1
-          }]
-        },
-        options: {
-          scales: {
-            y: { beginAtZero: true }
+    // Renderizar gráficos
+    function renderizarGraficos(graficos) {
+      // Destruir gráficos existentes
+      if (chartAlunosCurso) chartAlunosCurso.destroy();
+      if (chartOcorrenciasCurso) chartOcorrenciasCurso.destroy();
+      if (chartEscolas) chartEscolas.destroy();
+      
+      // Gráfico 1: Alunos por Curso
+      const ctx1 = document.getElementById('chartAlunosCurso');
+      if (ctx1) {
+        const cursos = Object.keys(graficos.alunosPorCurso || {});
+        const valoresCursos = Object.values(graficos.alunosPorCurso || {});
+        
+        // Se não houver dados, mostrar mensagem
+        if (cursos.length === 0) {
+          ctx1.style.display = 'none';
+          const parent = ctx1.parentElement;
+          if (parent.querySelector('.sem-dados')) {
+            parent.querySelector('.sem-dados').remove();
           }
+          parent.innerHTML += '<p class="sem-dados">Nenhum dado disponível para alunos por curso</p>';
+        } else {
+          ctx1.style.display = 'block';
+          // Remover mensagem de sem dados se existir
+          const semDados = ctx1.parentElement.querySelector('.sem-dados');
+          if (semDados) semDados.remove();
+          
+          chartAlunosCurso = new Chart(ctx1.getContext('2d'), {
+            type: 'bar',
+            data: {
+              labels: cursos,
+              datasets: [{
+                label: 'Alunos por Curso',
+                data: valoresCursos,
+                backgroundColor: 'rgba(74, 111, 165, 0.6)',
+                borderColor: 'rgba(74, 111, 165, 1)',
+                borderWidth: 2,
+                borderRadius: 5
+              }]
+            },
+            options: {
+              responsive: true,
+              plugins: {
+                legend: {
+                  display: true,
+                  position: 'top'
+                },
+                title: {
+                  display: true,
+                  text: 'Distribuição de Alunos por Curso'
+                }
+              },
+              scales: {
+                y: {
+                  beginAtZero: true,
+                  title: {
+                    display: true,
+                    text: 'Número de Alunos'
+                  }
+                },
+                x: {
+                  title: {
+                    display: true,
+                    text: 'Cursos'
+                  }
+                }
+              }
+            }
+          });
+        }
+      }
+      
+      // Gráfico 2: Ocorrências por Tipo
+      const ctx2 = document.getElementById('chartOcorrenciasCurso');
+      if (ctx2) {
+        const tipos = Object.keys(graficos.ocorrenciasPorTipo || {});
+        const valoresTipos = Object.values(graficos.ocorrenciasPorTipo || {});
+        
+        // Se não houver dados, mostrar mensagem
+        if (tipos.length === 0) {
+          ctx2.style.display = 'none';
+          const parent = ctx2.parentElement;
+          if (parent.querySelector('.sem-dados')) {
+            parent.querySelector('.sem-dados').remove();
+          }
+          parent.innerHTML += '<p class="sem-dados">Nenhuma ocorrência registrada</p>';
+        } else {
+          ctx2.style.display = 'block';
+          // Remover mensagem de sem dados se existir
+          const semDados = ctx2.parentElement.querySelector('.sem-dados');
+          if (semDados) semDados.remove();
+          
+          chartOcorrenciasCurso = new Chart(ctx2.getContext('2d'), {
+            type: 'pie',
+            data: {
+              labels: tipos,
+              datasets: [{
+                label: 'Ocorrências por Tipo',
+                data: valoresTipos,
+                backgroundColor: [
+                  'rgba(255, 99, 132, 0.6)',
+                  'rgba(54, 162, 235, 0.6)',
+                  'rgba(255, 206, 86, 0.6)',
+                  'rgba(75, 192, 192, 0.6)',
+                  'rgba(153, 102, 255, 0.6)',
+                  'rgba(255, 159, 64, 0.6)',
+                  'rgba(201, 203, 207, 0.6)'
+                ],
+                borderColor: [
+                  'rgba(255, 99, 132, 1)',
+                  'rgba(54, 162, 235, 1)',
+                  'rgba(255, 206, 86, 1)',
+                  'rgba(75, 192, 192, 1)',
+                  'rgba(153, 102, 255, 1)',
+                  'rgba(255, 159, 64, 1)',
+                  'rgba(201, 203, 207, 1)'
+                ],
+                borderWidth: 1
+              }]
+            },
+            options: {
+              responsive: true,
+              plugins: {
+                legend: {
+                  position: 'right'
+                },
+                title: {
+                  display: true,
+                  text: 'Distribuição de Ocorrências por Tipo'
+                }
+              }
+            }
+          });
+        }
+      }
+      
+      // Gráfico 3: Escolas Integradas
+      const ctx3 = document.getElementById('chartEscolas');
+      if (ctx3) {
+        const escolas = Object.keys(graficos.escolas || {});
+        const valoresEscolas = Object.values(graficos.escolas || {});
+        
+        // Se não houver dados, mostrar mensagem
+        if (escolas.length === 0) {
+          ctx3.style.display = 'none';
+          const parent = ctx3.parentElement;
+          if (parent.querySelector('.sem-dados')) {
+            parent.querySelector('.sem-dados').remove();
+          }
+          parent.innerHTML += '<p class="sem-dados">Nenhum dado disponível para escolas</p>';
+        } else {
+          ctx3.style.display = 'block';
+          // Remover mensagem de sem dados se existir
+          const semDados = ctx3.parentElement.querySelector('.sem-dados');
+          if (semDados) semDados.remove();
+          
+          chartEscolas = new Chart(ctx3.getContext('2d'), {
+            type: 'doughnut',
+            data: {
+              labels: escolas,
+              datasets: [{
+                label: 'Escolas Integradas',
+                data: valoresEscolas,
+                backgroundColor: [
+                  'rgba(255, 159, 64, 0.6)',
+                  'rgba(201, 203, 207, 0.6)',
+                  'rgba(75, 192, 192, 0.6)',
+                  'rgba(54, 162, 235, 0.6)',
+                  'rgba(153, 102, 255, 0.6)'
+                ],
+                borderColor: [
+                  'rgba(255, 159, 64, 1)',
+                  'rgba(201, 203, 207, 1)',
+                  'rgba(75, 192, 192, 1)',
+                  'rgba(54, 162, 235, 1)',
+                  'rgba(153, 102, 255, 1)'
+                ],
+                borderWidth: 1
+              }]
+            },
+            options: {
+              responsive: true,
+              plugins: {
+                legend: {
+                  position: 'right'
+                },
+                title: {
+                  display: true,
+                  text: 'Distribuição por Escola Integrada'
+                }
+              }
+            }
+          });
+        }
+      }
+    }
+
+    // Renderizar tabela de alunos
+    function renderizarTabelaAlunos(alunos) {
+      const tbody = document.getElementById('corpoTabelaAlunos');
+      if (!tbody) {
+        console.error('Elemento corpoTabelaAlunos não encontrado');
+        return;
+      }
+      
+      // Limpar tabela existente
+      tbody.innerHTML = '';
+      
+      // Se não houver alunos
+      if (!alunos || alunos.length === 0) {
+        const row = tbody.insertRow();
+        const cell = row.insertCell();
+        cell.colSpan = 8;
+        cell.textContent = 'Nenhum aluno encontrado com os filtros aplicados';
+        cell.style.textAlign = 'center';
+        cell.style.padding = '20px';
+        cell.style.color = '#666';
+        return;
+      }
+      
+      // Adicionar cada aluno na tabela
+      alunos.forEach(aluno => {
+        const row = tbody.insertRow();
+        
+        // ID
+        const cellId = row.insertCell();
+        cellId.textContent = aluno.id || '-';
+        
+        // Nome
+        const cellNome = row.insertCell();
+        cellNome.textContent = aluno.nome || '-';
+        
+        // Turma
+        const cellTurma = row.insertCell();
+        cellTurma.textContent = aluno.turma || '-';
+        
+        // Curso
+        const cellCurso = row.insertCell();
+        cellCurso.textContent = aluno.curso || '-';
+        
+        // Idade
+        const cellIdade = row.insertCell();
+        cellIdade.textContent = aluno.idade || '-';
+        
+        // Escola Integrada
+        const cellEscola = row.insertCell();
+        cellEscola.textContent = aluno.escola_integrada || '-';
+        
+        // PCD
+        const cellPCD = row.insertCell();
+        cellPCD.textContent = aluno.pessoa_com_deficiencia ? 'Sim' : 'Não';
+        
+        // Ocorrências
+        const cellOcorrencias = row.insertCell();
+        cellOcorrencias.textContent = aluno.ocorrencias || 0;
+        
+        // Adicionar classe para zebrado
+        if (tbody.rows.length % 2 === 0) {
+          row.classList.add('zebrado');
         }
       });
     }
 
-    // Evento de clique no botão "Aplicar Filtros"
-    document.getElementById('btnAplicar').addEventListener('click', applyFilters);
+    // Carregar cursos para o filtro
+    async function carregarCursos() {
+      try {
+        const response = await fetch('http://localhost:5000/cursos/');
+        if (!response.ok) {
+          throw new Error(`Erro ao buscar cursos: ${response.status}`);
+        }
+        
+        const cursos = await response.json();
+        const select = document.getElementById('cursoFiltro');
+        
+        if (!select) {
+          console.error('Elemento cursoFiltro não encontrado');
+          return;
+        }
+        
+        // Limpar opções existentes
+        select.innerHTML = '<option value="">Todos os Cursos</option>';
+        
+        // Adicionar cursos
+        cursos.forEach(curso => {
+          const option = document.createElement('option');
+          option.value = curso.id;
+          option.textContent = curso.nome || `Curso ${curso.id}`;
+          select.appendChild(option);
+        });
+        
+        console.log(`${cursos.length} cursos carregados no filtro`);
+      } catch (error) {
+        console.error('Erro ao carregar cursos:', error);
+        // Não mostrar alerta para evitar interromper o usuário
+      }
+    }
+
+    // Mostrar/ocultar indicador de carregamento
+    function mostrarCarregamento(mostrar) {
+      const loadingOverlay = document.getElementById('loadingOverlay');
+      const btnAplicar = document.getElementById('btnAplicar');
+      
+      if (loadingOverlay) {
+        if (mostrar) {
+          loadingOverlay.classList.add('active');
+        } else {
+          loadingOverlay.classList.remove('active');
+        }
+      }
+      
+      if (btnAplicar) {
+        if (mostrar) {
+          btnAplicar.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Carregando...';
+          btnAplicar.disabled = true;
+        } else {
+          btnAplicar.innerHTML = '<i class="fa-solid fa-filter"></i> Aplicar';
+          btnAplicar.disabled = false;
+        }
+      }
+    }
+
+    // Limpar filtros
+    function limparFiltros() {
+      document.getElementById('buscaAluno').value = '';
+      document.getElementById('buscaTurma').value = '';
+      document.getElementById('statusTurma').value = 'todas';
+      document.getElementById('cursoFiltro').value = '';
+      
+      // Recarregar dashboard
+      carregarDashboard();
+    }
+
+    // Adicionar botão de limpar filtros
+    function adicionarBotaoLimpar() {
+      const filtersSection = document.querySelector('.filters');
+      if (!filtersSection) {
+        console.error('Seção de filtros não encontrada');
+        return;
+      }
+      
+      // Verificar se o botão já existe
+      if (document.getElementById('btnLimpar')) return;
+      
+      const limparBtn = document.createElement('button');
+      limparBtn.id = 'btnLimpar';
+      limparBtn.className = 'btn btn-limpar';
+      limparBtn.innerHTML = '<i class="fa-solid fa-eraser"></i> Limpar';
+      limparBtn.addEventListener('click', limparFiltros);
+      
+      // Adicionar ao container de filtros
+      const group = document.createElement('div');
+      group.className = 'group';
+      group.appendChild(limparBtn);
+      filtersSection.appendChild(group);
+    }
+
+    // Inicializar quando a página carregar
+    document.addEventListener('DOMContentLoaded', function() {
+      console.log('Dashboard inicializando...');
+      
+      // Carregar cursos no filtro
+      carregarCursos();
+      
+      // Adicionar botão de limpar filtros
+      adicionarBotaoLimpar();
+      
+      // Carregar dados do dashboard
+      carregarDashboard();
+      
+      // Configurar botão de aplicar
+      const btnAplicar = document.getElementById('btnAplicar');
+      if (btnAplicar) {
+        btnAplicar.addEventListener('click', carregarDashboard);
+      } else {
+        console.error('Botão btnAplicar não encontrado');
+      }
+      
+      // Configurar busca por Enter
+      const buscaAluno = document.getElementById('buscaAluno');
+      const buscaTurma = document.getElementById('buscaTurma');
+      
+      if (buscaAluno) {
+        buscaAluno.addEventListener('keypress', function(e) {
+          if (e.key === 'Enter') carregarDashboard();
+        });
+      }
+      
+      if (buscaTurma) {
+        buscaTurma.addEventListener('keypress', function(e) {
+          if (e.key === 'Enter') carregarDashboard();
+        });
+      }
+      
+      console.log('Dashboard inicializado com sucesso');
+    });
+  </script>
+  
+  <script>
+    // Garantir que o dashboard seja carregado mesmo se houver erros
+    window.addEventListener('error', function(e) {
+      console.error('Erro global:', e.error);
+    });
   </script>
 </body>
 </html>
