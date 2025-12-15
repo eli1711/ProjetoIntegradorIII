@@ -1,0 +1,86 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:13
+    container_name: postgres
+    restart: always
+    environment:
+      POSTGRES_USER: root
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: escola_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - rede-interna
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: escola-backend
+    restart: always
+    environment:
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_NAME: escola_db
+      DB_USER: root
+      DB_PASSWORD: password
+      SECRET_KEY: uma_chave_super_secreta_32_caracteres_no_minimo
+      SMTP_SERVER: smtp.gmail.com
+      SMTP_PORT: 587
+      EMAIL_FROM: elihofnimariano996@gmail.com
+      EMAIL_PASSWORD: xjggixwamavlwrmd
+      FRONTEND_URL: http://10.110.18.11:8088
+      DEBUG: "False"
+      ENVIRONMENT: production
+      RESET_DB: "0"   # <<< AQUI
+    ports:
+      - "5000:5000"
+    depends_on:
+      - postgres
+    volumes:
+      - ./backend/app/uploads:/app/app/uploads
+    networks:
+      - rede-interna
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  nginx:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: nginx
+    restart: always
+    ports:
+      - "8088:80"
+    depends_on:
+      - backend
+    volumes:
+      - ./frontend/public:/usr/share/nginx/html
+      # mantém este mapeamento: o host ./backend/app/uploads agora receberá os arquivos corretos
+      - ./backend/app/uploads:/usr/share/nginx/html/uploads
+    networks:
+      - rede-interna
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+networks:
+  rede-interna:
+    driver: bridge
+
+volumes:
+  postgres_data:

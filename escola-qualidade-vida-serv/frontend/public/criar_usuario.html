@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Cadastro de Usuários</title>
+    <script src="js/navbar-protection.js"></script>
+    <link rel="stylesheet" href="./css/criarUsuario.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+    <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;500;600;700&family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet" />
+
+    <script src="js/navbar-protection.js"></script>
+</head>
+
+<body>
+<header>
+      <div class="header-content">
+        <div class="logo-container">
+          <img src="img/senai-logo.png" class="logo" alt="Logo SENAI" />
+          <h1>Sistema de Gestão de Alunos</h1>
+        </div>
+
+        <nav>
+          <button class="nav-toggle" id="navToggle">
+            <i class="fas fa-bars"></i>
+          </button>
+
+          <ul id="navMenu">
+            <li>
+              <a href="./principal.html" class="active"
+                ><i class="fas fa-home"></i> Home</a
+              >
+            </li>
+
+            <li class="dropdown">
+              <a href="#"
+                ><i class="fas fa-user-graduate"></i> Alunos
+                <i class="fas fa-chevron-down"></i
+              ></a>
+              <div class="dropdown-content">
+                <a href="./cadastroAluno.html"
+                  ><i class="fas fa-user-plus"></i> Cadastrar Aluno</a
+                >
+                <a href="./consultaAluno.html"
+                  ><i class="fas fa-search"></i> Consultar Alunos</a
+                >
+                <a href="./importar_alunos.html"
+                  ><i class="fas fa-file-csv"></i> Importar CSV</a
+                >
+              </div>
+            </li>
+
+            <li>
+              <a href="./turmas.html"
+                ><i class="fas fa-chalkboard"></i> Turmas</a
+              >
+            </li>
+
+            <li>
+              <a href="./ocorrencias.html"
+                ><i class="fas fa-exclamation-triangle"></i> Ocorrências</a>
+            </li>
+
+            <li>
+              <a href="./dashboard.html"
+                ><i class="fas fa-history"></i> Dashboard</a>
+            </li>
+
+            <li>
+              <a href="./criar_usuario.html"
+                ><i class="fas fa-user-cog"></i> Usuários</a
+              >
+            </li>
+          </ul>
+        </nav>
+      </div>
+    </header>
+
+<main>
+    <div class="container">
+        <div class="form-container">
+            <div class="form-header">
+                <h2><i class="fas fa-users"></i> Criar Usuário</h2>
+            </div>
+
+            <form id="userForm">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="nome">Nome:</label>
+                        <input type="text" id="nome" name="nome" required />
+                    </div>
+
+                    <div class="form-group">
+                        <label for="email">Email:</label>
+                        <input type="email" id="email" name="email" required />
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="senha">Senha:</label>
+                        <input type="password" id="senha" name="senha" required />
+                    </div>
+
+                    <div class="form-group">
+                        <label for="cargo">Cargo:</label>
+                        <select id="cargo" name="cargo" required>
+                            <option value="">Selecione...</option>
+                            <option value="administrador">Administrador</option>
+                            <option value="coordenador">Coordenador</option>
+                            <option value="analista">Analista</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-actions">
+                    <button type="submit">Cadastrar</button>
+                </div>
+            </form>
+        </div>
+
+        <div id="message" class="message"></div>
+    </div>
+
+    <script src="/js/cadastro_usuario.js"></script>
+</main>
+
+</body>
+</html>

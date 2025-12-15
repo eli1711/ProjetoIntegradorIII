@@ -1,0 +1,377 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Consulta de Alunos</title>
+  <link rel="stylesheet" href="./css/consultaAluno.css">
+  <script src="js/navbar-protection.js"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+  <script src="js/navbar-protection.js"></script>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;500;600;700&family=Poppins:wght@300;400;500;600&display=swap"
+    rel="stylesheet" />
+
+</head>
+
+<body>
+  <header>
+    <div class="header-content">
+      <div class="logo-container">
+        <img src="img/senai-logo.png" class="logo" alt="Logo SENAI" />
+        <h1>Sistema de Gestão de Alunos</h1>
+      </div>
+
+      <nav>
+        <button class="nav-toggle" id="navToggle">
+          <i class="fas fa-bars"></i>
+        </button>
+
+        <ul id="navMenu">
+          <li>
+            <a href="./principal.html" class="active"><i class="fas fa-home"></i> Home</a>
+          </li>
+
+          <li class="dropdown">
+            <a href="#"><i class="fas fa-user-graduate"></i> Alunos <i class="fas fa-chevron-down"></i></a>
+            <div class="dropdown-content">
+              <a href="./cadastroAluno.html"><i class="fas fa-user-plus"></i> Cadastrar Aluno</a>
+              <a href="./consultaAluno.html"><i class="fas fa-search"></i> Consultar Alunos</a>
+              <a href="./importar_alunos.html"><i class="fas fa-file-csv"></i> Importar CSV</a>
+            </div>
+          </li>
+
+          <li><a href="./turmas.html"><i class="fas fa-chalkboard"></i> Turmas</a></li>
+          <li><a href="./ocorrencias.html"><i class="fas fa-exclamation-triangle"></i> Ocorrências</a></li>
+          <li><a href="./dashboard.html"><i class="fas fa-history"></i> Dashboard</a></li>
+          <li><a href="./criar_usuario.html"><i class="fas fa-user-cog"></i> Usuários</a></li>
+        </ul>
+      </nav>
+    </div>
+  </header>
+
+  <div class="container">
+    <div class="form-container">
+      <div class="form-header">
+        <h2><i class="fas fa-search"></i> Consulta de Alunos</h2>
+      </div>
+
+      <div class="form-content">
+        <div class="form-section">
+          <h3 class="section-title"><i class="fas fa-filter"></i> Filtros de Busca</h3>
+          <div class="form-group">
+            <label for="alunoCpf">CPF do Aluno:</label>
+            <input type="text" id="alunoCpf" placeholder="Digite o CPF (somente números ou com pontuação)">
+          </div>
+
+          <div class="submit-container">
+            <button id="consultarButton" class="consultar-button">
+              <i class="fas fa-search"></i> Consultar
+            </button>
+          </div>
+        </div>
+
+        <div id="resultadoConsulta"></div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const resultadoDiv = document.getElementById("resultadoConsulta");
+    const btn = document.getElementById("consultarButton");
+
+    function safe(v, fb = "Não informado") { return (v === null || v === undefined || v === "") ? fb : v; }
+    function boolLabel(v) {
+      if (typeof v === "boolean") return v ? "Sim" : "Não";
+      const s = String(v || "").toLowerCase();
+      if (["t", "true", "1", "sim", "yes", "y"].includes(s)) return "Sim";
+      if (["f", "false", "0", "nao", "não", "no", "n"].includes(s)) return "Não";
+      return safe(v);
+    }
+
+    async function loadCursosSelect(selectEl, selected) {
+      try {
+        const res = await fetch('http://10.110.18.11:5000/cursos/');
+        const data = await res.json();
+        selectEl.innerHTML = '<option value="">Selecione</option>';
+        (data || []).forEach(c => {
+          const opt = document.createElement('option');
+          opt.value = c.id; opt.textContent = c.nome;
+          if (String(c.id) === String(selected)) opt.selected = true;
+          selectEl.appendChild(opt);
+        });
+      } catch { selectEl.innerHTML = '<option value="">Erro ao carregar</option>'; }
+    }
+
+    async function loadTurmasSelect(selectEl, cursoId, selected) {
+      selectEl.innerHTML = '<option value="">Selecione o curso primeiro</option>';
+      selectEl.disabled = true;
+      if (!cursoId) return;
+      try {
+        const res = await fetch(`http://10.110.18.11:5000/turmas/por_curso?curso_id=${encodeURIComponent(cursoId)}`);
+        const data = await res.json();
+        if (Array.isArray(data) && data.length) {
+          selectEl.innerHTML = '<option value="">Selecione</option>';
+          data.forEach(t => {
+            const opt = document.createElement('option');
+            opt.value = t.id; opt.textContent = `${t.nome} (Sem ${t.semestre})`;
+            if (String(t.id) === String(selected)) opt.selected = true;
+            selectEl.appendChild(opt);
+          });
+          selectEl.disabled = false;
+        } else {
+          selectEl.innerHTML = '<option value="">Nenhuma turma ativa para o curso</option>';
+        }
+      } catch { selectEl.innerHTML = '<option value="">Erro ao carregar turmas</option>'; }
+    }
+
+    btn.addEventListener("click", async () => {
+      const cpf = document.getElementById("alunoCpf").value.trim();
+      const url = new URL("http://10.110.18.11:5000/alunos/buscar");
+      if (cpf) url.searchParams.append("cpf", cpf);
+      resultadoDiv.innerHTML = "<p>Carregando...</p>";
+
+      try {
+        const response = await fetch(url);
+        const data = await response.json();
+        resultadoDiv.innerHTML = "";
+
+        if (response.ok && Array.isArray(data) && data.length > 0) {
+          data.forEach(aluno => {
+            const turmaRotulo = aluno.turma_nome
+              ? `${aluno.turma_nome}${aluno.turma_semestre ? ` (Sem ${aluno.turma_semestre})` : ""}`
+              : (aluno.turma || "Não informada");
+
+            const card = document.createElement("div");
+            card.classList.add("aluno-card");
+
+            const fotoSrc = aluno.foto_url ? aluno.foto_url : null;
+            const fotoHtml = fotoSrc
+              ? `<img class="foto-view" src="${fotoSrc}" alt="Foto de ${safe(aluno.nome, "Aluno")}">`
+              : `<div class="foto-view" style="width:120px;height:120px;border-radius:8px;background:#eee;display:flex;align-items:center;justify-content:center;color:#777;">Sem Foto</div>`;
+
+            card.innerHTML = `
+              ${fotoHtml}
+              <div class="info">
+                <h3>${safe(aluno.nome)}</h3>
+                <p><strong>ID:</strong> ${safe(aluno.id)}</p>
+                <p><strong>Matrícula:</strong> ${safe(aluno.matricula)}</p>
+                <p><strong>Curso:</strong> <span class="v-curso">${safe(aluno.curso)}</span></p>
+                <p><strong>Turma:</strong> <span class="v-turma">${safe(turmaRotulo)}</span></p>
+                <p><strong>Cidade:</strong> <span class="v-cidade">${safe(aluno.cidade)}</span></p>
+                <p><strong>Bairro:</strong> <span class="v-bairro">${safe(aluno.bairro)}</span></p>
+                <p><strong>Rua:</strong> <span class="v-rua">${safe(aluno.rua)}</span></p>
+                <p><strong>Telefone:</strong> <span class="v-telefone">${safe(aluno.telefone)}</span></p>
+                <p><strong>Data de Nascimento:</strong> <span class="v-nasc">${safe(aluno.data_nascimento)}</span></p>
+                <p><strong>Linha de Atendimento:</strong> <span class="v-linha">${safe(aluno.linha_atendimento)}</span></p>
+                <p><strong>Escola Integrada:</strong> <span class="v-escola">${safe(aluno.escola_integrada)}</span></p>
+                <p><strong>Empresa Contratante:</strong> <span class="v-empresa">${safe(aluno.empresa_contratante)}</span></p>
+                <p><strong>Data de Início do Curso:</strong> <span class="v-inicio">${safe(aluno.data_inicio_curso)}</span></p>
+                <p><strong>Mora com quem:</strong> <span class="v-mora">${safe(aluno.mora_com_quem)}</span></p>
+                <p><strong>Sobre o Aluno:</strong> <span class="v-sobre">${safe(aluno.sobre_aluno)}</span></p>
+                <p><strong>Pessoa com Deficiência:</strong> <span class="v-pcd">${boolLabel(aluno.pessoa_com_deficiencia)}</span></p>
+                <p><strong>Outras Informações:</strong> <span class="v-outras">${safe(aluno.outras_informacoes)}</span></p>
+
+                <div class="edit-toolbar">
+                  <button class="btn btn-edit">Editar</button>
+                </div>
+
+                <form class="edit-form">
+                  <div class="grid-2">
+                    <div style="grid-column:1/-1">
+                      <label>Trocar foto</label>
+                      <input type="file" name="foto" accept="image/*">
+                      <div class="muted">Ao salvar, a nova foto será enviada e a antiga removida.</div>
+                    </div>
+
+                    <div>
+                      <label>Curso</label>
+                      <select name="curso_id" class="f-curso"></select>
+                      <div class="muted">Altera a lista de turmas</div>
+                    </div>
+                    <div>
+                      <label>Turma</label>
+                      <select name="turma_id" class="f-turma" disabled></select>
+                    </div>
+                    <div>
+                      <label>Cidade</label>
+                      <input name="cidade" value="${aluno.cidade || ''}">
+                    </div>
+                    <div>
+                      <label>Bairro</label>
+                      <input name="bairro" value="${aluno.bairro || ''}">
+                    </div>
+                    <div>
+                      <label>Rua</label>
+                      <input name="rua" value="${aluno.rua || ''}">
+                    </div>
+                    <div>
+                      <label>Telefone</label>
+                      <input name="telefone" value="${aluno.telefone || ''}">
+                    </div>
+                    <div>
+                      <label>Data de Nascimento</label>
+                      <input type="date" name="data_nascimento" value="${(aluno.data_nascimento || '').substring(0, 10)}">
+                    </div>
+                    <div>
+                      <label>Data Início Curso</label>
+                      <input type="date" name="data_inicio_curso" value="${(aluno.data_inicio_curso || '').substring(0, 10)}">
+                    </div>
+                    <div>
+                      <label>Linha de Atendimento</label>
+                      <select name="linha_atendimento">
+                        <option value="">Selecione</option>
+                        <option value="CAI" ${aluno.linha_atendimento === 'CAI' ? 'selected' : ''}>CAI</option>
+                        <option value="CT" ${aluno.linha_atendimento === 'CT' ? 'selected' : ''}>CT</option>
+                        <option value="CST" ${aluno.linha_atendimento === 'CST' ? 'selected' : ''}>CST</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label>Escola Integrada</label>
+                      <select name="escola_integrada">
+                        <option value="">Selecione</option>
+                        <option value="SESI" ${aluno.escola_integrada === 'SESI' ? 'selected' : ''}>SESI</option>
+                        <option value="SEDUC" ${aluno.escola_integrada === 'SEDUC' ? 'selected' : ''}>SEDUC</option>
+                        <option value="Nenhuma" ${aluno.escola_integrada === 'Nenhuma' ? 'selected' : ''}>Nenhuma</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label>Empresa Contratante</label>
+                      <input name="empresa_contratante" value="${aluno.empresa_contratante || ''}">
+                    </div>
+                    <div>
+                      <label>Mora com quem</label>
+                      <input name="mora_com_quem" value="${aluno.mora_com_quem || ''}">
+                    </div>
+                    <div style="grid-column:1/-1">
+                      <label>Sobre o Aluno</label>
+                      <textarea name="sobre_aluno">${aluno.sobre_aluno || ''}</textarea>
+                    </div>
+                    <div>
+                      <label>Pessoa com Deficiência?</label>
+                      <select name="pessoa_com_deficiencia">
+                        <option value="false" ${!aluno.pessoa_com_deficiencia ? 'selected' : ''}>Não</option>
+                        <option value="true" ${aluno.pessoa_com_deficiencia ? 'selected' : ''}>Sim</option>
+                      </select>
+                    </div>
+                    <div style="grid-column:1/-1">
+                      <label>Outras Informações</label>
+                      <textarea name="outras_informacoes">${aluno.outras_informacoes || ''}</textarea>
+                    </div>
+                  </div>
+                  <div class="row-actions">
+                    <button type="button" class="btn btn-save">Salvar</button>
+                    <button type="button" class="btn btn-cancel">Cancelar</button>
+                  </div>
+                </form>
+
+                <details>
+                  <summary><strong>Ocorrências (${aluno.ocorrencias?.length || 0})</strong></summary>
+                  ${aluno.ocorrencias && aluno.ocorrencias.length
+                ? aluno.ocorrencias.map(oc => `<p>📅 ${safe(oc.data_ocorrencia)} — <strong>${safe(oc.tipo)}</strong>: ${safe(oc.descricao)}</p>`).join("")
+                : "<p>Sem ocorrências registradas.</p>"
+              }
+                </details>
+              </div>
+            `;
+
+            // refs
+            const imgEl = card.querySelector('.foto-view');
+            const formEl = card.querySelector('.edit-form');
+            const editBtn = card.querySelector('.btn-edit');
+            const cancelBtn = card.querySelector('.btn-cancel');
+            const saveBtn = card.querySelector('.btn-save');
+            const selectCurso = card.querySelector('.f-curso');
+            const selectTurma = card.querySelector('.f-turma');
+
+            // selects
+            loadCursosSelect(selectCurso, aluno.curso_id || "");
+            selectCurso.addEventListener('change', () => loadTurmasSelect(selectTurma, selectCurso.value, ""));
+            if (aluno.curso_id) { loadTurmasSelect(selectTurma, aluno.curso_id, aluno.turma_id || ""); }
+
+            editBtn.addEventListener('click', () => {
+              formEl.style.display = (formEl.style.display === 'none' || formEl.style.display === '') ? 'block' : 'none';
+            });
+            cancelBtn.addEventListener('click', () => { formEl.reset(); formEl.style.display = 'none'; });
+
+            saveBtn.addEventListener('click', async () => {
+              try {
+                // 1) Se tiver nova foto, envia primeiro
+                const fileInput = formEl.querySelector('input[name="foto"]');
+                if (fileInput.files && fileInput.files[0]) {
+                  const fd = new FormData();
+                  fd.append('foto', fileInput.files[0]);
+                  const up = await fetch(`http://10.110.18.11:5000/alunos/${aluno.id}/foto`, { method: 'PUT', body: fd });
+                  const upData = await up.json();
+                  if (!up.ok) { alert(upData.erro || 'Falha ao trocar foto.'); return; }
+                  // atualiza visual
+                  if (imgEl.tagName.toLowerCase() === 'img') {
+                    imgEl.src = `${upData.foto_url}?t=${Date.now()}`; // cache-busting
+                  } else {
+                    // se era div "Sem Foto", troca para <img>
+                    const wrapper = imgEl.parentElement;
+                    imgEl.remove();
+                    const newImg = document.createElement('img');
+                    newImg.className = 'foto-view';
+                    newImg.src = `${upData.foto_url}?t=${Date.now()}`;
+                    newImg.alt = `Foto de ${safe(aluno.nome, "Aluno")}`;
+                    wrapper.insertBefore(newImg, wrapper.firstChild);
+                  }
+                }
+
+                // 2) Demais campos (PATCH)
+                const payload = Object.fromEntries(new FormData(formEl).entries());
+                delete payload.foto; // não manda arquivo por aqui
+                if (payload.pessoa_com_deficiencia != null) {
+                  payload.pessoa_com_deficiencia = String(payload.pessoa_com_deficiencia) === 'true';
+                }
+                Object.keys(payload).forEach(k => { if (payload[k] === "") delete payload[k]; });
+
+                const resp = await fetch(`http://10.110.18.11:5000/alunos/${aluno.id}`, {
+                  method: 'PATCH',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify(payload)
+                });
+                const dataUpd = await resp.json();
+                if (!resp.ok) { alert(dataUpd.erro || 'Falha ao atualizar.'); return; }
+
+                // Atualiza visual
+                card.querySelector('.v-cidade').textContent = safe(dataUpd.cidade);
+                card.querySelector('.v-bairro').textContent = safe(dataUpd.bairro);
+                card.querySelector('.v-rua').textContent = safe(dataUpd.rua);
+                card.querySelector('.v-telefone').textContent = safe(dataUpd.telefone);
+                card.querySelector('.v-nasc').textContent = safe(dataUpd.data_nascimento);
+                card.querySelector('.v-inicio').textContent = safe(dataUpd.data_inicio_curso);
+                card.querySelector('.v-linha').textContent = safe(dataUpd.linha_atendimento);
+                card.querySelector('.v-escola').textContent = safe(dataUpd.escola_integrada);
+                card.querySelector('.v-empresa').textContent = safe(dataUpd.empresa_contratante);
+                card.querySelector('.v-mora').textContent = safe(dataUpd.mora_com_quem);
+                card.querySelector('.v-sobre').textContent = safe(dataUpd.sobre_aluno);
+                card.querySelector('.v-pcd').textContent = boolLabel(dataUpd.pessoa_com_deficiencia);
+                card.querySelector('.v-curso').textContent = safe(dataUpd.curso);
+                const rot = dataUpd.turma_nome ? `${dataUpd.turma_nome}${dataUpd.turma_semestre ? ` (Sem ${dataUpd.turma_semestre})` : ""}` : (dataUpd.turma || "Não informada");
+                card.querySelector('.v-turma').textContent = rot;
+
+                alert('Aluno atualizado com sucesso!');
+                formEl.style.display = 'none';
+              } catch (e) {
+                console.error(e);
+                alert('Erro ao comunicar com o servidor.');
+              }
+            });
+
+            resultadoDiv.appendChild(card);
+          });
+        } else {
+          resultadoDiv.innerHTML = "<p style='color:#a00;'>Nenhum aluno encontrado.</p>";
+        }
+      } catch (err) {
+        console.error(err);
+        resultadoDiv.innerHTML = "<p style='color:red;'>Erro ao consultar alunos.</p>";
+      }
+    });
+  </script>
+</body>
+
+</html>

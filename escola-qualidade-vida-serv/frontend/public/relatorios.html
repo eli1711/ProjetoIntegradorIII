@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Consulta de Alunos</title>
+    <link rel="stylesheet" href="./css/relatorios.css" />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;500;600;700&family=Poppins:wght@300;400;500;600&display=swap"
+      rel="stylesheet"
+    />
+    <script src="js/navbar-protection.js"></script>
+  </head>
+
+  <body>
+    <header>
+      <div class="header-content">
+        <div class="logo-container">
+          <img src="img/senai-logo.png" class="logo" alt="Logo SENAI" />
+          <h1>Sistema de Gestão de Alunos</h1>
+        </div>
+
+        <nav>
+          <button class="nav-toggle" id="navToggle">
+            <i class="fas fa-bars"></i>
+          </button>
+
+          <ul id="navMenu">
+            <li>
+              <a href="./principal.html" class="active"
+                ><i class="fas fa-home"></i> Home</a
+              >
+            </li>
+
+            <li class="dropdown">
+              <a href="#"
+                ><i class="fas fa-user-graduate"></i> Alunos
+                <i class="fas fa-chevron-down"></i
+              ></a>
+              <div class="dropdown-content">
+                <a href="./cadastroAluno.html"
+                  ><i class="fas fa-user-plus"></i> Cadastrar Aluno</a
+                >
+                <a href="./consultaAluno.html"
+                  ><i class="fas fa-search"></i> Consultar Alunos</a
+                >
+                <a href="./importar_alunos.html"
+                  ><i class="fas fa-file-csv"></i> Importar CSV</a
+                >
+              </div>
+            </li>
+
+            <li>
+              <a href="./turmas.html"
+                ><i class="fas fa-chalkboard"></i> Turmas</a
+              >
+            </li>
+
+            <li>
+              <a href="./ocorrencias.html"
+                ><i class="fas fa-exclamation-triangle"></i> Ocorrências</a
+              >
+            </li>
+
+            <li>
+              <a href="./dashboard.html">
+                <i class="fas fa-history"></i> Dashboard</a>
+            </li>
+
+            <li>
+              <a href="./criar_usuario.html"
+                ><i class="fas fa-user-cog"></i> Usuários</a
+              >
+            </li>
+          </ul>
+        </nav>
+      </div>
+    </header>
+
+    <main>
+      <div class="form-container">
+        <div class="form-header">
+          <h2><i class="fas fa-users"></i> Buscar Por Ocorrências</h2>
+        </div>
+      </div>
+
+      <div class="filtro">
+        <label>
+          Nome:
+          <input type="text" id="filtroAluno" placeholder="Nome do Aluno" />
+        </label>
+
+        <label>
+          Curso:
+          <input type="text" id="filtroCurso" placeholder="Curso do Aluno" />
+        </label>
+
+        <label for="filtroTipoOcorrencia">Tipo de Ocorrência:</label>
+        <br />
+        <select id="filtroTipoOcorrencia">
+          <option value="">Todos os Tipos</option>
+        </select>
+        <br />
+
+        <label>
+          Turma:
+          <input type="text" id="filtroTurma" placeholder="Curso da Turma" />
+        </label>
+
+        <button id="limparFiltrosBtn">Limpar</button>
+      </div>
+
+      <!-- Lista de Sugestões -->
+      <ul id="suggestionsList" style="display: none"></ul>
+
+      <!-- Tabela de Alunos -->
+      <table id="tabelaAlunos">
+        <thead>
+          <tr>
+            <th>Aluno</th>
+            <th>Curso</th>
+            <th>Ocorrências</th>
+            <th>Turma</th>
+          </tr>
+        </thead>
+        <tbody>
+          <!-- Dados dos alunos serão preenchidos aqui -->
+        </tbody>
+      </table>
+
+      <!-- Alerta de erro -->
+      <div id="alerta" class="alerta" style="display: none">
+        <!-- A mensagem de erro será inserida aqui -->
+      </div>
+
+      <!-- Modal de informações do aluno -->
+      <div class="modal" id="informacoesAluno">
+        <div class="modal-content">
+          <span class="close-button" onclick="fecharInformacoesAluno()"
+            >&times;</span
+          >
+          <h3>Informações do Aluno</h3>
+          <p id="nomeAluno"></p>
+          <p id="enderecoAluno"></p>
+          <p id="idadeAluno"></p>
+          <p id="responsavelAluno"></p>
+
+          <h4>Ocorrências</h4>
+          <table id="tabelaOcorrencias">
+            <thead>
+              <tr>
+                <th>Data</th>
+                <th>Tipo</th>
+                <th>Descrição</th>
+              </tr>
+            </thead>
+            <tbody>
+              <!-- Ocorrências do aluno -->
+            </tbody>
+          </table>
+
+          <h4>Contagem de Ocorrências por Data</h4>
+          <div id="ocorrenciasPorData"></div>
+        </div>
+      </div>
+    </main>
+    <!-- Exemplo de link para acessar as informações do aluno -->
+    <script src="./js/consulta.js"></script>
+  </body>
+</html>
