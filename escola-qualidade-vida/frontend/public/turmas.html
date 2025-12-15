@@ -17,40 +17,57 @@
   </head>
 
   <body>
-    <header>
-      <div class="header-content">
-        <div class="logo-container">
-          <img src="img/senai-logo.png" class="logo" alt="Logo SENAI" />
-          <h1>Sistema de Gestão de Alunos</h1>
-        </div>
+    <!-- ✅ HEADER CORRIGIDO (mesmo padrão do ocorrencias/consulta) -->
+<header>
+  <div class="header-content">
+    <div class="logo-container">
+      <img src="img/senai-logo.png" class="logo" alt="Logo SENAI" />
+      <h1>Sistema de Gestão de Alunos</h1>
+    </div>
 
-        <nav>
-          <button class="nav-toggle" id="navToggle">
-            <i class="fas fa-bars"></i>
-          </button>
+    <nav>
+      <button class="nav-toggle" id="navToggle" aria-label="Abrir menu">
+        <i class="fas fa-bars"></i>
+      </button>
 
-          <ul id="navMenu">
-            <li>
-              <a href="./principal.html" class="active"><i class="fas fa-home"></i> Home</a>
-            </li>
+      <ul id="navMenu">
+        <li>
+          <a href="./principal.html"><i class="fas fa-home"></i> Home</a>
+        </li>
 
-            <li class="dropdown">
-              <a href="#"><i class="fas fa-user-graduate"></i> Alunos <i class="fas fa-chevron-down"></i></a>
-              <div class="dropdown-content">
-                <a href="./cadastroAluno.html"><i class="fas fa-user-plus"></i> Cadastrar Aluno</a>
-                <a href="./consultaAluno.html"><i class="fas fa-search"></i> Consultar Alunos</a>
-                <a href="./importar_alunos.html"><i class="fas fa-file-csv"></i> Importar CSV</a>
-              </div>
-            </li>
+        <li class="dropdown" id="ddAlunos">
+          <a href="#"><i class="fas fa-user-graduate"></i> Alunos <i class="fas fa-chevron-down"></i></a>
+          <div class="dropdown-content">
+            <a href="./cadastroAluno.html"><i class="fas fa-user-plus"></i> Cadastrar Aluno</a>
+            <a href="./consultaAluno.html"><i class="fas fa-search"></i> Consultar Alunos</a>
+            <a href="./importar_alunos.html"><i class="fas fa-file-csv"></i> Importar CSV</a>
+          </div>
+        </li>
 
-            <li><a href="./turmas.html"><i class="fas fa-chalkboard"></i> Turmas</a></li>
-            <li><a href="./ocorrencias.html"><i class="fas fa-exclamation-triangle"></i> Ocorrências</a></li>
-            <li><a href="./dashboard.html"><i class="fas fa-history"></i> Dashboard</a></li>
-            <li><a href="./criar_usuario.html"><i class="fas fa-user-cog"></i> Usuários</a></li>
-          </ul>
-        </nav>
-      </div>
-    </header>
+        <li><a href="./turmas.html" class="active"><i class="fas fa-chalkboard"></i> Turmas</a></li>
+        <li><a href="./ocorrencias.html"><i class="fas fa-exclamation-triangle"></i> Ocorrências</a></li>
+        <li><a href="./dashboard.html"><i class="fas fa-history"></i> Dashboard</a></li>
+        <li><a href="./criar_usuario.html"><i class="fas fa-user-cog"></i> Usuários</a></li>
+      </ul>
+    </nav>
+  </div>
+</header>
+
+<script>
+  // ✅ Toggle do menu mobile (igual ao ocorrencias.html)
+  document.getElementById('navToggle')?.addEventListener('click', function () {
+    document.getElementById('navMenu')?.classList.toggle('show');
+  });
+
+  // ✅ Dropdown no mobile (abre ao clicar)
+  document.getElementById('ddAlunos')?.querySelector('a')?.addEventListener('click', function(e){
+    if (window.matchMedia("(max-width: 980px)").matches) {
+      e.preventDefault();
+      document.getElementById('ddAlunos')?.classList.toggle('open');
+    }
+  });
+</script>
+
 
     <div class="container">
       <!-- FORM CRIAR TURMA -->
