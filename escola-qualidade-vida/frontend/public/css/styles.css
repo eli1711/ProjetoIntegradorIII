@@ -121,7 +121,7 @@
         /* Cards de navegação */
         .card {
             background: white;
-            border-radius: 16px;
+            border-radius: 8px;
             padding: 2rem 1.5rem;
             box-shadow: var(--shadow);
             transition: var(--transition);
@@ -205,7 +205,7 @@
             font-weight: 600;
             font-size: 0.9rem;
             border: none;
-            border-radius: 50px;
+            border-radius: 8px;
             padding: 0.75rem 1.5rem;
             cursor: pointer;
             box-shadow: var(--shadow);

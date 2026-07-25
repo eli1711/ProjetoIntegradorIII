@@ -3,63 +3,12 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Cadastro de Ocorrência</title>
+  <title>Dashboard - Qualidade de Vida Escolar</title>
   <link rel="stylesheet" href="./css/ocorrencias.css" />
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
-  <link
-    href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;500;600;700&family=Poppins:wght@300;400;500;600&display=swap"
-    rel="stylesheet" />
-
+  <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;500;600;700;800&family=Poppins:wght@500;600;700&display=swap" rel="stylesheet" />
+  <script src="js/navbar-protection.js"></script>
   <script src="js/api-config.js"></script>
-</head>
-
-<body>
-  <header>
-    <div class="header-content">
-      <div class="logo-container">
-        <img src="img/senai-logo.png" class="logo" alt="Logo SENAI" />
-        <h1>Sistema de Gestão de Alunos</h1>
-      </div>
-
-      <nav>
-        <button class="nav-toggle" id="navToggle">
-          <i class="fas fa-bars"></i>
-        </button>
-
-        <ul id="navMenu">
-          <li>
-            <a href="./principal.html" class="active"><i class="fas fa-home"></i> Home</a>
-          </li>
-
-          <li class="dropdown">
-            <a href="#"><i class="fas fa-user-graduate"></i> Alunos <i class="fas fa-chevron-down"></i></a>
-            <div class="dropdown-content">
-              <a href="./cadastroAluno.html"><i class="fas fa-user-plus"></i> Cadastrar Aluno</a>
-              <a href="./consultaAluno.html"><i class="fas fa-search"></i> Consultar Alunos</a>
-              <a href="./importar_alunos.html"><i class="fas fa-file-csv"></i> Importar CSV</a>
-            </div>
-          </li>
-
-          <li>
-            <a href="./turmas.html"><i class="fas fa-chalkboard"></i> Turmas</a>
-          </li>
-
-          <li>
-            <a href="./ocorrencias.html"><i class="fas fa-exclamation-triangle"></i> Ocorrências</a>
-          </li>
-
-          <li>
-            <a href="./dashboard.html"><i class="fas fa-history"></i> Dashboard</a>
-          </li>
-
-          <li>
-            <a href="./criar_usuario.html"><i class="fas fa-user-cog"></i> Usuários</a>
-          </li>
-        </ul>
-      </nav>
-    </div>
-  </header>
-
   <style>
     body {
       font-family: 'Open Sans', sans-serif;
@@ -339,9 +288,55 @@
       padding: 10px 0;
     }
   </style>
+  <link rel="stylesheet" href="./css/ux-redesign.css" />
 </head>
-
 <body>
+<header>
+    <div class="header-content">
+      <div class="logo-container">
+        <img src="img/senai-logo.png" class="logo" alt="Logo SENAI" />
+        <h1>Sistema de Gestão de Alunos</h1>
+      </div>
+
+      <nav>
+        <button class="nav-toggle" id="navToggle">
+          <i class="fas fa-bars"></i>
+        </button>
+
+        <ul id="navMenu">
+          <li>
+            <a href="./principal.html" class="active"><i class="fas fa-home"></i> Home</a>
+          </li>
+
+          <li class="dropdown">
+            <a href="#"><i class="fas fa-user-graduate"></i> Alunos <i class="fas fa-chevron-down"></i></a>
+            <div class="dropdown-content">
+              <a href="./cadastroAluno.html"><i class="fas fa-user-plus"></i> Cadastrar Aluno</a>
+              <a href="./consultaAluno.html"><i class="fas fa-search"></i> Consultar Alunos</a>
+              <a href="./importar_alunos.html"><i class="fas fa-file-csv"></i> Importar CSV</a>
+            </div>
+          </li>
+
+          <li>
+            <a href="./turmas.html"><i class="fas fa-chalkboard"></i> Turmas</a>
+          </li>
+
+          <li>
+            <a href="./ocorrencias.html"><i class="fas fa-exclamation-triangle"></i> Ocorrências</a>
+          </li>
+
+          <li>
+            <a href="./dashboard.html"><i class="fas fa-history"></i> Dashboard</a>
+          </li>
+
+          <li>
+            <a href="./criar_usuario.html"><i class="fas fa-user-cog"></i> Usuários</a>
+          </li>
+        </ul>
+      </nav>
+    </div>
+  </header>
+
   <div id="loadingOverlay" class="loading">
     <div class="spinner"></div>
     <p>Carregando dados do dashboard...</p>
@@ -403,7 +398,7 @@
     </section>
 
     <section class="section">
-      <h2>Indicadores Gerais</h2>
+      <h2><i class="fas fa-gauge-high"></i> Indicadores Gerais</h2>
       <div class="kpis">
         <div class="kpi"><h3>Total de Alunos</h3><div class="value" id="kpiTotalAlunos">-</div></div>
         <div class="kpi"><h3>Alunos PCD</h3><div class="value" id="kpiPCD">-</div></div>
@@ -415,7 +410,7 @@
     </section>
 
     <section class="section">
-      <h2>Visão Gráfica</h2>
+      <h2><i class="fas fa-chart-pie"></i> Visão Gráfica</h2>
       <div class="charts-grid">
         <div class="chart-card"><canvas id="chartAlunosCurso"></canvas></div>
         <div class="chart-card"><canvas id="chartOcorrenciasCurso"></canvas></div>
@@ -424,7 +419,7 @@
     </section>
 
     <section class="section">
-      <h2>Lista de Alunos</h2>
+      <h2><i class="fas fa-list"></i> Lista de Alunos</h2>
       <div class="table-container">
         <table id="tabelaAlunos">
           <thead>
@@ -479,7 +474,7 @@
 
 
   <script>
-    const API_BASE = '/dashboard';
+    const DASHBOARD_API_BASE = '/dashboard';
     const DEFAULT_LIMIT = 50;
 
     let dadosDashboardCache = null;
@@ -612,7 +607,7 @@
 
     async function carregarOcorrenciasAluno(alunoId) {
       try {
-        const resp = await fetch(`${API_BASE}/aluno/${alunoId}/ocorrencias`);
+        const resp = await fetch(`${DASHBOARD_API_BASE}/aluno/${alunoId}/ocorrencias`);
         if (!resp.ok) throw new Error(`Falha ao buscar ocorrências (HTTP ${resp.status})`);
 
         const data = await resp.json();
@@ -699,7 +694,7 @@
     // ===== API =====
     async function carregarCursos() {
       try {
-        const resp = await fetch(`${API_BASE}/cursos-list`);
+        const resp = await fetch(`${DASHBOARD_API_BASE}/cursos-list`);
         if (!resp.ok) throw new Error(`Erro ao buscar cursos: ${resp.status}`);
         const cursos = await resp.json();
 
@@ -726,7 +721,7 @@
 
         const filtros = getFiltros();
         const qsParams = buildQueryString(filtros);
-        const url = qsParams ? `${API_BASE}?${qsParams}` : API_BASE;
+        const url = qsParams ? `${DASHBOARD_API_BASE}?${qsParams}` : DASHBOARD_API_BASE;
 
         const resp = await fetch(url);
         if (!resp.ok) throw new Error(`Erro ${resp.status}: ${resp.statusText}`);
@@ -760,7 +755,7 @@
     async function testarConexao() {
       try {
         mostrarCarregamento(true);
-        const resp = await fetch(`${API_BASE}/diagnostico`);
+        const resp = await fetch(`${DASHBOARD_API_BASE}/diagnostico`);
         const data = await resp.json();
 
         if (data.status === 'OK') {
@@ -799,7 +794,7 @@
         if (filtros.buscaAluno) params.set('buscaAluno', filtros.buscaAluno);
         if (filtros.buscaTurma) params.set('buscaTurma', filtros.buscaTurma);
 
-        const url = `${API_BASE}/export?${params.toString()}`;
+        const url = `${DASHBOARD_API_BASE}/export?${params.toString()}`;
         const resp = await fetch(url);
         if (!resp.ok) throw new Error('Falha ao exportar CSV.');
 
@@ -1026,5 +1021,6 @@
       console.error('Erro global:', e.error || e.message);
     });
   </script>
+  <script src="js/ux-redesign.js"></script>
 </body>
 </html>

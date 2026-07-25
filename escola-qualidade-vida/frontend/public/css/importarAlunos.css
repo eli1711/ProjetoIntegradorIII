@@ -187,7 +187,7 @@ header::before {
 header h1 {
   font-family: "Poppins", sans-serif;
   font-weight: 600;
-  font-size: clamp(1.5rem, 4vw, 1.8rem);
+  font-size: 1.2rem;
   text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
   white-space: nowrap;
 }
@@ -408,7 +408,7 @@ header {
 
 .form-container {
   background: #fff;
-  border-radius: 16px;
+  border-radius: 8px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
   overflow: hidden;
   margin-top: 1rem;
@@ -433,14 +433,14 @@ header {
 .card1 {
   background: #e3e6e9;
   border: 1px solid #e9ecef;
-  border-radius: 12px;
+  border-radius: 8px;
   padding: 1.5rem;
   margin: 1rem 0;
 }
 .card2 {
   background: #e3e6e9;
   border: 1px solid #000000;
-  border-radius: 12px;
+  border-radius: 8px;
   padding: 1.5rem;
   margin: 1rem 0;
 }

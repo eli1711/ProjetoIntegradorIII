@@ -69,7 +69,7 @@
       header h1 {
         font-family: "Poppins", sans-serif;
         font-weight: 600;
-        font-size: clamp(1.2rem, 4vw, 1.6rem);
+        font-size: 1.1rem;
         text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
         white-space: nowrap;
       }
@@ -167,7 +167,7 @@
         gap: 1rem;
         background: var(--card);
         padding: 1.25rem;
-        border-radius: 12px;
+        border-radius: 8px;
         box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
         align-items: end;
       }
@@ -211,7 +211,7 @@
       }
       .kpi {
         background: var(--card);
-        border-radius: 12px;
+        border-radius: 8px;
         padding: 1.25rem;
         box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
         text-align: center;
@@ -220,7 +220,7 @@
         font-size: 0.85rem;
         color: var(--muted);
         text-transform: uppercase;
-        letter-spacing: 0.5px;
+        letter-spacing: 0;
         margin-bottom: 0.5rem;
       }
       .kpi .value {
@@ -239,7 +239,7 @@
       .chart-card {
         background: var(--card);
         padding: 1.5rem;
-        border-radius: 12px;
+        border-radius: 8px;
         box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
         height: 380px; /* Altura fixa para manter alinhamento */
         position: relative;
@@ -251,7 +251,7 @@
       /* TABLES */
       .table-card {
         background: var(--card);
-        border-radius: 12px;
+        border-radius: 8px;
         box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
         overflow: hidden;
       }
@@ -297,7 +297,7 @@
       /* Pills & Badges */
       .pill {
         padding: 0.2rem 0.6rem;
-        border-radius: 50px;
+        border-radius: 8px;
         font-size: 0.75rem;
         font-weight: 600;
       }

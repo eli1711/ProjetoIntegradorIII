@@ -2,7 +2,7 @@ import os
 from datetime import timedelta
 from flask import Flask, send_from_directory, jsonify
 from flask_cors import CORS
-from app.extensions import db, jwt
+from app.extensions import db, jwt, migrate
 
 # Blueprints
 from app.routers.auth_routes import auth_bp

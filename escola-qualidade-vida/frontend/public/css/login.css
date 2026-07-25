@@ -46,7 +46,7 @@
         /* Container principal de login */
         .login-container {
             background: white;
-            border-radius: 20px;
+            border-radius: 8px;
             box-shadow: var(--shadow-hover);
             overflow: hidden;
             width: 100%;
@@ -132,7 +132,7 @@
             width: 100%;
             padding: 0.75rem 1rem 0.75rem 3rem;
             border: 1px solid var(--gray-light);
-            border-radius: 10px;
+            border-radius: 8px;
             font-family: 'Open Sans', sans-serif;
             font-size: 0.95rem;
             transition: var(--transition);
@@ -178,7 +178,7 @@
             background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
             color: white;
             border: none;
-            border-radius: 50px;
+            border-radius: 8px;
             padding: 1rem 2rem;
             font-size: 1rem;
             font-weight: 600;
@@ -273,7 +273,7 @@
             background-color: #fff;
             margin: 10% auto;
             padding: 2rem;
-            border-radius: 16px;
+            border-radius: 8px;
             width: 90%;
             max-width: 450px;
             box-shadow: var(--shadow-hover);

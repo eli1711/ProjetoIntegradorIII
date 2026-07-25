@@ -184,7 +184,7 @@ header::before {
 header h1 {
   font-family: "Poppins", sans-serif;
   font-weight: 600;
-  font-size: clamp(1.5rem, 4vw, 1.8rem);
+  font-size: 1.2rem;
   text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
   white-space: nowrap;
 }
@@ -368,7 +368,7 @@ header {
 }
 .form-container {
   background: #fff;
-  border-radius: 16px;
+  border-radius: 8px;
   box-shadow: var(--shadow);
   overflow: hidden;
   margin-bottom: 2rem;
@@ -411,7 +411,7 @@ body {
 main {
   background-color: #fff;
   padding: 30px;
-  border-radius: 10px;
+  border-radius: 8px;
   max-width: 600px;
   margin: auto;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05);
@@ -638,7 +638,7 @@ table a:hover {
     margin: 5% auto;
     padding: 20px;
     border: 2px solid #888;
-    border-radius: 10px;
+    border-radius: 8px;
     width: 80%;
     max-width: 800px;
     box-shadow: 0 5px 15px rgba(0,0,0,0.3);
