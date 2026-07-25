@@ -1,32 +1,37 @@
 import os
 import time
-from flask import Flask
-from app import create_app, db
-from sqlalchemy.exc import OperationalError
-from sqlalchemy import create_engine
 import logging
 from functools import wraps
+
+from sqlalchemy import create_engine
+from sqlalchemy.exc import OperationalError
 from werkzeug.security import generate_password_hash
 
-# Configuração do Flask
+from app import create_app, db
+
+
+def _env_bool(name: str, default: bool = False) -> bool:
+    value = os.environ.get(name)
+    if value is None:
+        return default
+    return value.strip().lower() in {"1", "true", "yes", "on", "sim"}
+
+
 app = create_app()
+debug_enabled = _env_bool("DEBUG", False)
 
-# Configuração de logs
-log_file = 'app.log'
-logging.basicConfig(level=logging.DEBUG,  # Captura DEBUG, INFO, WARNING, ERROR, CRITICAL
-                    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+logging.basicConfig(
+    level=logging.DEBUG if debug_enabled else logging.INFO,
+    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+)
 
-# Adicionando um Handler para também exibir logs no console
 console_handler = logging.StreamHandler()
-console_handler.setLevel(logging.DEBUG)
-formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-console_handler.setFormatter(formatter)
+console_handler.setLevel(logging.DEBUG if debug_enabled else logging.INFO)
+console_handler.setFormatter(logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s"))
 app.logger.addHandler(console_handler)
 
+
 def retry_on_failure(retries=5, backoff_factor=2):
-    """
-    Função decoradora que aplica uma política de retry (tentativas) em caso de falhas.
-    """
     def decorator(func):
         @wraps(func)
         def wrapper(*args, **kwargs):
@@ -37,61 +42,67 @@ def retry_on_failure(retries=5, backoff_factor=2):
                 except OperationalError as e:
                     attempt += 1
                     backoff_time = backoff_factor ** attempt
-                    app.logger.warning(f"Erro ao conectar ao banco de dados. Tentativa {attempt}/{retries}. "
-                                       f"Voltando a tentar em {backoff_time} segundos. Detalhes: {e}")
+                    app.logger.warning(
+                        "Erro ao conectar ao banco de dados. Tentativa %s/%s. "
+                        "Nova tentativa em %s segundos. Detalhes: %s",
+                        attempt,
+                        retries,
+                        backoff_time,
+                        e,
+                    )
                     time.sleep(backoff_time)
-            raise Exception(f"Falha ao conectar ao banco de dados após {retries} tentativas.")
+            raise RuntimeError(f"Falha ao conectar ao banco de dados apos {retries} tentativas.")
         return wrapper
     return decorator
 
-# Função para conectar ao banco de dados com retry
+
 @retry_on_failure(retries=5, backoff_factor=2)
 def wait_for_db():
-    db_uri = app.config['SQLALCHEMY_DATABASE_URI']
+    db_uri = app.config["SQLALCHEMY_DATABASE_URI"]
     engine = create_engine(db_uri)
     with engine.connect():
-        app.logger.info("Conexão bem-sucedida com o banco de dados!")
+        app.logger.info("Conexao bem-sucedida com o banco de dados.")
+
 
 def create_first_user():
-    """Cria o primeiro usuário administrador se não existir nenhum usuário"""
-    try:
-        from app.models import Usuario  # Import aqui para evitar circular imports
-        
-        # Verifica se já existe algum usuário
-        if Usuario.query.first() is None:
-            # Cria o primeiro usuário (administrador)
-            primeiro_usuario = Usuario(
-                nome='Administrador',
-                email='admin@admin.com',
-                senha=generate_password_hash('admin123'),  # Senha inicial
-                cargo='administrador'
-            )
-            
-            db.session.add(primeiro_usuario)
-            db.session.commit()
-            app.logger.info("✅ Primeiro usuário criado com sucesso!")
-            app.logger.info("📧 Email: admin@admin.com")
-            app.logger.info("🔑 Senha inicial: admin123")
-            app.logger.info("⚠️  Altere a senha no primeiro acesso!")
-        else:
-            app.logger.info("ℹ️  Já existem usuários no sistema.")
-            
-    except Exception as e:
-        app.logger.error(f"Erro ao criar primeiro usuário: {e}")
-        # Não levanta exceção para não impedir o app de rodar
+    if not _env_bool("CREATE_DEFAULT_ADMIN", False):
+        app.logger.info("Criacao automatica de admin desativada.")
+        return
+
+    from app.models import Usuario
+
+    if Usuario.query.first() is not None:
+        app.logger.info("Ja existem usuarios no sistema.")
+        return
+
+    email = os.environ.get("DEFAULT_ADMIN_EMAIL", "admin@admin.com")
+    password = os.environ.get("DEFAULT_ADMIN_PASSWORD")
+    if not password:
+        app.logger.warning("DEFAULT_ADMIN_PASSWORD nao definido; admin inicial nao foi criado.")
+        return
+
+    primeiro_usuario = Usuario(
+        nome=os.environ.get("DEFAULT_ADMIN_NAME", "Administrador"),
+        email=email,
+        senha=generate_password_hash(password),
+        cargo="administrador",
+    )
+
+    db.session.add(primeiro_usuario)
+    db.session.commit()
+    app.logger.info("Primeiro usuario administrador criado: %s", email)
+
 
 with app.app_context():
     try:
-        wait_for_db()  # Espera pela conexão com o banco de dados
-        db.create_all()  # Cria as tabelas do banco
-        app.logger.info("Tabelas criadas com sucesso!")
-        
-        # Cria o primeiro usuário se necessário
+        wait_for_db()
+        db.create_all()
+        app.logger.info("Tabelas verificadas/criadas com sucesso.")
         create_first_user()
-        
     except Exception as e:
-        app.logger.error(f"Erro ao criar as tabelas do banco de dados: {e}")
+        app.logger.error("Erro ao preparar o banco de dados: %s", e)
         raise
 
-if __name__ == '__main__':
-    app.run(debug=True, host='0.0.0.0', port=5000)
+
+if __name__ == "__main__":
+    app.run(debug=debug_enabled, host="0.0.0.0", port=5000)

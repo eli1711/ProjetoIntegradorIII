@@ -1,6 +1,7 @@
 from flask import Blueprint, request, jsonify
 from datetime import datetime, date
 from sqlalchemy import func
+from app.services.permission_service import auth_required, permission_required
 
 from app.extensions import db
 from app.models.turma import Turma
@@ -57,6 +58,7 @@ def _get_or_create_curso(curso_id=None, curso_nome=None):
     return None, ("Informe curso_id ou curso_nome", 400)
 
 @turma_bp.route("/", methods=["GET"])
+@auth_required()
 def listar_turmas():
     """
     Parâmetros:
@@ -85,6 +87,7 @@ def listar_turmas():
     return jsonify([_serialize_turma(t) for t in turmas]), 200
 
 @turma_bp.route("/por_curso", methods=["GET"])
+@auth_required()
 def listar_turmas_por_curso():
     curso_id = request.args.get("curso_id")
     if not curso_id:
@@ -110,6 +113,7 @@ def listar_turmas_por_curso():
     ]), 200
 
 @turma_bp.route("/", methods=["POST"])
+@permission_required("cadastro_turma")
 def criar_turma():
     """
     ✅ Agora aceita dois modos:
@@ -172,6 +176,7 @@ def criar_turma():
     return jsonify({"mensagem": "Turma criada com sucesso!", **_serialize_turma(turma)}), 201
 
 @turma_bp.route("/<int:turma_id>/finalizar", methods=["PATCH"])
+@permission_required("cadastro_turma")
 def finalizar_turma(turma_id: int):
     turma = Turma.query.get(turma_id)
     if not turma:

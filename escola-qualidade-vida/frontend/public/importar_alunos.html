@@ -9,7 +9,8 @@
       href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
     />
     <link rel="stylesheet" href="./css/importarAlunos.css" />
-  </head>
+    <script src="js/api-config.js"></script>
+</head>
   <body>
     <header>
       <div class="header-content">
@@ -265,7 +266,7 @@
                   <strong>Baixe um modelo pronto:</strong>
                   <a
                     class="template-link"
-                    href="http://localhost:5000/alunos/csv_modelo"
+                    href="/alunos/csv_modelo"
                     target="_blank"
                   >
                     <i class="fa-regular fa-file"></i> CSV Modelo (Atualizado)
@@ -344,7 +345,7 @@
 
           try {
             const res = await fetch(
-              "http://localhost:5000/alunos/importar_csv",
+              "/alunos/importar_csv",
               {
                 method: "POST",
                 body: fd,
@@ -388,7 +389,7 @@
         if (templateLink) {
           templateLink.addEventListener("click", (e) => {
             e.preventDefault();
-            window.open("http://localhost:5000/alunos/csv_modelo", "_blank");
+            window.open(apiUrl("/alunos/csv_modelo"), "_blank");
           });
         }
       });

@@ -18,7 +18,7 @@ async function carregarDashboard() {
     const turmaFiltro = document.getElementById('buscaTurma').value.trim();
     
     // Construir URL com parâmetros
-    let url = 'http://localhost:5000/dashboard?';
+    let url = '/dashboard?';
     const params = new URLSearchParams();
     
     if (statusTurma && statusTurma !== 'todas') params.append('status', statusTurma);
@@ -315,7 +315,7 @@ function renderizarTabelaAlunos(alunos) {
 // Carregar cursos para o filtro
 async function carregarCursos() {
   try {
-    const response = await fetch('http://localhost:5000/cursos/');
+    const response = await fetch('/cursos/');
     if (!response.ok) {
       throw new Error(`Erro ao buscar cursos: ${response.status}`);
     }

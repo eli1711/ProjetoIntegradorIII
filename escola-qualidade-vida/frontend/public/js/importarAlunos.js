@@ -27,7 +27,7 @@ document.addEventListener('DOMContentLoaded', () => {
     btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Importando...';
 
     try {
-      const res = await fetch('http://localhost:5000/alunos/importar_csv', {
+      const res = await fetch('/alunos/importar_csv', {
         method: 'POST',
         body: fd
       });

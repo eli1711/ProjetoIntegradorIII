@@ -13,6 +13,7 @@
     href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;500;600;700&family=Poppins:wght@300;400;500;600&display=swap"
     rel="stylesheet" />
 
+  <script src="js/api-config.js"></script>
 </head>
 
 <body>
@@ -92,7 +93,7 @@
 
     async function loadCursosSelect(selectEl, selected) {
       try {
-        const res = await fetch('http://localhost:5000/cursos/');
+        const res = await fetch('/cursos/');
         const data = await res.json();
         selectEl.innerHTML = '<option value="">Selecione</option>';
         (data || []).forEach(c => {
@@ -109,7 +110,7 @@
       selectEl.disabled = true;
       if (!cursoId) return;
       try {
-        const res = await fetch(`http://localhost:5000/turmas/por_curso?curso_id=${encodeURIComponent(cursoId)}`);
+        const res = await fetch(`/turmas/por_curso?curso_id=${encodeURIComponent(cursoId)}`);
         const data = await res.json();
         if (Array.isArray(data) && data.length) {
           selectEl.innerHTML = '<option value="">Selecione</option>';
@@ -128,7 +129,7 @@
 
     btn.addEventListener("click", async () => {
       const cpf = document.getElementById("alunoCpf").value.trim();
-      const url = new URL("http://localhost:5000/alunos/buscar");
+      const url = new URL(window.apiUrl("/alunos/buscar"), window.location.origin);
       if (cpf) url.searchParams.append("cpf", cpf);
       resultadoDiv.innerHTML = "<p>Carregando...</p>";
 
@@ -302,7 +303,7 @@
                 if (fileInput.files && fileInput.files[0]) {
                   const fd = new FormData();
                   fd.append('foto', fileInput.files[0]);
-                  const up = await fetch(`http://localhost:5000/alunos/${aluno.id}/foto`, { method: 'PUT', body: fd });
+                  const up = await fetch(`/alunos/${aluno.id}/foto`, { method: 'PUT', body: fd });
                   const upData = await up.json();
                   if (!up.ok) { alert(upData.erro || 'Falha ao trocar foto.'); return; }
                   // atualiza visual
@@ -328,7 +329,7 @@
                 }
                 Object.keys(payload).forEach(k => { if (payload[k] === "") delete payload[k]; });
 
-                const resp = await fetch(`http://localhost:5000/alunos/${aluno.id}`, {
+                const resp = await fetch(`/alunos/${aluno.id}`, {
                   method: 'PATCH',
                   headers: { 'Content-Type': 'application/json' },
                   body: JSON.stringify(payload)

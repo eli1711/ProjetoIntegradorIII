@@ -1,14 +1,12 @@
-version: '3.8'
-
 services:
   postgres:
     image: postgres:13
     container_name: postgres
     restart: always
     environment:
-      POSTGRES_USER: root
-      POSTGRES_PASSWORD: password
-      POSTGRES_DB: escola_db
+      POSTGRES_USER: ${DB_USER:-root}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-password}
+      POSTGRES_DB: ${DB_NAME:-escola_db}
     ports:
       - "5432:5432"
     volumes:
@@ -30,18 +28,22 @@ services:
     environment:
       DB_HOST: postgres
       DB_PORT: 5432
-      DB_NAME: escola_db
-      DB_USER: root
-      DB_PASSWORD: password
-      SECRET_KEY: uma_chave_super_secreta_32_caracteres_no_minimo
-      SMTP_SERVER: smtp.gmail.com
-      SMTP_PORT: 587
-      EMAIL_FROM: elihofnimariano996@gmail.com
-      EMAIL_PASSWORD: xjggixwamavlwrmd
-      FRONTEND_URL: http://localhost:8080
-      DEBUG: "False"
-      ENVIRONMENT: production
-      RESET_DB: "0"   # <<< AQUI
+      DB_NAME: ${DB_NAME:-escola_db}
+      DB_USER: ${DB_USER:-root}
+      DB_PASSWORD: ${DB_PASSWORD:-password}
+      SECRET_KEY: ${SECRET_KEY:?defina SECRET_KEY no .env}
+      CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:8080,http://localhost:8088}
+      SMTP_SERVER: ${SMTP_SERVER:-smtp.gmail.com}
+      SMTP_PORT: ${SMTP_PORT:-587}
+      EMAIL_FROM: ${EMAIL_FROM:-}
+      EMAIL_PASSWORD: ${EMAIL_PASSWORD:-}
+      FRONTEND_URL: ${FRONTEND_URL:-http://localhost:8080}
+      DEBUG: ${DEBUG:-False}
+      ENVIRONMENT: ${ENVIRONMENT:-production}
+      CREATE_DEFAULT_ADMIN: ${CREATE_DEFAULT_ADMIN:-0}
+      DEFAULT_ADMIN_NAME: ${DEFAULT_ADMIN_NAME:-Administrador}
+      DEFAULT_ADMIN_EMAIL: ${DEFAULT_ADMIN_EMAIL:-admin@admin.com}
+      DEFAULT_ADMIN_PASSWORD: ${DEFAULT_ADMIN_PASSWORD:-}
     ports:
       - "5000:5000"
     depends_on:
@@ -58,8 +60,8 @@ services:
 
   nginx:
     build:
-      context: ./frontend
-      dockerfile: Dockerfile
+      context: .
+      dockerfile: frontend/Dockerfile
     container_name: nginx
     restart: always
     ports:
@@ -68,7 +70,6 @@ services:
       - backend
     volumes:
       - ./frontend/public:/usr/share/nginx/html
-      # mantém este mapeamento: o host ./backend/app/uploads agora receberá os arquivos corretos
       - ./backend/app/uploads:/usr/share/nginx/html/uploads
     networks:
       - rede-interna

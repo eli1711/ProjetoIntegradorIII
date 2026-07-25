@@ -7,6 +7,7 @@ from werkzeug.utils import secure_filename
 from app.extensions import db
 from app.models.aluno import Aluno, only_digits
 from app.models.responsavel import Responsavel
+from app.services.permission_service import permission_required
 
 cadastro_bp = Blueprint("cadastro", __name__, url_prefix="/cadastro")
 
@@ -58,6 +59,7 @@ def _save_photo(file_storage, desired_name_base: str) -> str:
     return filename
 
 @cadastro_bp.route("/alunos", methods=["POST"])
+@permission_required("cadastro_aluno")
 def cadastrar_aluno():
     form = request.form
 
@@ -122,13 +124,13 @@ def cadastrar_aluno():
             }), 400
 
         responsavel_obj = Responsavel(
-            nome=_norm(form.get("responsavel_nome_completo")),
-            sobrenome="",
+            nome_completo=_norm(form.get("responsavel_nome_completo")),
             parentesco=_none_if_empty(form.get("responsavel_parentesco")),
             telefone=only_digits(form.get("responsavel_telefone")) or None,
-            cidade=_none_if_empty(form.get("responsavel_municipio")),
+            endereco=_none_if_empty(form.get("responsavel_endereco")),
+            cep=only_digits(form.get("responsavel_cep")) or None,
             bairro=_none_if_empty(form.get("responsavel_bairro")),
-            rua=_none_if_empty(form.get("responsavel_endereco")),
+            municipio=_none_if_empty(form.get("responsavel_municipio")),
         )
 
         resp_cep = only_digits(form.get("responsavel_cep"))

@@ -12,6 +12,7 @@ from app.models.aluno import Aluno, only_digits
 from app.models.responsavel import Responsavel
 from app.models.turma import Turma
 from app.models.curso import Curso
+from app.services.permission_service import permission_required
 
 aluno_bp = Blueprint("aluno", __name__, url_prefix="/alunos")
 
@@ -172,6 +173,7 @@ def _get_or_create_turma(nome_turma: str | None, curso: Curso | None) -> Turma |
 # CADASTRAR ALUNO COM CPF OBRIGATÓRIO
 # -------------------------
 @aluno_bp.route("/cadastrar", methods=["POST"])
+@permission_required("cadastro_aluno")
 def cadastrar_aluno_com_cpf():
     """
     Cadastra um novo aluno via formulário web com CPF OBRIGATÓRIO.
@@ -261,13 +263,13 @@ def cadastrar_aluno_com_cpf():
                 }), 400
 
             responsavel_obj = Responsavel(
-                nome=r_nome,
-                sobrenome="",
+                nome_completo=r_nome,
                 parentesco=r_parentesco,
                 telefone=r_tel,
-                cidade=_none_if_empty(data.get("responsavel_cidade")),
+                endereco=_none_if_empty(data.get("responsavel_endereco")),
+                cep=only_digits(_none_if_empty(data.get("responsavel_cep"))) or None,
                 bairro=_none_if_empty(data.get("responsavel_bairro")),
-                rua=_none_if_empty(data.get("responsavel_endereco")),
+                municipio=_none_if_empty(data.get("responsavel_cidade")),
             )
             db.session.add(responsavel_obj)
             db.session.flush()
@@ -416,6 +418,7 @@ def csv_modelo_alunos():
 # IMPORTAR CSV (cria Curso/Turma automaticamente)
 # -------------------------
 @aluno_bp.route("/importar_csv", methods=["POST"])
+@permission_required("importar_alunos")
 def importar_csv_alunos():
     """
     Importa um CSV e cria registros na tabela 'aluno'.
@@ -534,13 +537,13 @@ def importar_csv_alunos():
                         continue
 
                     responsavel_obj = Responsavel(
-                        nome=r_nome,
-                        sobrenome="",
+                        nome_completo=r_nome,
                         parentesco=r_parentesco,
                         telefone=r_tel,
-                        cidade=_none_if_empty(col(row, "responsavel_cidade")),
+                        endereco=_none_if_empty(col(row, "responsavel_endereco")),
+                        cep=only_digits(_none_if_empty(col(row, "responsavel_cep"))) or None,
                         bairro=_none_if_empty(col(row, "responsavel_bairro")),
-                        rua=_none_if_empty(col(row, "responsavel_endereco")),
+                        municipio=_none_if_empty(col(row, "responsavel_cidade")),
                     )
                     db.session.add(responsavel_obj)
                     db.session.flush()
@@ -609,9 +612,128 @@ def importar_csv_alunos():
 
 
 # -------------------------
+# ATUALIZAR ALUNO / FOTO
+# -------------------------
+@aluno_bp.route("/<int:aluno_id>", methods=["PUT", "PATCH"])
+@permission_required("cadastro_aluno")
+def atualizar_aluno(aluno_id: int):
+    aluno = Aluno.query.get(aluno_id)
+    if not aluno:
+        return jsonify({"erro": "Aluno nao encontrado"}), 404
+
+    data = request.get_json(silent=True) or {}
+
+    try:
+        if "cpf" in data:
+            cpf = only_digits(data.get("cpf"))
+            if not cpf or len(cpf) != 11:
+                return jsonify({"erro": "CPF deve conter 11 digitos"}), 400
+            existente = Aluno.query.filter(Aluno.cpf == cpf, Aluno.id != aluno.id).first()
+            if existente:
+                return jsonify({"erro": "CPF ja cadastrado para outro aluno"}), 409
+            aluno.cpf = cpf
+
+        if "matricula" in data:
+            matricula = _none_if_empty(data.get("matricula"))
+            if not matricula:
+                return jsonify({"erro": "matricula nao pode ficar vazia"}), 400
+            existente = Aluno.query.filter(Aluno.matricula == matricula, Aluno.id != aluno.id).first()
+            if existente:
+                return jsonify({"erro": "Matricula ja cadastrada para outro aluno"}), 409
+            aluno.matricula = matricula
+
+        for campo in [
+            "nome_completo", "nome", "sobrenome", "nome_social", "cidade",
+            "bairro", "rua", "empregado", "linha_atendimento", "escola_integrada",
+            "mora_com_quem", "sobre_aluno", "empresa_contratante", "outras_informacoes",
+        ]:
+            if campo in data:
+                setattr(aluno, campo, _none_if_empty(data.get(campo)))
+
+        if "telefone" in data:
+            aluno.telefone = only_digits(_none_if_empty(data.get("telefone"))) or None
+
+        if "idade" in data and data.get("idade") not in (None, ""):
+            try:
+                aluno.idade = int(data.get("idade"))
+            except (TypeError, ValueError):
+                return jsonify({"erro": "idade invalida"}), 400
+
+        if "data_nascimento" in data:
+            aluno.data_nascimento = parse_date(_none_if_empty(data.get("data_nascimento")))
+
+        if "data_inicio_curso" in data:
+            aluno.data_inicio_curso = parse_date(_none_if_empty(data.get("data_inicio_curso")))
+
+        if "pessoa_com_deficiencia" in data:
+            aluno.pessoa_com_deficiencia = str_to_bool(data.get("pessoa_com_deficiencia"))
+
+        curso = None
+        if data.get("curso_id"):
+            curso = Curso.query.get(int(data["curso_id"]))
+            if not curso:
+                return jsonify({"erro": "curso_id nao encontrado"}), 400
+            aluno.curso_id = curso.id
+            aluno.curso = curso.nome
+        elif "curso" in data:
+            curso = _get_or_create_curso(data.get("curso"))
+            aluno.curso_id = curso.id if curso else None
+            aluno.curso = curso.nome if curso else _none_if_empty(data.get("curso"))
+
+        if data.get("turma_id"):
+            turma = Turma.query.get(int(data["turma_id"]))
+            if not turma:
+                return jsonify({"erro": "turma_id nao encontrada"}), 400
+            aluno.turma_id = turma.id
+            aluno.turma = turma.nome
+        elif "turma" in data:
+            if not curso and aluno.curso_id:
+                curso = Curso.query.get(aluno.curso_id)
+            turma = _get_or_create_turma(data.get("turma"), curso) if curso else None
+            aluno.turma_id = turma.id if turma else None
+            aluno.turma = turma.nome if turma else _none_if_empty(data.get("turma"))
+
+        aluno.normalize()
+        db.session.commit()
+        return jsonify({"mensagem": "Aluno atualizado com sucesso!", "aluno": _json_aluno(aluno)}), 200
+
+    except Exception as e:
+        db.session.rollback()
+        current_app.logger.error(f"Erro ao atualizar aluno: {str(e)}", exc_info=True)
+        return jsonify({"erro": f"Erro interno: {str(e)}"}), 500
+
+
+@aluno_bp.route("/<int:aluno_id>/foto", methods=["PUT"])
+@permission_required("cadastro_aluno")
+def atualizar_foto_aluno(aluno_id: int):
+    aluno = Aluno.query.get(aluno_id)
+    if not aluno:
+        return jsonify({"erro": "Aluno nao encontrado"}), 404
+
+    if "foto" not in request.files or not request.files["foto"].filename:
+        return jsonify({"erro": "Envie uma foto no campo 'foto'."}), 400
+
+    try:
+        aluno.foto = _save_photo(request.files["foto"], aluno.nome_completo or aluno.nome)
+        db.session.commit()
+        return jsonify({
+            "mensagem": "Foto atualizada com sucesso!",
+            "foto": aluno.foto,
+            "foto_url": f"/uploads/{aluno.foto}",
+        }), 200
+    except ValueError as e:
+        return jsonify({"erro": str(e)}), 400
+    except Exception as e:
+        db.session.rollback()
+        current_app.logger.error(f"Erro ao atualizar foto: {str(e)}", exc_info=True)
+        return jsonify({"erro": f"Erro interno: {str(e)}"}), 500
+
+
+# -------------------------
 # DASHBOARD BACKUP - Retorna dados básicos para o dashboard
 # -------------------------
 @aluno_bp.route("/dashboard_data", methods=["GET"])
+@permission_required("dashboard")
 def dashboard_data():
     """
     Endpoint de backup para fornecer dados ao dashboard.

@@ -49,7 +49,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
     // Constrói a URL da API garantindo que parâmetros vazios não sejam enviados
     function construirUrlComFiltros(nome, curso, ocorrencia, turma) {
-        const baseUrl = 'http://localhost:5000/alunos/buscar';
+        const baseUrl = '/alunos/buscar';
         const params = new URLSearchParams();
 
         if (nome) params.append('nome', nome);

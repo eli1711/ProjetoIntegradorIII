@@ -1,15 +1,12 @@
-FROM nginx:latest
+FROM nginx:1.27-alpine
 
-# Definir o diretório de trabalho no contêiner
 WORKDIR /usr/share/nginx/html
 
-# Remove os arquivos padrão do Nginx
 RUN rm -rf ./*
 
-# Copiar os arquivos do frontend (public) para o contêiner
-COPY public /usr/share/nginx/html
+COPY frontend/public /usr/share/nginx/html
+COPY nginx/nginx.conf /etc/nginx/conf.d/default.conf
 
-# Expondo a porta padrão do Nginx
 EXPOSE 80
 
 CMD ["nginx", "-g", "daemon off;"]

@@ -16,7 +16,7 @@ document.addEventListener('DOMContentLoaded', function() {
             const messageElement = document.getElementById('message');
             messageElement.innerHTML = '<div class="success">Criando usuário...</div>';
 
-            fetch('http://localhost:5000/api/criar_usuario', {
+            fetch('/api/criar_usuario', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',

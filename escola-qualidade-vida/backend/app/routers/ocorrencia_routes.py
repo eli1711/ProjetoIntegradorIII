@@ -4,10 +4,12 @@ from app.models.ocorrencia import Ocorrencia
 from app.models.aluno import Aluno
 from app.models.turma import Turma
 from datetime import datetime
+from app.services.permission_service import auth_required, permission_required
 
 ocorrencia_bp = Blueprint('ocorrencias', __name__, url_prefix='/ocorrencias')
 
 @ocorrencia_bp.route('/tipos', methods=['GET'])
+@auth_required()
 def listar_tipos():
     """Retorna a lista de tipos de ocorrência disponíveis"""
     try:
@@ -17,6 +19,7 @@ def listar_tipos():
         return jsonify({'erro': 'Erro ao listar tipos', 'detalhes': str(e)}), 500
 
 @ocorrencia_bp.route('/', methods=['POST'])
+@permission_required("ocorrencias")
 def cadastrar_ocorrencia():
     """Cadastra uma nova ocorrência"""
     try:
@@ -76,7 +79,14 @@ def cadastrar_ocorrencia():
         db.session.rollback()
         return jsonify({'erro': 'Erro ao cadastrar ocorrência', 'detalhes': str(e)}), 500
 
+@ocorrencia_bp.route('/listar', methods=['GET'])
+@permission_required("ocorrencias")
+def listar_ocorrencias_compat():
+    return listar_todas_ocorrencias()
+
+
 @ocorrencia_bp.route('/', methods=['GET'])
+@permission_required("ocorrencias")
 def listar_todas_ocorrencias():
     """Lista todas as ocorrências com filtros opcionais"""
     aluno_id = request.args.get('aluno_id')
@@ -124,6 +134,7 @@ def listar_todas_ocorrencias():
         return jsonify({'erro': 'Erro ao listar ocorrências', 'detalhes': str(e)}), 500
 
 @ocorrencia_bp.route('/<int:id>', methods=['GET'])
+@permission_required("ocorrencias")
 def obter_ocorrencia(id):
     """Obtém uma ocorrência específica"""
     try:
@@ -134,6 +145,7 @@ def obter_ocorrencia(id):
         return jsonify({'erro': 'Ocorrência não encontrada', 'detalhes': str(e)}), 404
 
 @ocorrencia_bp.route('/<int:id>', methods=['PUT'])
+@permission_required("ocorrencias")
 def atualizar_ocorrencia(id):
     """Atualiza uma ocorrência existente"""
     try:
@@ -169,6 +181,7 @@ def atualizar_ocorrencia(id):
         return jsonify({'erro': 'Erro ao atualizar ocorrência', 'detalhes': str(e)}), 500
 
 @ocorrencia_bp.route('/<int:id>', methods=['DELETE'])
+@permission_required("ocorrencias")
 def excluir_ocorrencia(id):
     """Exclui uma ocorrência"""
     try:

@@ -17,7 +17,7 @@ function normalizarTexto(texto) {
 // NOVO: Função para carregar os tipos de ocorrência no dropdown
 function carregarTiposOcorrencia() {
     // Faz a requisição para uma NOVA ROTA no seu backend que retorna a lista de tipos
-    fetch('http://localhost:5000/tipos_ocorrencia') // IMPORTANTE: Você precisará criar essa rota no seu backend
+    fetch('/tipos_ocorrencia') // IMPORTANTE: Você precisará criar essa rota no seu backend
         .then(response => response.json())
         .then(tipos => {
             // Para cada tipo retornado, cria um <option> e adiciona ao <select>
@@ -47,7 +47,7 @@ function buscarOcorrencias() {
     const andamentoFiltro = filtroAndamento.checked;
     const tipoFiltro = filtroTipoOcorrencia.value; // NOVO: Pega o valor do novo filtro
 
-    let url = `http://localhost:5000/ocorrencias/listar?`;
+    let url = `/ocorrencias/listar?`;
     
     // Monta a URL com os filtros
     if (alunoFiltro) url += `aluno_nome=${alunoFiltro}&`;

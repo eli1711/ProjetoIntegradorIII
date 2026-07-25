@@ -1,5 +1,30 @@
-# Ignorar arquivos e pastas do MySQL
-#db_data/
+# Ambiente local e segredos
+.env
+.env.*
+!.env.example
+
+# Bancos e volumes locais
+db_data/
+backend/instance/
+*.db
+*.sqlite
+*.sqlite3
+
+# Arquivos enviados por usuarios
+backend/app/uploads/*
+!backend/app/uploads/.gitkeep
+
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+
+# Logs/processos
 *.sock
 *.log
 *.pid
+
+# Editor/SO
+.vscode/
+.DS_Store
+Thumbs.db

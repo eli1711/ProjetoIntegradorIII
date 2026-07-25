@@ -1,6 +1,7 @@
 # app/routers/consulta_aluno.py
 from flask import Blueprint, request, jsonify
 from app.models.aluno import Aluno, only_digits
+from app.services.permission_service import auth_required
 
 consulta_aluno_bp = Blueprint("consulta_aluno", __name__, url_prefix="/alunos")
 
@@ -49,13 +50,12 @@ def _json_aluno_consulta(a: Aluno):
         "pessoa_com_deficiencia": bool(getattr(a, "pessoa_com_deficiencia", False)),
         "outras_informacoes": getattr(a, "outras_informacoes", None),
 
-        # seu front usa aluno.ocorrencias?.length (opcional)
-        # só devolve se existir no model
-        "ocorrencias": getattr(a, "ocorrencias", None),
+        "ocorrencias": [oc.to_dict() for oc in (getattr(a, "ocorrencias", None) or [])],
     }
 
 
 @consulta_aluno_bp.route("/buscar", methods=["GET"])
+@auth_required()
 def buscar():
     cpf_raw = request.args.get("cpf")
     nome_raw = (request.args.get("nome") or "").strip()

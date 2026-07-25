@@ -7,6 +7,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;500;600;700&family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="./css/login.css">
+  <script src="js/api-config.js"></script>
 </head>
 <body>
 
@@ -32,7 +33,7 @@
                 <label for="password">Senha</label>
                 <input type="password" id="password" name="senha" required placeholder="••••••••">
                 <i class="fas fa-lock"></i>
-                <a href="#forgot-password" class="forgot-password" onclick="openForgotPasswordModal()">
+                <a href="#forgot-password" class="forgot-password" >
                     Esqueci minha senha
                 </a>
             </div>
@@ -58,7 +59,7 @@
     <!-- Modal de recuperação de senha -->
     <div id="forgotPasswordModal" class="modal">
         <div class="modal-content">
-            <span class="close" onclick="closeForgotPasswordModal()">&times;</span>
+            <span class="close" >&times;</span>
             <h2><i class="fas fa-key"></i> Recuperar Senha</h2>
             <form id="forgotPasswordForm">
                 <div class="form-group">
@@ -78,6 +79,6 @@
 
 
     <!-- Script de login -->
-    <script src="js/auth.obf.js"></script>
+    <script src="js/auth.js"></script>
 </body>
 </html>

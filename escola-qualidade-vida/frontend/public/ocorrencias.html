@@ -11,6 +11,7 @@
     href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;500;600;700&family=Poppins:wght@300;400;500;600&display=swap"
     rel="stylesheet" />
   <script src="js/navbar-protection.js"></script>
+  <script src="js/api-config.js"></script>
 </head>
 
 <body>
@@ -126,7 +127,7 @@
     // Carrega os tipos de ocorrência do backend
     async function carregarTiposOcorrencia() {
       try {
-        const response = await fetch("http://localhost:5000/ocorrencias/tipos");
+        const response = await fetch("/ocorrencias/tipos");
         const data = await response.json();
 
         if (response.ok && data.tipos) {
@@ -176,7 +177,7 @@
       }
 
       try {
-        const response = await fetch(`http://localhost:5000/alunos/buscar?cpf=${cpf}`);
+        const response = await fetch(`/alunos/buscar?cpf=${cpf}`);
         const data = await response.json();
 
         if (response.ok && Array.isArray(data) && data.length > 0) {
@@ -220,7 +221,7 @@
       if (aluno.foto_url) {
         fotoExibida.src = aluno.foto_url;
       } else if (aluno.foto) {
-        fotoExibida.src = `http://localhost:8080/uploads/${aluno.foto}`;
+        fotoExibida.src = `/uploads/${aluno.foto}`;
       } else {
         fotoExibida.src = "./img/sem-foto.png";
       }
@@ -264,7 +265,7 @@
       };
 
       try {
-        const response = await fetch("http://localhost:5000/ocorrencias/", {
+        const response = await fetch("/ocorrencias/", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(payload)

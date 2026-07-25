@@ -7,6 +7,7 @@
     <link rel="stylesheet" href="./css/styles.css">
     <link rel="stylesheet" href="./css/login.css">
     
+  <script src="js/api-config.js"></script>
 </head>
 <body>
 
@@ -73,7 +74,7 @@
                     return;
                 }
                 
-                fetch(`http://localhost:5000/auth/redefinir_senha/${token}`, {
+                fetch(`/auth/redefinir_senha/${token}`, {
                     method: 'PUT', 
                     headers: {
                         'Content-Type': 'application/json',

@@ -19,7 +19,7 @@ document.addEventListener("DOMContentLoaded", function() {
   // Carrega os tipos de ocorrência do backend
   async function carregarTiposOcorrencia() {
     try {
-      const response = await fetch("http://localhost:5000/ocorrencias/tipos");
+      const response = await fetch("/ocorrencias/tipos");
       const data = await response.json();
       
       if (response.ok && data.tipos) {
@@ -69,7 +69,7 @@ document.addEventListener("DOMContentLoaded", function() {
     }
 
     try {
-      const response = await fetch(`http://localhost:5000/alunos/buscar?cpf=${cpf}`);
+      const response = await fetch(`/alunos/buscar?cpf=${cpf}`);
       const data = await response.json();
 
       if (response.ok && Array.isArray(data) && data.length > 0) {
@@ -113,7 +113,7 @@ document.addEventListener("DOMContentLoaded", function() {
     if (aluno.foto_url) {
       fotoExibida.src = aluno.foto_url;
     } else if (aluno.foto) {
-      fotoExibida.src = `http://localhost:8080/uploads/${aluno.foto}`;
+      fotoExibida.src = `/uploads/${aluno.foto}`;
     } else {
       fotoExibida.src = "./img/sem-foto.png";
     }
@@ -157,7 +157,7 @@ document.addEventListener("DOMContentLoaded", function() {
     };
 
     try {
-      const response = await fetch("http://localhost:5000/ocorrencias/", {
+      const response = await fetch("/ocorrencias/", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload)

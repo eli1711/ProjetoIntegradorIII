@@ -14,7 +14,7 @@ document.addEventListener("DOMContentLoaded", function () {
     async function buscarInformacoesAluno() {
         try {
             // Requisição à API usando nome e sobrenome do aluno
-            const response = await fetch(`http://localhost:5000/alunos/buscar?nome=${encodeURIComponent(alunoNome)}&sobrenome=${encodeURIComponent(alunoSobrenome)}`);
+            const response = await fetch(`/alunos/buscar?nome=${encodeURIComponent(alunoNome)}&sobrenome=${encodeURIComponent(alunoSobrenome)}`);
             if (!response.ok) {
                 throw new Error(`Erro ao carregar informações do aluno: ${response.statusText}`);
             }
@@ -53,7 +53,7 @@ document.addEventListener("DOMContentLoaded", function () {
             // Carrega a foto do aluno, se disponível
             const fotoAluno = document.getElementById('fotoAluno');
             if (alunoEncontrado.foto) {
-                fotoAluno.src = `http://localhost:8080/uploads/${alunoEncontrado.foto}`;
+                fotoAluno.src = `/uploads/${alunoEncontrado.foto}`;
                 fotoAluno.alt = alunoEncontrado.nome;
             } else {
                 fotoAluno.alt = "Foto não disponível";

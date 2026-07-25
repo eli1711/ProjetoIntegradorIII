@@ -6,6 +6,7 @@ from app.models.ocorrencia import Ocorrencia
 from app.models.turma import Turma
 from app.models.curso import Curso
 import io, csv
+from app.services.permission_service import permission_required
 
 dashboard_bp = Blueprint('dashboard', __name__, url_prefix='/dashboard')
 
@@ -155,6 +156,7 @@ def turma_nome_aluno(aluno: Aluno) -> str:
 # DASHBOARD
 # ==========================
 @dashboard_bp.route('', methods=['GET'])
+@permission_required("dashboard")
 def dashboard():
     try:
         # paginação (tabela)
@@ -303,6 +305,7 @@ def dashboard():
 # EXPORT CSV (MESMOS FILTROS)
 # ==========================
 @dashboard_bp.route('/export', methods=['GET'])
+@permission_required("dashboard")
 def export_dashboard_csv():
     """
     Exporta CSV aplicando os mesmos filtros do dashboard.
@@ -361,6 +364,7 @@ def export_dashboard_csv():
 # DIAGNÓSTICO / TESTE / CURSOS
 # ==========================
 @dashboard_bp.route('/diagnostico', methods=['GET'])
+@permission_required("dashboard")
 def diagnostico():
     try:
         total_alunos = db.session.query(func.count(Aluno.id)).scalar() or 0
@@ -400,6 +404,7 @@ def diagnostico():
 
 
 @dashboard_bp.route('/test', methods=['GET'])
+@permission_required("dashboard")
 def test():
     return jsonify({
         'status': 'OK',
@@ -409,6 +414,7 @@ def test():
 
 
 @dashboard_bp.route('/aluno/<int:aluno_id>/ocorrencias', methods=['GET'])
+@permission_required("dashboard")
 def ocorrencias_por_aluno(aluno_id: int):
     try:
         aluno = Aluno.query.get(aluno_id)
@@ -430,6 +436,7 @@ def ocorrencias_por_aluno(aluno_id: int):
 
 
 @dashboard_bp.route('/cursos-list', methods=['GET'])
+@permission_required("dashboard")
 def listar_cursos():
     try:
         cursos = Curso.query.order_by(Curso.nome).all()

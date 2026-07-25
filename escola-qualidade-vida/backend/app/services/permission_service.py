@@ -1,5 +1,5 @@
 from functools import wraps
-from flask import jsonify
+from flask import jsonify, request
 from flask_jwt_extended import verify_jwt_in_request, get_jwt_identity
 from app.models import Usuario
 
@@ -67,18 +67,37 @@ def get_current_user():
     return Usuario.query.get(user_id)
 
 
+def auth_required():
+    def decorator(f):
+        @wraps(f)
+        def decorated_function(*args, **kwargs):
+            if request.method == "OPTIONS":
+                return f(*args, **kwargs)
+
+            user = get_current_user()
+            if not user:
+                return jsonify({"error": "Usuario nao encontrado"}), 404
+
+            return f(*args, **kwargs)
+        return decorated_function
+    return decorator
+
+
 def permission_required(pagina: str):
     def decorator(f):
         @wraps(f)
         def decorated_function(*args, **kwargs):
+            if request.method == "OPTIONS":
+                return f(*args, **kwargs)
+
             user = get_current_user()
             if not user:
-                return jsonify({"error": "Usuário não encontrado"}), 404
+                return jsonify({"error": "Usuario nao encontrado"}), 404
 
             if not PermissionService.has_permission(user.cargo, pagina):
                 return jsonify({
                     "error": "Acesso negado",
-                    "message": "Você não tem permissão para acessar esta página",
+                    "message": "Voce nao tem permissao para acessar esta pagina",
                     "pagina": pagina
                 }), 403
 

@@ -90,7 +90,7 @@ function initPasswordRecovery() {
 // Função para testar a rota de recuperação
 async function testRecoveryRoute() {
     try {
-        const response = await fetch('http://localhost:5000/auth/recuperar_senha_test', {
+        const response = await fetch('/auth/recuperar_senha_test', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -114,7 +114,7 @@ async function testRecoveryRoute() {
 // Função para enviar a requisição real
 async function sendRecoveryRequest(email, modal, messageElement, recoveryForm) {
     try {
-        const response = await fetch('http://localhost:5000/auth/recuperar_senha', {
+        const response = await fetch('/auth/recuperar_senha', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -177,7 +177,7 @@ async function handleLogin(event, loginAlert) {
     }
 
     try {
-        const response = await fetch('http://localhost:5000/auth/login', {
+        const response = await fetch('/auth/login', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(loginData)
@@ -233,10 +233,20 @@ function exibirMensagem(elemento, mensagem, tipo) {
 // Função para testar a conexão com o backend
 async function testBackendConnection() {
     try {
-        const response = await fetch('http://localhost:5000/auth/test');
+        const response = await fetch('/auth/test');
         const data = await response.json();
         console.log('✅ Teste de conexão com backend:', data);
     } catch (error) {
         console.error('❌ Erro na conexão com backend:', error);
     }
+}
+
+function openForgotPasswordModal() {
+    const modal = document.getElementById("forgotPasswordModal");
+    if (modal) modal.style.display = "block";
+}
+
+function closeForgotPasswordModal() {
+    const modal = document.getElementById("forgotPasswordModal");
+    if (modal) modal.style.display = "none";
 }

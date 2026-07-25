@@ -1,4 +1,4 @@
-const API_BASE = "http://localhost:5000";
+const API_BASE = window.API_BASE_URL || "";
 
 document.addEventListener("DOMContentLoaded", async () => {
   const token = localStorage.getItem("access_token");
@@ -17,25 +17,32 @@ document.addEventListener("DOMContentLoaded", async () => {
   }
 });
 
+function apiPath(path) {
+  if (typeof window.apiUrl === "function") return window.apiUrl(path);
+  return `${API_BASE}${path}`;
+}
+
 async function apiFetch(path, options = {}) {
   const token = localStorage.getItem("access_token");
-
   const headers = {
     ...(options.headers || {}),
-    "Content-Type": "application/json",
     ...(token ? { Authorization: `Bearer ${token}` } : {}),
   };
 
+  if (!(options.body instanceof FormData) && !headers["Content-Type"]) {
+    headers["Content-Type"] = "application/json";
+  }
+
   let resp;
   try {
-    resp = await fetch(`${API_BASE}${path}`, { ...options, headers });
+    resp = await fetch(apiPath(path), { ...options, headers });
   } catch (err) {
-    console.warn("⚠️ Erro de rede:", err);
+    console.warn("Erro de rede:", err);
     return { networkError: true };
   }
 
   if (resp.status === 401) {
-    console.warn("🔒 Token expirado/inválido. Logout...");
+    console.warn("Token expirado/invalido. Logout...");
     logout();
     return { unauthorized: true };
   }
@@ -61,8 +68,7 @@ async function carregarPermissoes() {
     return data.permissions;
   }
 
-  // erro 5xx etc: não derrube a UI
-  console.warn("⚠️ Falha ao carregar permissões:", resp.status);
+  console.warn("Falha ao carregar permissoes:", resp.status);
   return null;
 }
 
@@ -85,7 +91,7 @@ function aplicarPermissoesNoNavbar(perms) {
         a.removeAttribute("href");
         a.onclick = (e) => {
           e.preventDefault();
-          alert("Você não tem permissão para acessar esta página!");
+          alert("Voce nao tem permissao para acessar esta pagina!");
         };
         a.style.opacity = "0.5";
         a.style.cursor = "not-allowed";
@@ -99,6 +105,6 @@ function logout() {
   localStorage.removeItem("user_id");
   localStorage.removeItem("cargo");
   localStorage.removeItem("user_permissions");
-  alert("Sua sessão expirou. Faça login novamente.");
+  alert("Sua sessao expirou. Faca login novamente.");
   window.location.href = "index.html";
 }
