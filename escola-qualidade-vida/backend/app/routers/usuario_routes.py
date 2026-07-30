@@ -1,4 +1,4 @@
-from flask import Blueprint, request, jsonify
+from flask import Blueprint, current_app, request, jsonify
 from werkzeug.security import generate_password_hash
 from app.extensions import db
 from app.models.usuario import Usuario
@@ -13,13 +13,15 @@ usuario_bp = Blueprint("usuario_bp", __name__)
 def criar_usuario():
     try:
         data = request.get_json() or {}
-        nome = data.get("nome")
-        email = data.get("email")
+        nome = (data.get("nome") or "").strip()
+        email = (data.get("email") or "").strip().lower()
         senha = data.get("senha")
         cargo = data.get("cargo")
 
         if not nome or not email or not senha or not cargo:
             return jsonify({"success": False, "message": "Todos os campos sao obrigatorios"}), 400
+        if len(senha) < 8:
+            return jsonify({"success": False, "message": "A senha deve ter pelo menos 8 caracteres"}), 400
 
         if cargo not in ["administrador", "coordenador", "analista"]:
             return jsonify({"success": False, "message": "Cargo invalido"}), 400
@@ -39,9 +41,10 @@ def criar_usuario():
 
         return jsonify({"success": True, "message": "Usuario criado com sucesso!"}), 201
 
-    except Exception as e:
+    except Exception:
         db.session.rollback()
-        return jsonify({"success": False, "message": str(e)}), 500
+        current_app.logger.exception("Erro ao criar usuario")
+        return jsonify({"success": False, "message": "Erro ao criar usuario"}), 500
 
 
 @usuario_bp.route("/api/usuarios", methods=["GET"])
@@ -60,5 +63,6 @@ def listar_usuarios():
         ]
 
         return jsonify({"usuarios": resultado}), 200
-    except Exception as e:
-        return jsonify({"error": str(e)}), 500
+    except Exception:
+        current_app.logger.exception("Erro ao listar usuarios")
+        return jsonify({"error": "Erro ao listar usuarios"}), 500

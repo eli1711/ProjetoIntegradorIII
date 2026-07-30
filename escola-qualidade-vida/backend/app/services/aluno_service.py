@@ -1,28 +1,42 @@
-from app.models.aluno import Aluno
-from app import db
+from app.extensions import db
+from app.models.aluno import Aluno, only_digits
 
-def listar_alunos():
-    alunos = Aluno.query.all()
-    return [{"id": a.id, "nome": a.nome} for a in alunos]
+
+def listar_alunos(limit=100):
+    alunos = Aluno.query.order_by(Aluno.id.desc()).limit(limit).all()
+    return [
+        {
+            "id": aluno.id,
+            "nome": aluno.nome_completo or f"{aluno.nome} {aluno.sobrenome}".strip(),
+            "cpf": aluno.cpf,
+            "matricula": aluno.matricula,
+        }
+        for aluno in alunos
+    ]
+
 
 def cadastrar_aluno(data):
-    aluno = Aluno(
-        nome=data['nome'],
-        sobrenome=data['sobrenome'],
-        cidade=data['cidade'],
-        bairro=data['bairro'],
-        rua=data['rua'],
-        idade=data['idade'],
-        empregado=data['empregado'],
-        empresa=data.get('empresa'),
-        comorbidade=data.get('comorbidade'),
-        nome_responsavel=data.get('nomeResponsavel'),
-        sobrenome_responsavel=data.get('sobrenomeResponsavel'),
-        parentesco_responsavel=data.get('parentescoResponsavel'),
-        telefone_responsavel=data.get('telefoneResponsavel')
-    )
+    cpf = only_digits(data.get("cpf"))
+    if not cpf or len(cpf) != 11:
+        raise ValueError("CPF invalido.")
 
-    # Salvar no banco de dados
+    aluno = Aluno(
+        cpf=cpf,
+        matricula=data["matricula"],
+        nome=data["nome"],
+        sobrenome=data.get("sobrenome") or "",
+        nome_completo=data.get("nome_completo") or f"{data['nome']} {data.get('sobrenome') or ''}".strip(),
+        cidade=data["cidade"],
+        bairro=data["bairro"],
+        rua=data["rua"],
+        idade=int(data["idade"]),
+        empregado=data.get("empregado", "nao"),
+        linha_atendimento=data.get("linha_atendimento", "CAI"),
+        escola_integrada=data.get("escola_integrada", "Nenhuma"),
+        curso=data.get("curso"),
+        turma=data.get("turma"),
+    )
+    aluno.normalize()
     db.session.add(aluno)
     db.session.commit()
     return aluno

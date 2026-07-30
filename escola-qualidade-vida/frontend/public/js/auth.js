@@ -1,252 +1,151 @@
-document.addEventListener('DOMContentLoaded', function () {
-    const loginForm = document.getElementById('loginForm');
-    const loginAlert = document.getElementById('loginAlert');
+document.addEventListener("DOMContentLoaded", function () {
+  const loginForm = document.getElementById("loginForm");
+  const loginAlert = document.getElementById("loginAlert");
 
-    // Verificar se já existe um token de autenticação
-    if (localStorage.getItem('access_token')) {
-        window.location.href = 'principal.html';
-        return;
-    }
+  if (localStorage.getItem("access_token")) {
+    window.location.href = "principal.html";
+    return;
+  }
 
-    if (!loginForm || !loginAlert) {
-        console.error("Formulário ou alerta de login não encontrado no DOM.");
-        return;
-    }
+  if (!loginForm || !loginAlert) return;
 
-    loginForm.addEventListener('submit', function (event) {
-        handleLogin(event, loginAlert);
-    });
+  loginForm.addEventListener("submit", function (event) {
+    handleLogin(event, loginAlert);
+  });
 
-    // Inicializar funcionalidade de recuperação de senha
-    initPasswordRecovery();
-    
-    // Testar conexão com o backend
-    testBackendConnection();
+  initPasswordRecovery();
 });
 
-// Função para inicializar a recuperação de senha
 function initPasswordRecovery() {
-    // Modal de recuperação de senha
-    const modal = document.getElementById("forgotPasswordModal");
-    const btn = document.querySelector(".forgot-password");
-    const span = document.querySelector(".close");
-    const recoveryForm = document.getElementById("forgotPasswordForm");
+  const modal = document.getElementById("forgotPasswordModal");
+  const btn = document.querySelector(".forgot-password");
+  const closeBtn = document.querySelector(".close");
+  const recoveryForm = document.getElementById("forgotPasswordForm");
 
-    // Verificar se os elementos existem antes de adicionar event listeners
-    if (!modal || !btn || !span || !recoveryForm) {
-        console.warn("Elementos de recuperação de senha não encontrados no DOM.");
+  if (!modal || !btn || !closeBtn || !recoveryForm) return;
+
+  btn.addEventListener("click", function (event) {
+    event.preventDefault();
+    modal.style.display = "block";
+    modal.setAttribute("aria-hidden", "false");
+  });
+
+  closeBtn.addEventListener("click", closeForgotPasswordModal);
+  window.addEventListener("click", function (event) {
+    if (event.target === modal) closeForgotPasswordModal();
+  });
+
+  recoveryForm.addEventListener("submit", async function (event) {
+    event.preventDefault();
+    const emailInput = document.getElementById("recoveryEmail");
+    const messageElement = document.getElementById("recoveryMessage");
+    const email = (emailInput?.value || "").trim();
+
+    if (!email) {
+      renderMessage(messageElement, "Por favor, informe o e-mail.", "error");
+      return;
+    }
+
+    try {
+      const response = await fetch("/auth/recuperar_senha", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email }),
+      });
+      const data = await response.json();
+
+      if (!response.ok || !data.success) {
+        renderMessage(messageElement, data.message || "Erro ao solicitar recuperacao.", "error");
         return;
-    }
+      }
 
-    btn.addEventListener('click', function(e) {
-        e.preventDefault();
-        modal.style.display = "block";
-    });
-
-    span.addEventListener('click', function() {
-        modal.style.display = "none";
-    });
-
-    window.addEventListener('click', function(event) {
-        if (event.target === modal) {
-            modal.style.display = "none";
-        }
-    });
-
-    // Formulário de recuperação
-    recoveryForm.addEventListener("submit", function(e) {
-        e.preventDefault();
-        
-        const emailInput = document.getElementById("recoveryEmail");
-        const messageElement = document.getElementById("recoveryMessage");
-        
-        if (!emailInput || !messageElement) {
-            console.error("Elementos de recuperação não encontrados");
-            return;
-        }
-        
-        // @ts-ignore
-        const email = emailInput.value.trim();
-        
-        if (!email) {
-            messageElement.innerHTML = '<div class="error">Por favor, informe o e-mail</div>';
-            return;
-        }
-        
-        console.log('📤 Enviando requisição para recuperação de senha...');
-        console.log('📧 Email:', email);
-        
-        // Primeiro teste com a rota simplificada
-        testRecoveryRoute().then(() => {
-            // Se a rota de teste funcionar, então envia para a rota real
-            sendRecoveryRequest(email, modal, messageElement, recoveryForm);
-        }).catch(error => {
-            console.error('❌ Rota de teste falhou:', error);
-            messageElement.innerHTML = '<div class="error">Servidor indisponível. Tente novamente mais tarde.</div>';
-        });
-    });
-}
-
-// Função para testar a rota de recuperação
-async function testRecoveryRoute() {
-    try {
-        const response = await fetch('/auth/recuperar_senha_test', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({ email: 'test@example.com' })
-        });
-        
-        if (!response.ok) {
-            throw new Error('Erro na rota de teste: ' + response.status);
-        }
-        
-        const data = await response.json();
-        console.log('✅ Rota de teste funcionando:', data);
-        return data;
+      renderMessage(messageElement, data.message, "success");
+      recoveryForm.reset();
+      setTimeout(closeForgotPasswordModal, 3000);
     } catch (error) {
-        console.error('❌ Erro na rota de teste:', error);
-        throw error;
+      console.error("Erro na recuperacao de senha:", error);
+      renderMessage(messageElement, "Servidor indisponivel. Tente novamente mais tarde.", "error");
     }
-}
-
-// Função para enviar a requisição real
-async function sendRecoveryRequest(email, modal, messageElement, recoveryForm) {
-    try {
-        const response = await fetch('/auth/recuperar_senha', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({ email: email })
-        });
-        
-        console.log('📥 Resposta recebida:', response.status, response.statusText);
-        
-        if (!response.ok) {
-            const errorText = await response.text();
-            throw new Error(`Erro ${response.status}: ${errorText}`);
-        }
-        
-        const data = await response.json();
-        console.log('📊 Dados recebidos:', data);
-        
-        if (data.success) {
-            // ALERTA DE E-MAIL ENCONTRADO E ENVIADO
-            messageElement.innerHTML = `<div class="success">✅ ${data.message || 'E-mail encontrado! Link de recuperação enviado com sucesso.'}</div>`;
-            recoveryForm.reset();
-            
-            setTimeout(() => {
-                modal.style.display = "none";
-                messageElement.innerHTML = '';
-            }, 3000);
-        } else {
-            // ALERTA DE E-MAIL NÃO ENCONTRADO
-            messageElement.innerHTML = `<div class="error">❌ ${data.message || 'Este e-mail não está cadastrado em nosso sistema.'}</div>`;
-        }
-    } catch (error) {
-        console.error('❌ Erro completo:', error);
-        // ALERTA DE ERRO NO PROCESSAMENTO
-        messageElement.innerHTML = '<div class="error">❌ Erro ao processar solicitação. Verifique o console para detalhes.</div>';
-    }
+  });
 }
 
 async function handleLogin(event, loginAlert) {
-    event.preventDefault();
+  event.preventDefault();
 
-    const emailInput = document.getElementById('email');
-    const senhaInput = document.getElementById('password');
+  const emailInput = document.getElementById("email");
+  const senhaInput = document.getElementById("password");
+  const loginData = {
+    email: (emailInput?.value || "").trim(),
+    senha: (senhaInput?.value || "").trim(),
+  };
 
-    if (!emailInput || !senhaInput) {
-        exibirMensagem(loginAlert, "Erro: Campos de e-mail ou senha não encontrados.", "error");
-        return;
+  if (!loginData.email || !loginData.senha) {
+    exibirMensagem(loginAlert, "Por favor, preencha o e-mail e a senha.", "error");
+    return;
+  }
+
+  try {
+    const response = await fetch("/auth/login", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(loginData),
+    });
+    const data = await response.json();
+
+    if (response.ok && data.access_token) {
+      localStorage.setItem("access_token", data.access_token);
+      localStorage.setItem("user_id", data.user_id);
+      localStorage.setItem("cargo", data.cargo);
+
+      exibirMensagem(loginAlert, "Login bem-sucedido. Redirecionando...", "success");
+      setTimeout(() => {
+        window.location.href = "principal.html";
+      }, 800);
+      return;
     }
-    
 
-    const loginData = {
-        // @ts-ignore
-        email: emailInput.value.trim(),
-        // @ts-ignore
-        senha: senhaInput.value.trim()
-    };
-
-    if (!loginData.email || !loginData.senha) {
-        exibirMensagem(loginAlert, "Por favor, preencha o e-mail e a senha.", "error");
-        return;
-    }
-
-    try {
-        const response = await fetch('/auth/login', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(loginData)
-        });
-
-        if (!response.ok) {
-            const errorText = await response.text();
-            throw new Error(`Erro HTTP ${response.status}: ${errorText}`);
-        }
-
-        const data = await response.json();
-
-        if (data.access_token) {
-            localStorage.setItem('access_token', data.access_token);
-            localStorage.setItem('user_id', data.user_id);
-            localStorage.setItem('cargo', data.cargo);
-            
-            exibirMensagem(loginAlert, "✅ Login bem-sucedido! Redirecionando...", "success");
-            setTimeout(() => {
-                window.location.href = 'principal.html';
-            }, 1500);
-        } else {
-            exibirMensagem(loginAlert, data.erro || data.message || "❌ E-mail ou senha inválidos.", "error");
-        }
-    } catch (err) {
-        console.error("Erro na requisição de login:", err);
-        exibirMensagem(loginAlert, "❌ Erro inesperado ao tentar fazer login.", "error");
-    }
+    exibirMensagem(loginAlert, data.erro || data.message || "E-mail ou senha invalidos.", "error");
+  } catch (error) {
+    console.error("Erro na requisicao de login:", error);
+    exibirMensagem(loginAlert, "Erro inesperado ao tentar fazer login.", "error");
+  }
 }
 
-// Função para exibir mensagens com estilo
+function renderMessage(elemento, mensagem, tipo) {
+  if (!elemento) return;
+  elemento.innerHTML = "";
+  const div = document.createElement("div");
+  div.className = tipo;
+  div.textContent = mensagem;
+  elemento.appendChild(div);
+  elemento.style.display = "block";
+}
+
 function exibirMensagem(elemento, mensagem, tipo) {
-    if (!elemento) {
-        console.error("Elemento para exibir mensagem não encontrado");
-        return;
-    }
-    
-    elemento.innerHTML = '';
-    const messageDiv = document.createElement('div');
-    messageDiv.textContent = mensagem;
-    messageDiv.className = tipo;
-    elemento.appendChild(messageDiv);
-    elemento.style.display = "block";
-    
-    if (tipo === 'error') {
-        setTimeout(() => {
-            elemento.style.display = "none";
-            elemento.innerHTML = '';
-        }, 5000);
-    }
-}
-
-// Função para testar a conexão com o backend
-async function testBackendConnection() {
-    try {
-        const response = await fetch('/auth/test');
-        const data = await response.json();
-        console.log('✅ Teste de conexão com backend:', data);
-    } catch (error) {
-        console.error('❌ Erro na conexão com backend:', error);
-    }
+  renderMessage(elemento, mensagem, tipo);
+  if (tipo === "error") {
+    setTimeout(() => {
+      if (elemento) {
+        elemento.style.display = "none";
+        elemento.innerHTML = "";
+      }
+    }, 5000);
+  }
 }
 
 function openForgotPasswordModal() {
-    const modal = document.getElementById("forgotPasswordModal");
-    if (modal) modal.style.display = "block";
+  const modal = document.getElementById("forgotPasswordModal");
+  if (!modal) return;
+  modal.style.display = "block";
+  modal.setAttribute("aria-hidden", "false");
 }
 
 function closeForgotPasswordModal() {
-    const modal = document.getElementById("forgotPasswordModal");
-    if (modal) modal.style.display = "none";
+  const modal = document.getElementById("forgotPasswordModal");
+  const messageElement = document.getElementById("recoveryMessage");
+  if (modal) {
+    modal.style.display = "none";
+    modal.setAttribute("aria-hidden", "true");
+  }
+  if (messageElement) messageElement.innerHTML = "";
 }

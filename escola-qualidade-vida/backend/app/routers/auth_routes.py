@@ -1,263 +1,158 @@
-from flask import Blueprint, request, jsonify, current_app
-from werkzeug.security import check_password_hash, generate_password_hash
-from flask_jwt_extended import create_access_token
-from app.models.usuario import Usuario
-from app.extensions import db
+import os
 import secrets
 import smtplib
-from email.mime.text import MIMEText
-from email.mime.multipart import MIMEMultipart
 from datetime import datetime, timedelta
-from flask_cors import cross_origin
+from email.mime.multipart import MIMEMultipart
+from email.mime.text import MIMEText
 
-# Blueprint para autenticação
-auth_bp = Blueprint('auth', __name__)
+from flask import Blueprint, current_app, jsonify, request
+from flask_jwt_extended import create_access_token
+from werkzeug.security import check_password_hash, generate_password_hash
 
-@auth_bp.route('/login', methods=['POST'])
-@cross_origin()
+from app.extensions import db
+from app.models.usuario import Usuario
+
+
+auth_bp = Blueprint("auth", __name__)
+RECOVERY_MESSAGE = "Se o e-mail existir em nosso sistema, voce recebera um link de recuperacao."
+
+
+@auth_bp.route("/login", methods=["POST"])
 def login():
-    data = request.get_json()
-    if not data:
-        return jsonify({"erro": "Dados de login não fornecidos"}), 400
+    data = request.get_json(silent=True) or {}
+    email = (data.get("email") or "").strip().lower()
+    senha = data.get("senha")
 
-    email = data.get('email')
-    senha = data.get('senha')
     if not email or not senha:
-        return jsonify({"erro": "E-mail e senha são obrigatórios"}), 400
+        return jsonify({"erro": "E-mail e senha sao obrigatorios"}), 400
 
-    # Verifica se usuário existe pelo email
     usuario = Usuario.query.filter_by(email=email).first()
-    if not usuario:
-        return jsonify({"erro": "Credenciais inválidas"}), 401
+    if not usuario or not check_password_hash(usuario.senha, senha):
+        return jsonify({"erro": "Credenciais invalidas"}), 401
 
-    # Verifica a senha usando hash
-    if not check_password_hash(usuario.senha, senha):
-        return jsonify({"erro": "Credenciais inválidas"}), 401
-
-    # CORREÇÃO: Garantir que identity seja string
-    access_token = create_access_token(identity=str(usuario.id))  # Convertendo para string
+    access_token = create_access_token(identity=str(usuario.id))
     return jsonify({
-        'access_token': access_token,
-        'user_id': usuario.id,
-        'cargo': usuario.cargo
+        "access_token": access_token,
+        "user_id": usuario.id,
+        "cargo": usuario.cargo,
     }), 200
 
-@auth_bp.route('/recuperar_senha', methods=['POST', 'OPTIONS'])
-@cross_origin()
-def recuperar_senha():
-    try:
-        current_app.logger.info("Rota /recuperar_senha acessada")
-        
-        # Verificar se há dados JSON
-        if not request.is_json:
-            return jsonify({'success': False, 'message': 'Dados JSON necessários'}), 400
-            
-        data = request.get_json()
-        if not data:
-            return jsonify({'success': False, 'message': 'Dados não fornecidos'}), 400
-        
-        email = data.get('email')
-        
-        if not email:
-            return jsonify({'success': False, 'message': 'E-mail é obrigatório'}), 400
-        
-        usuario = Usuario.query.filter_by(email=email).first()
-        
-        if not usuario:
-            # Por segurança, não revele se o email existe ou não
-            return jsonify({
-                'success': True, 
-                'message': 'Se o e-mail existir em nosso sistema, você receberá um link de recuperação'
-            }), 200
-        
-        # Gerar token de recuperação
-        token = secrets.token_urlsafe(32)
-        expiracao = datetime.utcnow() + timedelta(hours=1)
-        
-        # Salvar token no banco
-        usuario.token_recuperacao = token
-        usuario.token_expiracao = expiracao
-        db.session.commit()
-        
-        # Enviar email de recuperação (substitui o log antigo)
-        enviar_email_recuperacao(email, token)
-        
-        return jsonify({
-            'success': True, 
-            'message': 'Link de recuperação enviado para seu e-mail'
-        }), 200
-        
-    except Exception as e:
-        current_app.logger.error(f"Erro em recuperar_senha: {str(e)}")
-        return jsonify({'success': False, 'message': 'Erro interno do servidor'}), 500
 
-# ROTA QUE ESTAVA FALTANDO - ADICIONE ESTA ROTA
-@auth_bp.route('/redefinir_senha/<token>', methods=['PUT', 'OPTIONS'])
-@cross_origin()
-def redefinir_senha(token):
+@auth_bp.route("/recuperar_senha", methods=["POST", "OPTIONS"])
+def recuperar_senha():
+    if request.method == "OPTIONS":
+        return "", 204
+
     try:
-        current_app.logger.info(f"Tentativa de redefinir senha com token: {token}")
-        
-        # Verificar se há dados JSON
-        if not request.is_json:
-            return jsonify({'success': False, 'message': 'Dados JSON necessários'}), 400
-            
-        data = request.get_json()
-        if not data:
-            return jsonify({'success': False, 'message': 'Dados não fornecidos'}), 400
-        
-        nova_senha = data.get('nova_senha')
-        confirmar_senha = data.get('confirmar_senha')
-        
+        data = request.get_json(silent=True) or {}
+        email = (data.get("email") or "").strip().lower()
+
+        if not email:
+            return jsonify({"success": False, "message": "E-mail e obrigatorio"}), 400
+
+        usuario = Usuario.query.filter_by(email=email).first()
+        if usuario:
+            token = secrets.token_urlsafe(32)
+            usuario.token_recuperacao = token
+            usuario.token_expiracao = datetime.utcnow() + timedelta(hours=1)
+            db.session.commit()
+            enviar_email_recuperacao(email, token)
+
+        return jsonify({"success": True, "message": RECOVERY_MESSAGE}), 200
+
+    except Exception as e:
+        db.session.rollback()
+        current_app.logger.error("Erro em recuperar_senha: %s", e, exc_info=True)
+        return jsonify({"success": False, "message": "Erro interno do servidor"}), 500
+
+
+@auth_bp.route("/redefinir_senha/<token>", methods=["PUT", "OPTIONS"])
+def redefinir_senha(token):
+    if request.method == "OPTIONS":
+        return "", 204
+
+    try:
+        data = request.get_json(silent=True) or {}
+        nova_senha = data.get("nova_senha")
+        confirmar_senha = data.get("confirmar_senha")
+
         if not nova_senha or not confirmar_senha:
-            return jsonify({'success': False, 'message': 'Senha é obrigatória'}), 400
-        
+            return jsonify({"success": False, "message": "Senha e obrigatoria"}), 400
         if nova_senha != confirmar_senha:
-            return jsonify({'success': False, 'message': 'Senhas não coincidem'}), 400
-        
-        # Buscar usuário pelo token
+            return jsonify({"success": False, "message": "Senhas nao coincidem"}), 400
+        if len(nova_senha) < 8:
+            return jsonify({"success": False, "message": "A senha deve ter pelo menos 8 caracteres"}), 400
+
         usuario = Usuario.query.filter_by(token_recuperacao=token).first()
-        
-        if not usuario:
-            current_app.logger.warning(f"Token não encontrado: {token}")
-            return jsonify({'success': False, 'message': 'Token inválido ou expirado'}), 400
-        
+        if not usuario or not usuario.token_expiracao:
+            return jsonify({"success": False, "message": "Token invalido ou expirado"}), 400
         if usuario.token_expiracao < datetime.utcnow():
-            current_app.logger.warning(f"Token expirado: {token}")
-            return jsonify({'success': False, 'message': 'Token expirado'}), 400
-        
-        # Hash da nova senha
+            usuario.token_recuperacao = None
+            usuario.token_expiracao = None
+            db.session.commit()
+            return jsonify({"success": False, "message": "Token invalido ou expirado"}), 400
+
         usuario.senha = generate_password_hash(nova_senha)
         usuario.token_recuperacao = None
         usuario.token_expiracao = None
         db.session.commit()
-        
-        current_app.logger.info(f"Senha redefinida com sucesso para: {usuario.email}")
-        return jsonify({'success': True, 'message': 'Senha redefinida com sucesso'}), 200
-        
-    except Exception as e:
-        current_app.logger.error(f"Erro em redefinir_senha: {str(e)}")
-        return jsonify({'success': False, 'message': 'Erro interno do servidor'}), 500
 
-# FUNÇÃO PARA ENVIAR EMAIL DE RECUPERAÇÃO (ADICIONADA)
+        current_app.logger.info("Senha redefinida com sucesso para usuario id=%s", usuario.id)
+        return jsonify({"success": True, "message": "Senha redefinida com sucesso"}), 200
+
+    except Exception as e:
+        db.session.rollback()
+        current_app.logger.error("Erro em redefinir_senha: %s", e, exc_info=True)
+        return jsonify({"success": False, "message": "Erro interno do servidor"}), 500
+
+
 def enviar_email_recuperacao(email, token):
-    """Função para enviar email de recuperação"""
+    smtp_server = current_app.config.get("SMTP_SERVER")
+    smtp_port = current_app.config.get("SMTP_PORT", 587)
+    email_from = current_app.config.get("EMAIL_FROM")
+    email_password = current_app.config.get("EMAIL_PASSWORD")
+    frontend_url = current_app.config.get("FRONTEND_URL", "http://localhost:8080")
+
+    if not all([smtp_server, email_from, email_password]):
+        current_app.logger.warning("SMTP nao configurado; email de recuperacao nao enviado para %s", email)
+        if os.environ.get("ALLOW_PASSWORD_RESET_TOKEN_LOG") == "1":
+            current_app.logger.warning(
+                "Link de recuperacao habilitado explicitamente para desenvolvimento: %s/redefinir_senha.html?token=%s",
+                frontend_url,
+                token,
+            )
+        return False
+
+    link = f"{frontend_url}/redefinir_senha.html?token={token}"
+    msg = MIMEMultipart()
+    msg["From"] = email_from
+    msg["To"] = email
+    msg["Subject"] = "Recuperacao de Senha - Sistema Escolar"
+
+    body = f"""
+    <!DOCTYPE html>
+    <html>
+    <head><meta charset="utf-8"></head>
+    <body style="font-family: Arial, sans-serif; color: #333; line-height: 1.5;">
+      <h1>Recuperacao de Senha</h1>
+      <p>Voce solicitou a recuperacao de senha para sua conta no Sistema de Qualidade de Vida Escolar.</p>
+      <p><a href="{link}">Redefinir senha</a></p>
+      <p>Se o link nao abrir, copie e cole no navegador:</p>
+      <p style="word-break: break-all;">{link}</p>
+      <p>Este link expira em 1 hora.</p>
+      <p>Se voce nao solicitou esta recuperacao, ignore este email.</p>
+    </body>
+    </html>
+    """
+    msg.attach(MIMEText(body, "html"))
+
     try:
-        # Configurações do email
-        smtp_server = current_app.config.get('SMTP_SERVER')
-        smtp_port = current_app.config.get('SMTP_PORT', 587)
-        email_from = current_app.config.get('EMAIL_FROM')
-        email_password = current_app.config.get('EMAIL_PASSWORD')
-        frontend_url = current_app.config.get('FRONTEND_URL', 'http://localhost:8080')
-        
-        # Se não tiver configurações de SMTP, apenas logue (modo desenvolvimento)
-        if not all([smtp_server, email_from, email_password]):
-            current_app.logger.info(f"🔐 Token de recuperação para {email}: {token}")
-            current_app.logger.info(f"🌐 Link: {frontend_url}/redefinir_senha.html?token={token}")
-            return
-        
-        # Link para redefinição
-        link = f"{frontend_url}/redefinir_senha.html?token={token}"
-        
-        # Criar mensagem
-        msg = MIMEMultipart()
-        msg['From'] = email_from
-        msg['To'] = email
-        msg['Subject'] = 'Recuperação de Senha - Sistema Escolar'
-        
-        # Corpo do email em HTML
-        body = f"""
-        <!DOCTYPE html>
-        <html>
-        <head>
-            <meta charset="utf-8">
-            <style>
-                body {{ font-family: Arial, sans-serif; line-height: 1.6; color: #333; }}
-                .container {{ max-width: 600px; margin: 0 auto; padding: 20px; }}
-                .header {{ background-color: #007bff; color: white; padding: 20px; text-align: center; border-radius: 5px 5px 0 0; }}
-                .content {{ padding: 30px; background-color: #f9f9f9; border: 1px solid #ddd; }}
-                .button {{ display: inline-block; padding: 12px 24px; background-color: #007bff; 
-                         color: white; text-decoration: none; border-radius: 5px; margin: 20px 0; }}
-                .footer {{ padding: 20px; text-align: center; color: #666; font-size: 12px; margin-top: 20px; }}
-                .code {{ background-color: #f4f4f4; padding: 10px; border-radius: 4px; font-family: monospace; word-break: break-all; }}
-            </style>
-        </head>
-        <body>
-            <div class="container">
-                <div class="header">
-                    <h1>🔐 Recuperação de Senha</h1>
-                </div>
-                <div class="content">
-                    <p>Olá,</p>
-                    <p>Você solicitou a recuperação de senha para sua conta no <strong>Sistema de Qualidade de Vida Escolar</strong>.</p>
-                    
-                    <p style="text-align: center;">
-                        <a href="{link}" class="button">🔄 Redefinir Senha</a>
-                    </p>
-                    
-                    <p>Se o botão não funcionar, copie e cole este link no seu navegador:</p>
-                    <p class="code">{link}</p>
-                    
-                    <p><strong>⏰ Importante:</strong> Este link expira em 1 hora por motivos de segurança.</p>
-                    
-                    <p>Se você não solicitou esta recuperação, ignore este email - sua senha permanecerá inalterada.</p>
-                    
-                    <p>Atenciosamente,<br>
-                    <strong>Equipe do Sistema Escolar</strong><br>
-                    SENAI - Serviço Nacional de Aprendizagem Industrial</p>
-                </div>
-                <div class="footer">
-                    <p>Este é um email automático, por favor não responda.</p>
-                    <p>© 2024 Sistema de Qualidade de Vida Escolar. Todos os direitos reservados.</p>
-                </div>
-            </div>
-        </body>
-        </html>
-        """
-        
-        msg.attach(MIMEText(body, 'html'))
-        
-        # Enviar email
-        server = smtplib.SMTP(smtp_server, smtp_port)
-        server.starttls()
-        server.login(email_from, email_password)
-        server.send_message(msg)
-        server.quit()
-        
-        current_app.logger.info(f"✅ Email de recuperação enviado para: {email}")
-        
+        with smtplib.SMTP(smtp_server, smtp_port) as server:
+            server.starttls()
+            server.login(email_from, email_password)
+            server.send_message(msg)
+        current_app.logger.info("Email de recuperacao enviado para %s", email)
+        return True
     except Exception as e:
-        current_app.logger.error(f"❌ Erro ao enviar email para {email}: {e}")
-        # Não levanta exceção para não quebrar o fluxo principal
-
-# Rota simplificada para teste
-@auth_bp.route('/recuperar_senha_test', methods=['POST'])
-@cross_origin()
-def recuperar_senha_test():
-    """Rota simplificada para testar se o backend está funcionando"""
-    try:
-        return jsonify({
-            'success': True, 
-            'message': 'Rota de teste funcionando!'
-        }), 200
-    except Exception as e:
-        return jsonify({'success': False, 'message': str(e)}), 500
-
-@auth_bp.route('/test', methods=['GET'])
-@cross_origin()
-def test_route():
-    """Rota de teste para verificar se o blueprint está funcionando"""
-    return jsonify({'message': 'Rota de autenticação funcionando!', 'status': 'success'}), 200
-
-# Rotas adicionais para teste das novas funcionalidades
-@auth_bp.route('/test_redefinir', methods=['GET'])
-@cross_origin()
-def test_redefinir():
-    """Rota de teste para verificar se o endpoint está acessível"""
-    return jsonify({'message': 'Rota de redefinição está funcionando!', 'method': 'GET'}), 200
-
-@auth_bp.route('/test_redefinir_post', methods=['POST'])
-@cross_origin()
-def test_redefinir_post():
-    """Rota de teste para verificar POST"""
-    return jsonify({'message': 'Rota POST de redefinição está funcionando!', 'method': 'POST'}), 200
+        current_app.logger.error("Erro ao enviar email de recuperacao para %s: %s", email, e, exc_info=True)
+        return False

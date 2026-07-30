@@ -3,7 +3,7 @@ import time
 import logging
 from functools import wraps
 
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, inspect, text
 from sqlalchemy.exc import OperationalError
 from werkzeug.security import generate_password_hash
 
@@ -93,11 +93,38 @@ def create_first_user():
     app.logger.info("Primeiro usuario administrador criado: %s", email)
 
 
+def ensure_occurrence_followup_columns():
+    inspector = inspect(db.engine)
+    if not inspector.has_table("ocorrencias"):
+        return
+
+    existing_columns = {column["name"] for column in inspector.get_columns("ocorrencias")}
+    required_columns = {
+        "alerta_sensivel": "BOOLEAN DEFAULT FALSE NOT NULL",
+        "alerta_sensivel_tipo": "VARCHAR(50)",
+        "alerta_sensivel_nivel": "VARCHAR(20)",
+        "alerta_sensivel_motivos": "TEXT",
+        "acao_tomada": "TEXT",
+        "acompanhamento": "TEXT",
+        "data_acompanhamento": "DATE",
+        "status_acompanhamento": "VARCHAR(30) DEFAULT 'nao_aplicavel' NOT NULL",
+    }
+
+    with db.engine.begin() as connection:
+        for column_name, column_definition in required_columns.items():
+            if column_name not in existing_columns:
+                connection.execute(text(
+                    f"ALTER TABLE ocorrencias ADD COLUMN {column_name} {column_definition}"
+                ))
+                app.logger.info("Coluna adicionada em ocorrencias: %s", column_name)
+
+
 with app.app_context():
     try:
         wait_for_db()
         db.create_all()
         app.logger.info("Tabelas verificadas/criadas com sucesso.")
+        ensure_occurrence_followup_columns()
         create_first_user()
     except Exception as e:
         app.logger.error("Erro ao preparar o banco de dados: %s", e)

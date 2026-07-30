@@ -1,4 +1,4 @@
-from flask import Blueprint, jsonify
+from flask import Blueprint, current_app, jsonify
 from app.models import Usuario
 from app.services.permission_service import permission_required
 
@@ -23,5 +23,6 @@ def debug_users():
 
         return jsonify({"total_users": len(users_data), "users": users_data}), 200
 
-    except Exception as e:
-        return jsonify({"error": str(e)}), 500
+    except Exception:
+        current_app.logger.exception("Erro ao listar usuarios no debug")
+        return jsonify({"error": "Erro ao listar usuarios"}), 500

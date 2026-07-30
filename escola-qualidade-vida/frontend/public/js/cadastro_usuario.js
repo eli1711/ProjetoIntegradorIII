@@ -1,62 +1,50 @@
-document.addEventListener('DOMContentLoaded', function() {
-    const form = document.getElementById("userForm");
-    
-    if (form) {
-        form.addEventListener("submit", function(event) {
-            event.preventDefault();
+document.addEventListener("DOMContentLoaded", function () {
+  const form = document.getElementById("userForm");
+  const messageElement = document.getElementById("message");
 
-            const nome = document.getElementById("nome").value;
-            const email = document.getElementById("email").value;
-            const senha = document.getElementById("senha").value;
-            const cargo = document.getElementById("cargo").value;
+  if (!form || !messageElement) return;
 
-            console.log('Enviando dados para criação de usuário:', { nome, email, cargo });
+  form.addEventListener("submit", async function (event) {
+    event.preventDefault();
 
-            // Mostrar loading
-            const messageElement = document.getElementById('message');
-            messageElement.innerHTML = '<div class="success">Criando usuário...</div>';
+    const payload = {
+      nome: document.getElementById("nome").value.trim(),
+      email: document.getElementById("email").value.trim(),
+      senha: document.getElementById("senha").value,
+      cargo: document.getElementById("cargo").value,
+    };
 
-            fetch('/api/criar_usuario', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    nome: nome,
-                    email: email,
-                    senha: senha,
-                    cargo: cargo
-                })
-            })
-            .then(response => {
-                console.log('Status da resposta:', response.status);
-                return response.json().then(data => {
-                    return { status: response.status, data: data };
-                });
-            })
-            .then(({ status, data }) => {
-                console.log('Resposta completa:', { status, data });
-                
-                const messageElement = document.getElementById('message');
-                if (data.success) {
-                    messageElement.innerHTML = `<div class="success">✅ ${data.message}</div>`;
-                    form.reset();
-                    
-                    // Redirecionar após 2 segundos
-                    setTimeout(() => {
-                        window.location.href = 'principal.html';
-                    }, 2000);
-                } else {
-                    messageElement.innerHTML = `<div class="error">❌ ${data.message}</div>`;
-                }
-            })
-            .catch(error => {
-                console.error('Erro na requisição:', error);
-                const messageElement = document.getElementById('message');
-                messageElement.innerHTML = `<div class="error">❌ Erro de conexão. Verifique se o servidor está rodando.</div>`;
-            });
-        });
-    } else {
-        console.error('Formulário não encontrado!');
+    renderMessage(messageElement, "Criando usuario...", "success");
+
+    try {
+      const response = await fetch("/api/criar_usuario", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+      const data = await response.json();
+
+      if (response.ok && data.success) {
+        renderMessage(messageElement, data.message || "Usuario criado com sucesso.", "success");
+        form.reset();
+        setTimeout(() => {
+          window.location.href = "principal.html";
+        }, 1200);
+        return;
+      }
+
+      renderMessage(messageElement, data.message || "Falha ao criar usuario.", "error");
+    } catch (error) {
+      console.error("Erro na requisicao:", error);
+      renderMessage(messageElement, "Erro de conexao. Verifique se o servidor esta rodando.", "error");
     }
+  });
 });
+
+function renderMessage(target, message, type) {
+  target.innerHTML = "";
+  const div = document.createElement("div");
+  div.className = type;
+  div.textContent = message;
+  target.appendChild(div);
+}

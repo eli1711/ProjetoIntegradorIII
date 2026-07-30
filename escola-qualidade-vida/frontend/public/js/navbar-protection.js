@@ -13,7 +13,10 @@
     let perms = getPermissoesCache();
     if (!perms) perms = await carregarPermissoes();
 
-    if (perms) aplicarPermissoesNoNavbar(perms);
+    if (perms) {
+      if (!garantirPermissaoDaPagina(perms)) return;
+      aplicarPermissoesNoNavbar(perms);
+    }
   });
 
   function apiPath(path) {
@@ -72,8 +75,10 @@
       { selector: 'a[href="./importar_alunos.html"]', pagina: "importar_alunos" },
       { selector: 'a[href="./turmas.html"]', pagina: "cadastro_turma" },
       { selector: 'a[href="./ocorrencias.html"]', pagina: "ocorrencias" },
+      { selector: 'a[href="./ocorrencias_sensiveis.html"]', pagina: "ocorrencias" },
       { selector: 'a[href="./relatorios.html"]', pagina: "relatorios" },
       { selector: 'a[href="./dashboard.html"]', pagina: "dashboard" },
+      { selector: 'a[href="./ia.html"]', pagina: "dashboard" },
       { selector: 'a[href="./criar_usuario.html"]', pagina: "criar_usuario" },
     ];
 
@@ -90,6 +95,29 @@
         });
       });
     }
+  }
+
+  function garantirPermissaoDaPagina(perms) {
+    const currentFile = (window.location.pathname.split("/").pop() || "principal.html").toLowerCase();
+    const permissoesPorPagina = {
+      "cadastroaluno.html": "cadastro_aluno",
+      "consultaaluno.html": "consulta_aluno",
+      "importar_alunos.html": "importar_alunos",
+      "turmas.html": "cadastro_turma",
+      "ocorrencias.html": "ocorrencias",
+      "ocorrencias_sensiveis.html": "ocorrencias",
+      "relatorios.html": "relatorios",
+      "dashboard.html": "dashboard",
+      "ia.html": "dashboard",
+      "criar_usuario.html": "criar_usuario",
+    };
+
+    const permissao = permissoesPorPagina[currentFile];
+    if (!permissao || perms?.[permissao] === true) return true;
+
+    alert("Seu perfil não tem acesso a esta página.");
+    window.location.href = "principal.html";
+    return false;
   }
 
   function logout() {

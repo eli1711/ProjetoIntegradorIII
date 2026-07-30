@@ -32,7 +32,9 @@ services:
       DB_USER: ${DB_USER:-root}
       DB_PASSWORD: ${DB_PASSWORD:-password}
       SECRET_KEY: ${SECRET_KEY:?defina SECRET_KEY no .env}
+      JWT_SECRET_KEY: ${JWT_SECRET_KEY:-}
       CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:8080,http://localhost:8088}
+      MAX_UPLOAD_MB: ${MAX_UPLOAD_MB:-10}
       SMTP_SERVER: ${SMTP_SERVER:-smtp.gmail.com}
       SMTP_PORT: ${SMTP_PORT:-587}
       EMAIL_FROM: ${EMAIL_FROM:-}
@@ -44,6 +46,11 @@ services:
       DEFAULT_ADMIN_NAME: ${DEFAULT_ADMIN_NAME:-Administrador}
       DEFAULT_ADMIN_EMAIL: ${DEFAULT_ADMIN_EMAIL:-admin@admin.com}
       DEFAULT_ADMIN_PASSWORD: ${DEFAULT_ADMIN_PASSWORD:-}
+      ENABLE_DEBUG_ROUTES: ${ENABLE_DEBUG_ROUTES:-0}
+      ENABLE_OPENAI_ANALYSIS: ${ENABLE_OPENAI_ANALYSIS:-0}
+      OPENAI_API_KEY: ${OPENAI_API_KEY:-}
+      OPENAI_MODEL: ${OPENAI_MODEL:-gpt-4o-mini}
+      OPENAI_TIMEOUT_SECONDS: ${OPENAI_TIMEOUT_SECONDS:-20}
     ports:
       - "5000:5000"
     depends_on:

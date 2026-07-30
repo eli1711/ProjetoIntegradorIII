@@ -212,13 +212,22 @@
 
           selCriar.innerHTML = '<option value="">Selecione</option>';
           (data || []).forEach((c) => {
-            selCriar.innerHTML += `<option value="${c.id}">${c.nome}</option>`;
+            const opt = document.createElement("option");
+            opt.value = c.id;
+            opt.textContent = c.nome;
+            selCriar.appendChild(opt);
           });
-          selCriar.innerHTML += `<option value="__novo__">+ Novo curso…</option>`;
+          const novoCursoOpt = document.createElement("option");
+          novoCursoOpt.value = "__novo__";
+          novoCursoOpt.textContent = "+ Novo curso...";
+          selCriar.appendChild(novoCursoOpt);
 
           selFiltro.innerHTML = '<option value="">Todos</option>';
           (data || []).forEach((c) => {
-            selFiltro.innerHTML += `<option value="${c.id}">${c.nome}</option>`;
+            const opt = document.createElement("option");
+            opt.value = c.id;
+            opt.textContent = c.nome;
+            selFiltro.appendChild(opt);
           });
 
           if (selecionarIdAposCriar) selCriar.value = String(selecionarIdAposCriar);
@@ -285,37 +294,41 @@
           tbody.innerHTML = "";
           data.forEach((t) => {
             const tr = document.createElement("tr");
-            tr.innerHTML = `
-              <td>${t.id}</td>
-              <td>${t.nome}</td>
-              <td>${t.curso_nome ?? "-"}</td>
-              <td>${t.semestre ?? "-"}</td>
-              <td>${t.data_inicio ?? "-"}</td>
-              <td>${t.data_fim ?? "-"}</td>
-              <td>
-                ${
-                  t.ativa
-                    ? '<span class="pill pill-green">Ativa</span>'
-                    : '<span class="pill pill-gray">Finalizada</span>'
-                }
-              </td>
-              <td>
-                <div class="tools">
-                  <button class="btn-sm btn-outline" type="button" onclick="copiarId(${t.id})">
-                    <i class="fa-regular fa-copy"></i> ID
-                  </button>
-                  ${
-                    t.ativa
-                      ? `
-                        <button class="btn-sm btn-danger" type="button" onclick="finalizarTurma(${t.id})">
-                          <i class="fa-solid fa-flag-checkered"></i> Finalizar
-                        </button>
-                      `
-                      : ""
-                  }
-                </div>
-              </td>
-            `;
+            [t.id, t.nome, t.curso_nome ?? "-", t.semestre ?? "-", t.data_inicio ?? "-", t.data_fim ?? "-"].forEach((value) => {
+              const td = document.createElement("td");
+              td.textContent = value;
+              tr.appendChild(td);
+            });
+
+            const statusTd = document.createElement("td");
+            const status = document.createElement("span");
+            status.className = t.ativa ? "pill pill-green" : "pill pill-gray";
+            status.textContent = t.ativa ? "Ativa" : "Finalizada";
+            statusTd.appendChild(status);
+            tr.appendChild(statusTd);
+
+            const toolsTd = document.createElement("td");
+            const tools = document.createElement("div");
+            tools.className = "tools";
+
+            const copiarBtn = document.createElement("button");
+            copiarBtn.className = "btn-sm btn-outline";
+            copiarBtn.type = "button";
+            copiarBtn.innerHTML = '<i class="fa-regular fa-copy"></i> ID';
+            copiarBtn.addEventListener("click", () => copiarId(t.id));
+            tools.appendChild(copiarBtn);
+
+            if (t.ativa) {
+              const finalizarBtn = document.createElement("button");
+              finalizarBtn.className = "btn-sm btn-danger";
+              finalizarBtn.type = "button";
+              finalizarBtn.innerHTML = '<i class="fa-solid fa-flag-checkered"></i> Finalizar';
+              finalizarBtn.addEventListener("click", () => finalizarTurma(t.id));
+              tools.appendChild(finalizarBtn);
+            }
+
+            toolsTd.appendChild(tools);
+            tr.appendChild(toolsTd);
             tbody.appendChild(tr);
           });
         } catch (e) {

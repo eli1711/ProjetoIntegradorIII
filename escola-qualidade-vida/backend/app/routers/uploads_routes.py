@@ -1,4 +1,5 @@
 import os
+from uuid import uuid4
 from flask import Blueprint, request, jsonify, current_app
 from werkzeug.utils import secure_filename
 from app.services.permission_service import auth_required
@@ -23,10 +24,18 @@ def upload_file():
         return jsonify({"error": "Tipo de arquivo nao permitido"}), 400
 
     filename = secure_filename(file.filename)
+    if not filename:
+        return jsonify({"error": "Nome de arquivo invalido"}), 400
+
     upload_folder = current_app.config["UPLOAD_FOLDER"]
     os.makedirs(upload_folder, exist_ok=True)
 
     upload_path = os.path.join(upload_folder, filename)
+    if os.path.exists(upload_path):
+        stem, ext = os.path.splitext(filename)
+        filename = f"{stem}_{uuid4().hex[:8]}{ext}"
+        upload_path = os.path.join(upload_folder, filename)
+
     file.save(upload_path)
 
     return jsonify({

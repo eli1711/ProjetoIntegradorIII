@@ -1,4 +1,4 @@
-from flask import Blueprint, request, jsonify, Response
+from flask import Blueprint, request, jsonify, Response, current_app
 from sqlalchemy import func, or_
 from app.extensions import db
 from app.models.aluno import Aluno, only_digits  # ✅ pega o only_digits do seu model
@@ -280,9 +280,7 @@ def dashboard():
         }), 200
 
     except Exception as e:
-        print(f"ERRO NO DASHBOARD: {str(e)}")
-        import traceback
-        traceback.print_exc()
+        current_app.logger.error("Erro no dashboard: %s", e, exc_info=True)
 
         return jsonify({
             'totalAlunos': 0,
@@ -297,8 +295,8 @@ def dashboard():
                 'ocorrenciasPorTipo': {},
                 'escolas': {}
             },
-            'mensagem': 'Dashboard em manutenção'
-        }), 200
+            'mensagem': 'Dashboard em manutencao'
+        }), 500
 
 
 # ==========================
@@ -357,7 +355,8 @@ def export_dashboard_csv():
         )
 
     except Exception as e:
-        return jsonify({'erro': str(e)}), 500
+        current_app.logger.error("Erro ao exportar dashboard CSV: %s", e, exc_info=True)
+        return jsonify({'erro': 'Erro ao exportar dashboard CSV'}), 500
 
 
 # ==========================
@@ -396,9 +395,10 @@ def diagnostico():
         }), 200
 
     except Exception as e:
+        current_app.logger.error("Erro no diagnostico do dashboard: %s", e, exc_info=True)
         return jsonify({
             'status': 'ERRO',
-            'erro': str(e),
+            'erro': 'Problema na conexao com o banco',
             'mensagem': 'Problema na conexão com o banco'
         }), 500
 
@@ -432,7 +432,8 @@ def ocorrencias_por_aluno(aluno_id: int):
         }), 200
 
     except Exception as e:
-        return jsonify({'erro': str(e)}), 500
+        current_app.logger.error("Erro ao carregar ocorrencias do aluno no dashboard: %s", e, exc_info=True)
+        return jsonify({'erro': 'Erro ao carregar ocorrencias do aluno'}), 500
 
 
 @dashboard_bp.route('/cursos-list', methods=['GET'])
@@ -441,5 +442,6 @@ def listar_cursos():
     try:
         cursos = Curso.query.order_by(Curso.nome).all()
         return jsonify([{'id': c.id, 'nome': c.nome} for c in cursos]), 200
-    except Exception:
-        return jsonify([{'id': 1, 'nome': 'Erro ao carregar'}]), 200
+    except Exception as e:
+        current_app.logger.error("Erro ao carregar cursos do dashboard: %s", e, exc_info=True)
+        return jsonify({'erro': 'Erro ao carregar cursos'}), 500

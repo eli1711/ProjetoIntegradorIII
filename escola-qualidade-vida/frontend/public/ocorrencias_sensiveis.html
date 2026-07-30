@@ -1,0 +1,514 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Ocorrências Sensíveis - Qualidade de Vida Escolar</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;500;600;700;800&family=Poppins:wght@500;600;700;800&display=swap" rel="stylesheet" />
+  <script src="js/navbar-protection.js"></script>
+  <script src="js/api-config.js"></script>
+  <link rel="stylesheet" href="./css/ux-redesign.css" />
+  <style>
+    .sensitive-toolbar {
+      align-items: end;
+      display: grid;
+      gap: 14px;
+      grid-template-columns: repeat(3, minmax(160px, 1fr)) auto;
+    }
+
+    .sensitive-kpis {
+      display: grid;
+      gap: 12px;
+      grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+      margin-bottom: 18px;
+    }
+
+    .sensitive-kpi {
+      background: var(--ux-surface);
+      border: 1px solid var(--ux-border);
+      border-radius: var(--ux-radius);
+      box-shadow: var(--ux-shadow-xs);
+      padding: 14px;
+    }
+
+    .sensitive-kpi strong {
+      color: var(--ux-heading);
+      display: block;
+      font-family: "Poppins", "Open Sans", sans-serif;
+      font-size: 1.55rem;
+      line-height: 1;
+      margin-bottom: 6px;
+    }
+
+    .sensitive-kpi span {
+      color: var(--ux-muted);
+      font-size: 0.78rem;
+      font-weight: 900;
+      text-transform: uppercase;
+    }
+
+    .occ-sensitive-list {
+      display: grid;
+      gap: 16px;
+    }
+
+    .occ-sensitive-card {
+      background: var(--ux-surface);
+      border: 1px solid var(--ux-border);
+      border-left: 5px solid var(--ux-amber);
+      border-radius: var(--ux-radius);
+      box-shadow: var(--ux-shadow-xs);
+      display: grid;
+      gap: 14px;
+      padding: 18px;
+    }
+
+    .occ-sensitive-card.is-critical {
+      border-left-color: var(--ux-danger);
+    }
+
+    .occ-sensitive-header {
+      align-items: start;
+      display: flex;
+      gap: 12px;
+      justify-content: space-between;
+    }
+
+    .occ-sensitive-header h3 {
+      color: var(--ux-heading);
+      font-family: "Poppins", "Open Sans", sans-serif;
+      font-size: 1.05rem;
+      margin: 0 0 5px;
+    }
+
+    .occ-meta {
+      color: var(--ux-muted);
+      display: flex;
+      flex-wrap: wrap;
+      font-size: 0.84rem;
+      font-weight: 800;
+      gap: 8px;
+    }
+
+    .badge-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      justify-content: flex-end;
+    }
+
+    .badge {
+      border-radius: 999px;
+      font-size: 0.74rem;
+      font-weight: 900;
+      padding: 6px 10px;
+      text-transform: uppercase;
+      white-space: nowrap;
+    }
+
+    .badge-critical { background: var(--ux-danger-soft); color: var(--ux-danger); }
+    .badge-attention { background: var(--ux-amber-soft); color: var(--ux-amber); }
+    .badge-status { background: var(--ux-blue-soft); color: var(--ux-blue); }
+    .badge-done { background: var(--ux-success-soft); color: var(--ux-success); }
+
+    .occ-box {
+      background: var(--ux-surface-muted);
+      border: 1px solid var(--ux-border);
+      border-radius: var(--ux-radius-sm);
+      padding: 12px;
+    }
+
+    .occ-box strong {
+      color: var(--ux-heading);
+      display: block;
+      margin-bottom: 6px;
+    }
+
+    .occ-box p,
+    .occ-box li {
+      color: var(--ux-text);
+      line-height: 1.5;
+      margin: 0;
+    }
+
+    .occ-box ul {
+      display: grid;
+      gap: 6px;
+      margin: 0;
+      padding-left: 18px;
+    }
+
+    .followup-form {
+      display: grid;
+      gap: 12px;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .followup-form .full {
+      grid-column: 1 / -1;
+    }
+
+    .followup-form textarea {
+      min-height: 92px;
+    }
+
+    .form-actions {
+      align-items: center;
+      display: flex;
+      gap: 10px;
+      justify-content: flex-end;
+    }
+
+    .message-line {
+      border-radius: var(--ux-radius-sm);
+      display: none;
+      font-weight: 800;
+      margin-bottom: 14px;
+      padding: 12px;
+    }
+
+    .message-line.is-visible {
+      display: block;
+    }
+
+    .message-line.success {
+      background: var(--ux-success-soft);
+      color: var(--ux-success);
+    }
+
+    .message-line.error {
+      background: var(--ux-danger-soft);
+      color: var(--ux-danger);
+    }
+
+    @media (max-width: 820px) {
+      .sensitive-toolbar,
+      .followup-form {
+        grid-template-columns: 1fr;
+      }
+
+      .occ-sensitive-header {
+        flex-direction: column;
+      }
+
+      .badge-row {
+        justify-content: flex-start;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="header-content">
+      <div class="logo-container">
+        <img src="img/senai-logo.png" class="logo" alt="Logo SENAI" />
+        <h1>Sistema de Gestão de Alunos</h1>
+      </div>
+
+      <nav>
+        <button class="nav-toggle" id="navToggle" type="button">
+          <i class="fas fa-bars"></i>
+        </button>
+
+        <ul id="navMenu">
+          <li><a href="./principal.html"><i class="fas fa-home"></i> Home</a></li>
+          <li class="dropdown">
+            <a href="#"><i class="fas fa-user-graduate"></i> Alunos <i class="fas fa-chevron-down"></i></a>
+            <div class="dropdown-content">
+              <a href="./cadastroAluno.html"><i class="fas fa-user-plus"></i> Cadastrar Aluno</a>
+              <a href="./consultaAluno.html"><i class="fas fa-search"></i> Consultar Alunos</a>
+              <a href="./importar_alunos.html"><i class="fas fa-file-csv"></i> Importar CSV</a>
+            </div>
+          </li>
+          <li><a href="./turmas.html"><i class="fas fa-chalkboard"></i> Turmas</a></li>
+          <li><a href="./ocorrencias.html"><i class="fas fa-exclamation-triangle"></i> Ocorrências</a></li>
+          <li><a href="./ocorrencias_sensiveis.html"><i class="fas fa-shield-heart"></i> Sensíveis</a></li>
+          <li><a href="./dashboard.html"><i class="fas fa-history"></i> Dashboard</a></li>
+          <li><a href="./ia.html"><i class="fas fa-wand-magic-sparkles"></i> IA</a></li>
+          <li><a href="./criar_usuario.html"><i class="fas fa-user-cog"></i> Usuários</a></li>
+        </ul>
+      </nav>
+    </div>
+  </header>
+
+  <main id="conteudo-principal">
+    <section class="form-container">
+      <div class="form-header">
+        <h2><i class="fas fa-shield-heart"></i> Acompanhamento sensível</h2>
+      </div>
+      <div class="form-content">
+        <div class="sensitive-toolbar">
+          <div class="form-group">
+            <label for="filtroStatus">Status</label>
+            <select id="filtroStatus">
+              <option value="abertos" selected>Abertos</option>
+              <option value="pendente">Pendente</option>
+              <option value="em_andamento">Em andamento</option>
+              <option value="concluido">Concluído</option>
+              <option value="todos">Todos</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label for="filtroNivel">Nível</label>
+            <select id="filtroNivel">
+              <option value="todos" selected>Todos</option>
+              <option value="critico">Crítico</option>
+              <option value="atencao">Atenção</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label for="filtroTipo">Tipo de alerta</label>
+            <select id="filtroTipo">
+              <option value="todos" selected>Todos</option>
+              <option value="seguranca">Segurança</option>
+              <option value="saude_emocional">Saúde emocional</option>
+              <option value="risco_vida">Risco à vida</option>
+              <option value="multiplo">Múltiplo</option>
+            </select>
+          </div>
+
+          <button id="btnAtualizar" type="button">
+            <i class="fas fa-rotate"></i> Atualizar
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <section class="section">
+      <div id="mensagem" class="message-line" role="status" aria-live="polite"></div>
+      <div id="totais" class="sensitive-kpis"></div>
+      <div id="listaOcorrencias" class="occ-sensitive-list">
+        <div class="sem-dados">Carregando ocorrências sensíveis...</div>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    const filtroStatus = document.getElementById("filtroStatus");
+    const filtroNivel = document.getElementById("filtroNivel");
+    const filtroTipo = document.getElementById("filtroTipo");
+    const btnAtualizar = document.getElementById("btnAtualizar");
+    const totaisEl = document.getElementById("totais");
+    const listaEl = document.getElementById("listaOcorrencias");
+    const mensagemEl = document.getElementById("mensagem");
+
+    const statusLabels = {
+      pendente: "Pendente",
+      em_andamento: "Em andamento",
+      concluido: "Concluído",
+      nao_aplicavel: "Não aplicável",
+    };
+
+    const tipoLabels = {
+      seguranca: "Segurança",
+      saude_emocional: "Saúde emocional",
+      risco_vida: "Risco à vida",
+      multiplo: "Múltiplo",
+    };
+
+    async function carregarOcorrencias() {
+      listaEl.innerHTML = '<div class="sem-dados">Carregando ocorrências sensíveis...</div>';
+      limparMensagem();
+
+      const params = new URLSearchParams({
+        status: filtroStatus.value,
+        nivel: filtroNivel.value,
+        tipo_alerta: filtroTipo.value,
+      });
+
+      try {
+        const response = await fetch(`/ocorrencias/sensiveis?${params.toString()}`, { cache: "no-store" });
+        const data = await response.json();
+
+        if (!response.ok) {
+          throw new Error(data.erro || "Erro ao carregar ocorrências sensíveis.");
+        }
+
+        renderTotais(data.totais || {});
+        renderOcorrencias(data.ocorrencias || []);
+      } catch (error) {
+        console.error(error);
+        renderTotais({});
+        listaEl.innerHTML = '<div class="sem-dados">Não foi possível carregar as ocorrências sensíveis.</div>';
+        mostrarMensagem(error.message || "Erro ao carregar ocorrências sensíveis.", "error");
+      }
+    }
+
+    function renderTotais(totais) {
+      const cards = [
+        ["Total", totais.total ?? 0],
+        ["Abertos", totais.abertos ?? 0],
+        ["Pendentes", totais.pendente ?? 0],
+        ["Em andamento", totais.em_andamento ?? 0],
+        ["Concluídos", totais.concluido ?? 0],
+        ["Críticos", totais.critico ?? 0],
+      ];
+
+      totaisEl.innerHTML = cards.map(([label, value]) => `
+        <article class="sensitive-kpi">
+          <strong>${escapeHtml(value)}</strong>
+          <span>${escapeHtml(label)}</span>
+        </article>
+      `).join("");
+    }
+
+    function renderOcorrencias(ocorrencias) {
+      if (!ocorrencias.length) {
+        listaEl.innerHTML = '<div class="sem-dados">Nenhuma ocorrência sensível encontrada para o filtro atual.</div>';
+        return;
+      }
+
+      listaEl.innerHTML = ocorrencias.map(renderCard).join("");
+      document.querySelectorAll(".followup-form").forEach((form) => {
+        form.addEventListener("submit", salvarAcompanhamento);
+      });
+    }
+
+    function renderCard(ocorrencia) {
+      const nivel = ocorrencia.alerta_sensivel_nivel || "atencao";
+      const status = ocorrencia.status_acompanhamento || "pendente";
+      const motivos = Array.isArray(ocorrencia.alerta_sensivel_motivos)
+        ? ocorrencia.alerta_sensivel_motivos
+        : [];
+
+      return `
+        <article class="occ-sensitive-card ${nivel === "critico" ? "is-critical" : ""}">
+          <div class="occ-sensitive-header">
+            <div>
+              <h3>${escapeHtml(ocorrencia.aluno_nome || "Aluno")}</h3>
+              <div class="occ-meta">
+                <span>Matrícula: ${escapeHtml(ocorrencia.aluno_matricula || "-")}</span>
+                <span>Data: ${escapeHtml(formatDate(ocorrencia.data_ocorrencia || ocorrencia.data))}</span>
+                <span>Tipo: ${escapeHtml(ocorrencia.tipo || "-")}</span>
+              </div>
+            </div>
+            <div class="badge-row">
+              <span class="badge ${nivel === "critico" ? "badge-critical" : "badge-attention"}">${escapeHtml(nivel === "critico" ? "Crítico" : "Atenção")}</span>
+              <span class="badge ${status === "concluido" ? "badge-done" : "badge-status"}">${escapeHtml(statusLabels[status] || status)}</span>
+              <span class="badge badge-attention">${escapeHtml(tipoLabels[ocorrencia.alerta_sensivel_tipo] || ocorrencia.alerta_sensivel_tipo || "Sensível")}</span>
+            </div>
+          </div>
+
+          <div class="occ-box">
+            <strong>Descrição da ocorrência</strong>
+            <p>${escapeHtml(ocorrencia.descricao || "Sem descrição")}</p>
+          </div>
+
+          <div class="occ-box">
+            <strong>Motivos detectados</strong>
+            ${motivos.length ? `<ul>${motivos.map((motivo) => `<li>${escapeHtml(motivo)}</li>`).join("")}</ul>` : "<p>Motivo sensível não informado.</p>"}
+          </div>
+
+          <form class="followup-form" data-id="${escapeHtml(ocorrencia.id)}">
+            <div class="full">
+              <label for="acao_${escapeHtml(ocorrencia.id)}">Ação tomada</label>
+              <textarea id="acao_${escapeHtml(ocorrencia.id)}" name="acao_tomada" required>${escapeHtml(ocorrencia.acao_tomada || "")}</textarea>
+            </div>
+
+            <div class="full">
+              <label for="acompanhamento_${escapeHtml(ocorrencia.id)}">Acompanhamento planejado</label>
+              <textarea id="acompanhamento_${escapeHtml(ocorrencia.id)}" name="acompanhamento" required>${escapeHtml(ocorrencia.acompanhamento || "")}</textarea>
+            </div>
+
+            <div>
+              <label for="data_${escapeHtml(ocorrencia.id)}">Data do acompanhamento</label>
+              <input id="data_${escapeHtml(ocorrencia.id)}" name="data_acompanhamento" type="date" value="${escapeHtml(ocorrencia.data_acompanhamento || "")}" required />
+            </div>
+
+            <div>
+              <label for="status_${escapeHtml(ocorrencia.id)}">Status</label>
+              <select id="status_${escapeHtml(ocorrencia.id)}" name="status_acompanhamento" required>
+                ${option("pendente", status, "Pendente")}
+                ${option("em_andamento", status, "Em andamento")}
+                ${option("concluido", status, "Concluído")}
+              </select>
+            </div>
+
+            <div class="form-actions full">
+              <button type="submit">
+                <i class="fas fa-floppy-disk"></i> Salvar acompanhamento
+              </button>
+            </div>
+          </form>
+        </article>
+      `;
+    }
+
+    function option(value, selected, label) {
+      return `<option value="${escapeHtml(value)}" ${value === selected ? "selected" : ""}>${escapeHtml(label)}</option>`;
+    }
+
+    async function salvarAcompanhamento(event) {
+      event.preventDefault();
+      const form = event.currentTarget;
+      const id = form.dataset.id;
+      const button = form.querySelector('button[type="submit"]');
+      const original = button.innerHTML;
+      const formData = new FormData(form);
+      const payload = Object.fromEntries(formData.entries());
+
+      button.disabled = true;
+      button.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Salvando...';
+      limparMensagem();
+
+      try {
+        const response = await fetch(`/ocorrencias/${encodeURIComponent(id)}`, {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload),
+        });
+        const data = await response.json();
+
+        if (!response.ok) {
+          throw new Error(data.erro || "Erro ao salvar acompanhamento.");
+        }
+
+        mostrarMensagem("Acompanhamento atualizado com sucesso.", "success");
+        await carregarOcorrencias();
+      } catch (error) {
+        console.error(error);
+        mostrarMensagem(error.message || "Erro ao salvar acompanhamento.", "error");
+      } finally {
+        button.disabled = false;
+        button.innerHTML = original;
+      }
+    }
+
+    function mostrarMensagem(texto, tipo) {
+      mensagemEl.textContent = texto;
+      mensagemEl.className = `message-line is-visible ${tipo}`;
+    }
+
+    function limparMensagem() {
+      mensagemEl.textContent = "";
+      mensagemEl.className = "message-line";
+    }
+
+    function formatDate(value) {
+      if (!value) return "Não informada";
+      const date = new Date(value);
+      if (Number.isNaN(date.getTime())) return value;
+      return date.toLocaleDateString("pt-BR", { timeZone: "UTC" });
+    }
+
+    function escapeHtml(value) {
+      return String(value ?? "")
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#039;");
+    }
+
+    btnAtualizar.addEventListener("click", carregarOcorrencias);
+    filtroStatus.addEventListener("change", carregarOcorrencias);
+    filtroNivel.addEventListener("change", carregarOcorrencias);
+    filtroTipo.addEventListener("change", carregarOcorrencias);
+    document.addEventListener("DOMContentLoaded", carregarOcorrencias);
+  </script>
+  <script src="js/ux-redesign.js"></script>
+</body>
+</html>

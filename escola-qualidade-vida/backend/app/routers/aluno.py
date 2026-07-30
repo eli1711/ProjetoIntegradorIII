@@ -52,6 +52,7 @@ def _calc_idade(dt: date | None) -> int | None:
     return hoje.year - dt.year - ((hoje.month, hoje.day) < (dt.month, dt.day))
 
 ALLOWED_EXTS = {".jpg", ".jpeg", ".png", ".gif", ".webp"}
+ALLOWED_IMAGE_MIMES = {"image/jpeg", "image/png", "image/gif", "image/webp"}
 
 def _save_photo(file_storage, desired_name_base: str) -> str:
     upload_dir = current_app.config["UPLOAD_FOLDER"]
@@ -60,6 +61,8 @@ def _save_photo(file_storage, desired_name_base: str) -> str:
     ext = os.path.splitext(file_storage.filename)[1].lower()
     if ext not in ALLOWED_EXTS:
         raise ValueError("Extensão de imagem inválida. Use JPG, PNG, GIF ou WEBP.")
+    if file_storage.mimetype and file_storage.mimetype not in ALLOWED_IMAGE_MIMES:
+        raise ValueError("Tipo de imagem invalido. Use JPG, PNG, GIF ou WEBP.")
 
     base = secure_filename((desired_name_base or "aluno").lower())
     filename = f"{base}{ext}"
@@ -72,7 +75,7 @@ def _save_photo(file_storage, desired_name_base: str) -> str:
         i += 1
 
     file_storage.save(dest)
-    current_app.logger.info(f"🖼️ Foto salva em: {dest}")
+    current_app.logger.info("Foto salva em: %s", dest)
     return filename
 
 def _json_aluno(a: Aluno):
@@ -169,6 +172,56 @@ def _get_or_create_turma(nome_turma: str | None, curso: Curso | None) -> Turma |
     db.session.flush()
     return t
 
+def _resolve_existing_curso(curso_id: str | None, nome_curso: str | None):
+    curso_id = _none_if_empty(curso_id)
+    if curso_id:
+        try:
+            cid = int(curso_id)
+        except ValueError:
+            return None, "Curso invalido."
+
+        curso = Curso.query.get(cid)
+        if not curso:
+            return None, "Curso nao encontrado. Selecione um curso ja cadastrado."
+        return curso, None
+
+    nome_curso = _none_if_empty(nome_curso)
+    if nome_curso:
+        curso = Curso.query.filter(Curso.nome.ilike(nome_curso)).first()
+        if curso:
+            return curso, None
+
+    return None, "Selecione um curso ja cadastrado."
+
+def _resolve_existing_turma(turma_id: str | None, nome_turma: str | None, curso: Curso | None):
+    if not curso:
+        return None, "Selecione um curso ja cadastrado antes da turma."
+
+    turma_id = _none_if_empty(turma_id)
+    if turma_id:
+        try:
+            tid = int(turma_id)
+        except ValueError:
+            return None, "Turma invalida."
+
+        turma = Turma.query.get(tid)
+        if not turma:
+            return None, "Turma nao encontrada. Selecione uma turma ja cadastrada."
+        if turma.curso_id != curso.id:
+            return None, "A turma selecionada nao pertence ao curso escolhido."
+        return turma, None
+
+    nome_turma = _none_if_empty(nome_turma)
+    if nome_turma:
+        turma = Turma.query.filter(
+            Turma.curso_id == curso.id,
+            Turma.nome.ilike(nome_turma),
+        ).first()
+        if turma:
+            return turma, None
+
+    return None, "Selecione uma turma ja cadastrada para o curso escolhido."
+
 # -------------------------
 # CADASTRAR ALUNO COM CPF OBRIGATÓRIO
 # -------------------------
@@ -177,7 +230,7 @@ def _get_or_create_turma(nome_turma: str | None, curso: Curso | None) -> Turma |
 def cadastrar_aluno_com_cpf():
     """
     Cadastra um novo aluno via formulário web com CPF OBRIGATÓRIO.
-    Cria Curso/Turma automaticamente quando vierem preenchidos.
+    Associa apenas Curso/Turma ja cadastrados.
     """
     try:
         data = request.form
@@ -274,12 +327,19 @@ def cadastrar_aluno_com_cpf():
             db.session.add(responsavel_obj)
             db.session.flush()
 
-        # 6) Curso/Turma: cria automaticamente se vier preenchido
+        # 6) Curso/Turma: apenas registros existentes
+        curso_id = _none_if_empty(data.get("curso_id"))
+        turma_id = _none_if_empty(data.get("turma_id"))
         curso_txt = _none_if_empty(data.get("curso"))
         turma_txt = _none_if_empty(data.get("turma"))
 
-        resolved_curso = _get_or_create_curso(curso_txt) if curso_txt else None
-        resolved_turma = _get_or_create_turma(turma_txt, resolved_curso) if turma_txt and resolved_curso else None
+        resolved_curso, curso_erro = _resolve_existing_curso(curso_id, curso_txt)
+        if curso_erro:
+            return jsonify({"erro": curso_erro}), 400
+
+        resolved_turma, turma_erro = _resolve_existing_turma(turma_id, turma_txt, resolved_curso)
+        if turma_erro:
+            return jsonify({"erro": turma_erro}), 400
 
         # 7) Criar aluno
         aluno = Aluno(
@@ -340,7 +400,7 @@ def cadastrar_aluno_com_cpf():
     except Exception as e:
         db.session.rollback()
         current_app.logger.error(f"Erro ao cadastrar aluno: {str(e)}", exc_info=True)
-        return jsonify({"erro": f"Erro interno: {str(e)}"}), 500
+        return jsonify({"erro": "Erro interno ao cadastrar aluno"}), 500
 
 # -------------------------
 # MODELO CSV
@@ -608,7 +668,8 @@ def importar_csv_alunos():
         return jsonify({"erro": "Não foi possível ler o arquivo. Use CSV UTF-8."}), 400
     except Exception as e:
         db.session.rollback()
-        return jsonify({"erro": "Falha ao processar CSV.", "detalhes": str(e)}), 500
+        current_app.logger.error("Falha ao processar CSV: %s", e, exc_info=True)
+        return jsonify({"erro": "Falha ao processar CSV."}), 500
 
 
 # -------------------------
@@ -695,12 +756,13 @@ def atualizar_aluno(aluno_id: int):
 
         aluno.normalize()
         db.session.commit()
-        return jsonify({"mensagem": "Aluno atualizado com sucesso!", "aluno": _json_aluno(aluno)}), 200
+        aluno_json = _json_aluno(aluno)
+        return jsonify({"mensagem": "Aluno atualizado com sucesso!", "aluno": aluno_json, **aluno_json}), 200
 
     except Exception as e:
         db.session.rollback()
         current_app.logger.error(f"Erro ao atualizar aluno: {str(e)}", exc_info=True)
-        return jsonify({"erro": f"Erro interno: {str(e)}"}), 500
+        return jsonify({"erro": "Erro interno ao atualizar aluno"}), 500
 
 
 @aluno_bp.route("/<int:aluno_id>/foto", methods=["PUT"])
@@ -726,7 +788,7 @@ def atualizar_foto_aluno(aluno_id: int):
     except Exception as e:
         db.session.rollback()
         current_app.logger.error(f"Erro ao atualizar foto: {str(e)}", exc_info=True)
-        return jsonify({"erro": f"Erro interno: {str(e)}"}), 500
+        return jsonify({"erro": "Erro interno ao atualizar foto"}), 500
 
 
 # -------------------------

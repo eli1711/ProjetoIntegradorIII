@@ -12,6 +12,7 @@ from app.services.permission_service import permission_required
 cadastro_bp = Blueprint("cadastro", __name__, url_prefix="/cadastro")
 
 ALLOWED_EXTS = {".jpg", ".jpeg", ".png", ".gif", ".webp"}
+ALLOWED_IMAGE_MIMES = {"image/jpeg", "image/png", "image/gif", "image/webp"}
 
 def _parse_date(val):
     if not val:
@@ -44,6 +45,8 @@ def _save_photo(file_storage, desired_name_base: str) -> str:
     ext = os.path.splitext(file_storage.filename)[1].lower()
     if ext not in ALLOWED_EXTS:
         raise ValueError("Extensão de imagem inválida. Use JPG, PNG, GIF ou WEBP.")
+    if file_storage.mimetype not in ALLOWED_IMAGE_MIMES:
+        raise ValueError("Tipo de arquivo inválido. Envie uma imagem JPG, PNG, GIF ou WEBP.")
 
     base = secure_filename((desired_name_base or "aluno").lower())
     filename = f"{base}{ext}"
@@ -211,7 +214,7 @@ def cadastrar_aluno():
             "nome_social": aluno.nome_social
         }), 201
 
-    except Exception as e:
+    except Exception:
         db.session.rollback()
-        current_app.logger.exception(f"Erro ao cadastrar aluno: {str(e)}")
-        return jsonify({"erro": f"Erro ao cadastrar aluno: {str(e)}"}), 500
+        current_app.logger.exception("Erro ao cadastrar aluno")
+        return jsonify({"erro": "Erro ao cadastrar aluno."}), 500

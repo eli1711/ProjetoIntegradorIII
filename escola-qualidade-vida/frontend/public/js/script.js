@@ -37,6 +37,7 @@ async function inicializarProtecaoLinks() {
   const linksPorPermissao = {
     "link-cadastro-aluno": "cadastro_aluno",
     "link-ocorrencias": "ocorrencias",
+    "link-ocorrencias-sensiveis": "ocorrencias",
     "link-relatorios": "relatorios",
     "link-dashboard": "dashboard",
     "link-criar-usuario": "criar_usuario",

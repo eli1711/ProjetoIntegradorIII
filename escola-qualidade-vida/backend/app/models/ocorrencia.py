@@ -1,3 +1,4 @@
+import json
 from datetime import datetime
 from app.extensions import db
 
@@ -13,6 +14,15 @@ class Ocorrencia(db.Model):
 
     data = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
     data_ocorrencia = db.Column(db.Date, nullable=True)
+
+    alerta_sensivel = db.Column(db.Boolean, nullable=False, default=False)
+    alerta_sensivel_tipo = db.Column(db.String(50), nullable=True)
+    alerta_sensivel_nivel = db.Column(db.String(20), nullable=True)
+    alerta_sensivel_motivos = db.Column(db.Text, nullable=True)
+    acao_tomada = db.Column(db.Text, nullable=True)
+    acompanhamento = db.Column(db.Text, nullable=True)
+    data_acompanhamento = db.Column(db.Date, nullable=True)
+    status_acompanhamento = db.Column(db.String(30), nullable=False, default='nao_aplicavel')
 
     # ✅ precisa ser nullable=True para combinar com ON DELETE SET NULL
     turma_id = db.Column(db.Integer, db.ForeignKey('turmas.id'), nullable=True)
@@ -57,6 +67,13 @@ class Ocorrencia(db.Model):
             )
             aluno_matricula = getattr(self.aluno, "matricula", None)
 
+        motivos_sensiveis = []
+        if self.alerta_sensivel_motivos:
+            try:
+                motivos_sensiveis = json.loads(self.alerta_sensivel_motivos)
+            except (TypeError, ValueError):
+                motivos_sensiveis = [self.alerta_sensivel_motivos]
+
         return {
             'id': self.id,
             'aluno_id': self.aluno_id,
@@ -66,6 +83,14 @@ class Ocorrencia(db.Model):
             'descricao': self.descricao,
             'data': self.data.isoformat() if self.data else None,
             'data_ocorrencia': self.data_ocorrencia.isoformat() if self.data_ocorrencia else None,
+            'alerta_sensivel': bool(self.alerta_sensivel),
+            'alerta_sensivel_tipo': self.alerta_sensivel_tipo,
+            'alerta_sensivel_nivel': self.alerta_sensivel_nivel,
+            'alerta_sensivel_motivos': motivos_sensiveis,
+            'acao_tomada': self.acao_tomada,
+            'acompanhamento': self.acompanhamento,
+            'data_acompanhamento': self.data_acompanhamento.isoformat() if self.data_acompanhamento else None,
+            'status_acompanhamento': self.status_acompanhamento,
             'turma_id': self.turma_id,
             'turma_nome': self.turma.nome if self.turma else None
         }

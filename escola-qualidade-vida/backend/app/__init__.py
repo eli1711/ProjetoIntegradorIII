@@ -2,6 +2,7 @@ import os
 from datetime import timedelta
 from flask import Flask, send_from_directory, jsonify
 from flask_cors import CORS
+from werkzeug.exceptions import NotFound
 from app.extensions import db, jwt, migrate
 
 # Blueprints
@@ -18,6 +19,7 @@ from app.routers.usuario_routes import usuario_bp
 from app.routers.permission_routes import permission_bp
 from app.routers.debug_routes import debug_bp
 from app.routers.dashboard import dashboard_bp
+from app.routers.ia_routes import ia_bp
 
 
 def create_app():
@@ -81,6 +83,7 @@ def _configure_database(app):
 
 def _configure_jwt(app):
     app.config["SECRET_KEY"] = os.environ.get("SECRET_KEY", "troque-esta-chave-em-desenvolvimento")
+    app.config["JWT_SECRET_KEY"] = os.environ.get("JWT_SECRET_KEY") or app.config["SECRET_KEY"]
     app.config["JWT_ACCESS_TOKEN_EXPIRES"] = timedelta(hours=8)
     jwt.init_app(app)
 
@@ -107,17 +110,25 @@ def _register_jwt_error_handlers(app):
             "message": "Token ausente."
         }), 401
 
+    @app.errorhandler(413)
+    def request_entity_too_large(error):
+        return jsonify({
+            "error": "file_too_large",
+            "message": "Arquivo maior que o limite permitido."
+        }), 413
+
 
 def _configure_uploads(app, upload_folder: str):
     app.config["UPLOAD_FOLDER"] = upload_folder
+    app.config["MAX_CONTENT_LENGTH"] = int(os.environ.get("MAX_UPLOAD_MB", "10")) * 1024 * 1024
     os.makedirs(app.config["UPLOAD_FOLDER"], exist_ok=True)
 
     @app.route("/uploads/<path:filename>")
     def serve_uploaded_file(filename):
-        file_path = os.path.join(app.config["UPLOAD_FOLDER"], filename)
-        if not os.path.exists(file_path):
+        try:
+            return send_from_directory(app.config["UPLOAD_FOLDER"], filename)
+        except NotFound:
             return jsonify({"erro": "Arquivo nao encontrado"}), 404
-        return send_from_directory(app.config["UPLOAD_FOLDER"], filename)
 
 
 def _configure_email(app):
@@ -140,5 +151,7 @@ def _register_blueprints(app):
     app.register_blueprint(upload_bp, url_prefix="/files")
     app.register_blueprint(usuario_bp)
     app.register_blueprint(permission_bp)
-    app.register_blueprint(debug_bp)
+    if os.environ.get("ENABLE_DEBUG_ROUTES") == "1":
+        app.register_blueprint(debug_bp)
     app.register_blueprint(dashboard_bp)
+    app.register_blueprint(ia_bp)

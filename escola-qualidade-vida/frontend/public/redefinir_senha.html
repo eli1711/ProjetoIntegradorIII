@@ -28,12 +28,12 @@
         <form id="resetPasswordForm" class="login-form">
             <div class="form-group">
                 <label for="novaSenha">Nova Senha</label>
-                <input type="password" id="novaSenha" name="novaSenha" required minlength="6" placeholder="••••••••">
+                <input type="password" id="novaSenha" name="novaSenha" required minlength="8" placeholder="••••••••">
             </div>
             
             <div class="form-group">
                 <label for="confirmarSenha">Confirmar Senha</label>
-                <input type="password" id="confirmarSenha" name="confirmarSenha" required minlength="6" placeholder="••••••••">
+                <input type="password" id="confirmarSenha" name="confirmarSenha" required minlength="8" placeholder="••••••••">
             </div>
             
             <button type="submit" class="login-button">Redefinir Senha</button>
@@ -70,8 +70,8 @@
                     return;
                 }
                 
-                if (novaSenha.length < 6) {
-                    exibirMensagem(messageElement, "A senha deve ter pelo menos 6 caracteres", "error");
+                if (novaSenha.length < 8) {
+                    exibirMensagem(messageElement, "A senha deve ter pelo menos 8 caracteres", "error");
                     return;
                 }
                 

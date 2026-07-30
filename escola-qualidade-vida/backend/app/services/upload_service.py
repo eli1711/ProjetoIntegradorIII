@@ -1,29 +1,29 @@
 import os
+
+from flask import current_app
 from werkzeug.utils import secure_filename
 
-def salvar_foto(foto_file, aluno_nome, destino='/backend/app/uploads'):
-    caminho_absoluto = os.path.join(os.path.abspath(os.path.dirname(__file__)), destino)
 
-    # Verificar se o diretório de uploads existe, senão, criar
-    if not os.path.exists(caminho_absoluto):
-        os.makedirs(caminho_absoluto)
+ALLOWED_IMAGE_EXTS = {".jpg", ".jpeg", ".png", ".gif", ".webp"}
 
-    # Obter a extensão da imagem
+
+def salvar_foto(foto_file, aluno_nome, destino=None):
+    upload_dir = destino or current_app.config["UPLOAD_FOLDER"]
+    os.makedirs(upload_dir, exist_ok=True)
+
     ext = os.path.splitext(foto_file.filename)[1].lower()
+    if ext not in ALLOWED_IMAGE_EXTS:
+        raise ValueError("Extensao de imagem invalida.")
 
-    # Criar o nome do arquivo com o nome do aluno
-    aluno_nome_securizado = secure_filename(aluno_nome.lower())  # Convertendo o nome para minúsculas
-    filename = f"{aluno_nome_securizado}{ext}"
+    base = secure_filename((aluno_nome or "aluno").lower()) or "aluno"
+    filename = f"{base}{ext}"
+    caminho = os.path.join(upload_dir, filename)
 
-    caminho = os.path.join(caminho_absoluto, filename)
-
-    # Verificar se já existe um arquivo com esse nome e adicionar um contador caso exista
     contador = 1
     while os.path.exists(caminho):
-        filename = f"{aluno_nome_securizado}_{contador}{ext}"
-        caminho = os.path.join(caminho_absoluto, filename)
+        filename = f"{base}_{contador}{ext}"
+        caminho = os.path.join(upload_dir, filename)
         contador += 1
 
-    # Salvar o arquivo
     foto_file.save(caminho)
     return filename

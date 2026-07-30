@@ -82,7 +82,18 @@
     const resultadoDiv = document.getElementById("resultadoConsulta");
     const btn = document.getElementById("consultarButton");
 
-    function safe(v, fb = "Não informado") { return (v === null || v === undefined || v === "") ? fb : v; }
+    function displayValue(v, fb = "Não informado") {
+      return (v === null || v === undefined || v === "") ? fb : String(v);
+    }
+    function escapeHtml(value) {
+      return String(value)
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#039;");
+    }
+    function safe(v, fb = "Não informado") { return escapeHtml(displayValue(v, fb)); }
     function boolLabel(v) {
       if (typeof v === "boolean") return v ? "Sim" : "Não";
       const s = String(v || "").toLowerCase();
@@ -149,7 +160,7 @@
 
             const fotoSrc = aluno.foto_url ? aluno.foto_url : null;
             const fotoHtml = fotoSrc
-              ? `<img class="foto-view" src="${fotoSrc}" alt="Foto de ${safe(aluno.nome, "Aluno")}">`
+              ? `<img class="foto-view" src="${safe(fotoSrc, "")}" alt="Foto de ${safe(aluno.nome, "Aluno")}">`
               : `<div class="foto-view" style="width:120px;height:120px;border-radius:8px;background:#eee;display:flex;align-items:center;justify-content:center;color:#777;">Sem Foto</div>`;
 
             card.innerHTML = `
@@ -197,27 +208,27 @@
                     </div>
                     <div>
                       <label>Cidade</label>
-                      <input name="cidade" value="${aluno.cidade || ''}">
+                      <input name="cidade" value="${safe(aluno.cidade, "")}">
                     </div>
                     <div>
                       <label>Bairro</label>
-                      <input name="bairro" value="${aluno.bairro || ''}">
+                      <input name="bairro" value="${safe(aluno.bairro, "")}">
                     </div>
                     <div>
                       <label>Rua</label>
-                      <input name="rua" value="${aluno.rua || ''}">
+                      <input name="rua" value="${safe(aluno.rua, "")}">
                     </div>
                     <div>
                       <label>Telefone</label>
-                      <input name="telefone" value="${aluno.telefone || ''}">
+                      <input name="telefone" value="${safe(aluno.telefone, "")}">
                     </div>
                     <div>
                       <label>Data de Nascimento</label>
-                      <input type="date" name="data_nascimento" value="${(aluno.data_nascimento || '').substring(0, 10)}">
+                      <input type="date" name="data_nascimento" value="${safe((aluno.data_nascimento || '').substring(0, 10), "")}">
                     </div>
                     <div>
                       <label>Data Início Curso</label>
-                      <input type="date" name="data_inicio_curso" value="${(aluno.data_inicio_curso || '').substring(0, 10)}">
+                      <input type="date" name="data_inicio_curso" value="${safe((aluno.data_inicio_curso || '').substring(0, 10), "")}">
                     </div>
                     <div>
                       <label>Linha de Atendimento</label>
@@ -239,15 +250,15 @@
                     </div>
                     <div>
                       <label>Empresa Contratante</label>
-                      <input name="empresa_contratante" value="${aluno.empresa_contratante || ''}">
+                      <input name="empresa_contratante" value="${safe(aluno.empresa_contratante, "")}">
                     </div>
                     <div>
                       <label>Mora com quem</label>
-                      <input name="mora_com_quem" value="${aluno.mora_com_quem || ''}">
+                      <input name="mora_com_quem" value="${safe(aluno.mora_com_quem, "")}">
                     </div>
                     <div style="grid-column:1/-1">
                       <label>Sobre o Aluno</label>
-                      <textarea name="sobre_aluno">${aluno.sobre_aluno || ''}</textarea>
+                      <textarea name="sobre_aluno">${safe(aluno.sobre_aluno, "")}</textarea>
                     </div>
                     <div>
                       <label>Pessoa com Deficiência?</label>
@@ -258,7 +269,7 @@
                     </div>
                     <div style="grid-column:1/-1">
                       <label>Outras Informações</label>
-                      <textarea name="outras_informacoes">${aluno.outras_informacoes || ''}</textarea>
+                      <textarea name="outras_informacoes">${safe(aluno.outras_informacoes, "")}</textarea>
                     </div>
                   </div>
                   <div class="row-actions">
@@ -336,22 +347,23 @@
                 });
                 const dataUpd = await resp.json();
                 if (!resp.ok) { alert(dataUpd.erro || 'Falha ao atualizar.'); return; }
+                const alunoAtualizado = dataUpd.aluno || dataUpd;
 
                 // Atualiza visual
-                card.querySelector('.v-cidade').textContent = safe(dataUpd.cidade);
-                card.querySelector('.v-bairro').textContent = safe(dataUpd.bairro);
-                card.querySelector('.v-rua').textContent = safe(dataUpd.rua);
-                card.querySelector('.v-telefone').textContent = safe(dataUpd.telefone);
-                card.querySelector('.v-nasc').textContent = safe(dataUpd.data_nascimento);
-                card.querySelector('.v-inicio').textContent = safe(dataUpd.data_inicio_curso);
-                card.querySelector('.v-linha').textContent = safe(dataUpd.linha_atendimento);
-                card.querySelector('.v-escola').textContent = safe(dataUpd.escola_integrada);
-                card.querySelector('.v-empresa').textContent = safe(dataUpd.empresa_contratante);
-                card.querySelector('.v-mora').textContent = safe(dataUpd.mora_com_quem);
-                card.querySelector('.v-sobre').textContent = safe(dataUpd.sobre_aluno);
-                card.querySelector('.v-pcd').textContent = boolLabel(dataUpd.pessoa_com_deficiencia);
-                card.querySelector('.v-curso').textContent = safe(dataUpd.curso);
-                const rot = dataUpd.turma_nome ? `${dataUpd.turma_nome}${dataUpd.turma_semestre ? ` (Sem ${dataUpd.turma_semestre})` : ""}` : (dataUpd.turma || "Não informada");
+                card.querySelector('.v-cidade').textContent = displayValue(alunoAtualizado.cidade);
+                card.querySelector('.v-bairro').textContent = displayValue(alunoAtualizado.bairro);
+                card.querySelector('.v-rua').textContent = displayValue(alunoAtualizado.rua);
+                card.querySelector('.v-telefone').textContent = displayValue(alunoAtualizado.telefone);
+                card.querySelector('.v-nasc').textContent = displayValue(alunoAtualizado.data_nascimento);
+                card.querySelector('.v-inicio').textContent = displayValue(alunoAtualizado.data_inicio_curso);
+                card.querySelector('.v-linha').textContent = displayValue(alunoAtualizado.linha_atendimento);
+                card.querySelector('.v-escola').textContent = displayValue(alunoAtualizado.escola_integrada);
+                card.querySelector('.v-empresa').textContent = displayValue(alunoAtualizado.empresa_contratante);
+                card.querySelector('.v-mora').textContent = displayValue(alunoAtualizado.mora_com_quem);
+                card.querySelector('.v-sobre').textContent = displayValue(alunoAtualizado.sobre_aluno);
+                card.querySelector('.v-pcd').textContent = boolLabel(alunoAtualizado.pessoa_com_deficiencia);
+                card.querySelector('.v-curso').textContent = displayValue(alunoAtualizado.curso);
+                const rot = alunoAtualizado.turma_nome ? `${alunoAtualizado.turma_nome}${alunoAtualizado.turma_semestre ? ` (Sem ${alunoAtualizado.turma_semestre})` : ""}` : (alunoAtualizado.turma || "Não informada");
                 card.querySelector('.v-turma').textContent = rot;
 
                 alert('Aluno atualizado com sucesso!');

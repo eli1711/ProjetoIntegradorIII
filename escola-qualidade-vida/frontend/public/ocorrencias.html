@@ -13,6 +13,42 @@
   <script src="js/navbar-protection.js"></script>
   <script src="js/api-config.js"></script>
   <link rel="stylesheet" href="./css/ux-redesign.css" />
+  <style>
+    .sensitive-followup {
+      background: #fff7ed;
+      border: 1px solid #fed7aa;
+      border-left: 5px solid #dc2626;
+      border-radius: 8px;
+      display: none;
+      margin: 16px 0;
+      padding: 16px;
+    }
+
+    .sensitive-followup.active {
+      display: block;
+    }
+
+    .sensitive-followup h3 {
+      color: #991b1b;
+      font-family: "Poppins", "Open Sans", sans-serif;
+      font-size: 1rem;
+      margin: 0 0 8px;
+    }
+
+    .sensitive-followup p {
+      color: #7f1d1d;
+      line-height: 1.5;
+      margin: 0 0 12px;
+    }
+
+    .sensitive-followup .hint {
+      color: #92400e;
+      display: block;
+      font-size: 0.86rem;
+      font-weight: 700;
+      margin-bottom: 12px;
+    }
+  </style>
 </head>
 
 <body>
@@ -101,6 +137,23 @@
           <label for="data_ocorrencia">Data da Ocorrência:</label>
           <input type="date" id="data_ocorrencia" name="data_ocorrencia" />
 
+          <div id="painelSensivel" class="sensitive-followup" aria-live="polite">
+            <h3><i class="fas fa-triangle-exclamation"></i> Assunto sensível detectado</h3>
+            <p>
+              Esta ocorrência envolve tema sensível. Para salvar, registre a ação tomada e o acompanhamento planejado.
+            </p>
+            <span id="motivosSensiveis" class="hint"></span>
+
+            <label for="acao_tomada">Ação tomada:</label>
+            <textarea id="acao_tomada" name="acao_tomada" placeholder="Descreva a providência imediata adotada..."></textarea>
+
+            <label for="acompanhamento">Acompanhamento planejado:</label>
+            <textarea id="acompanhamento" name="acompanhamento" placeholder="Descreva como o caso será acompanhado..."></textarea>
+
+            <label for="data_acompanhamento">Data do acompanhamento:</label>
+            <input type="date" id="data_acompanhamento" name="data_acompanhamento" />
+          </div>
+
           <button type="submit">Cadastrar Ocorrência</button>
         </form>
       </div>
@@ -124,6 +177,21 @@
     const form = document.getElementById("ocorrenciaForm");
     const alertaDiv = document.getElementById("alerta");
     const tipoSelect = document.getElementById("tipo");
+    const descricaoInput = document.getElementById("descricao");
+    const painelSensivel = document.getElementById("painelSensivel");
+    const motivosSensiveis = document.getElementById("motivosSensiveis");
+    const acaoTomadaInput = document.getElementById("acao_tomada");
+    const acompanhamentoInput = document.getElementById("acompanhamento");
+    const dataAcompanhamentoInput = document.getElementById("data_acompanhamento");
+
+    const termosSensiveis = [
+      { motivo: "violência, ameaça ou agressão", termos: ["violencia", "agressao", "agressoes", "agredir", "agrediu", "agredido", "agredida", "briga", "ameaca", "ameacas", "arma", "armas", "armado", "armada", "faca", "lesao", "abuso", "assedio"] },
+      { motivo: "uso, porte ou tráfico de drogas", termos: ["droga", "drogas", "entorpecente", "entorpecentes", "narcotico", "narcoticos", "maconha", "cocaina", "crack", "trafico", "porte de droga", "uso de droga"] },
+      { motivo: "uso indevido de remédios ou medicamentos controlados", termos: ["remedio controlado", "remedios controlados", "medicamento controlado", "medicamentos controlados", "medicacao controlada", "medicacoes controladas", "uso de remedio controlado", "uso de remedios controlados", "uso de medicamento controlado", "uso de medicamentos controlados", "remedio tarja preta", "medicamento tarja preta", "tarja preta", "receita controlada", "comprimido controlado", "comprimidos controlados", "ansiolitico", "ansioliticos", "clonazepam", "rivotril", "diazepam", "alprazolam"] },
+      { motivo: "possível ação criminosa", termos: ["crime", "criminal", "furto", "furtou", "roubo", "roubou", "roubar", "assalto", "vandalismo", "depredacao", "porte ilegal", "boletim de ocorrencia"] },
+      { motivo: "risco de autoagressão ou suicídio", termos: ["suicidio", "suicida", "autoagressao", "automutilacao", "autoexterminio", "tirar a propria vida", "se matar", "quer se matar", "quer morrer", "vontade de morrer", "nao quero viver", "sem motivo para viver", "sem razao para viver", "cortar os pulsos"] },
+      { motivo: "possíveis sinais de depressão ou sofrimento emocional", termos: ["depressao", "depressivo", "depressiva", "tristeza profunda", "triste constante", "choro frequente", "desanimo", "apatia", "isolamento", "isolado", "isolada", "sem vontade", "sem energia", "sem esperanca", "desesperanca", "sentimento de vazio", "baixa autoestima", "perda de interesse", "insonia", "dorme demais", "falta de apetite", "ansiedade intensa"] }
+    ];
 
     // Carrega os tipos de ocorrência do backend
     async function carregarTiposOcorrencia() {
@@ -165,6 +233,39 @@
       if (!cpf) return '';
       cpf = cpf.replace(/\D/g, '');
       return cpf.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4');
+    }
+
+    function normalizarTexto(valor) {
+      return String(valor || "")
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "")
+        .toLowerCase();
+    }
+
+    function contemTermo(texto, termo) {
+      const termoNormalizado = normalizarTexto(termo);
+      if (!termoNormalizado) return false;
+      if (termoNormalizado.includes(" ")) return texto.includes(termoNormalizado);
+      return new RegExp(`\\b${termoNormalizado}\\b`).test(texto);
+    }
+
+    function detectarAssuntoSensivel() {
+      const texto = normalizarTexto(`${tipoSelect.value || ""} ${descricaoInput.value || ""}`);
+      return termosSensiveis
+        .filter(grupo => grupo.termos.some(termo => contemTermo(texto, termo)))
+        .map(grupo => grupo.motivo);
+    }
+
+    function atualizarPainelSensivel() {
+      const motivos = detectarAssuntoSensivel();
+      const ativo = motivos.length > 0;
+
+      painelSensivel.classList.toggle("active", ativo);
+      motivosSensiveis.textContent = ativo ? `Motivo detectado: ${motivos.join("; ")}.` : "";
+      acaoTomadaInput.required = ativo;
+      acompanhamentoInput.required = ativo;
+      dataAcompanhamentoInput.required = ativo;
+      return ativo;
     }
 
     // 🔍 Busca alunos por CPF conforme o usuário digita
@@ -232,6 +333,9 @@
       buscarCpf.value = formatarCPF(aluno.cpf);
     }
 
+    descricaoInput.addEventListener("input", atualizarPainelSensivel);
+    tipoSelect.addEventListener("change", atualizarPainelSensivel);
+
     // 📤 Envio do formulário de ocorrência
     form.addEventListener("submit", async (e) => {
       e.preventDefault();
@@ -251,18 +355,40 @@
       }
 
       // Validação da descrição
-      const descricao = document.getElementById("descricao").value.trim();
+      const descricao = descricaoInput.value.trim();
       if (!descricao) {
         mostrarAlerta("A descrição da ocorrência é obrigatória.", "erro");
-        document.getElementById("descricao").focus();
+        descricaoInput.focus();
         return;
+      }
+
+      const assuntoSensivel = atualizarPainelSensivel();
+      if (assuntoSensivel) {
+        if (!acaoTomadaInput.value.trim()) {
+          mostrarAlerta("Informe a ação tomada para esta ocorrência sensível.", "erro");
+          acaoTomadaInput.focus();
+          return;
+        }
+        if (!acompanhamentoInput.value.trim()) {
+          mostrarAlerta("Informe o acompanhamento planejado para esta ocorrência sensível.", "erro");
+          acompanhamentoInput.focus();
+          return;
+        }
+        if (!dataAcompanhamentoInput.value) {
+          mostrarAlerta("Informe a data do acompanhamento para esta ocorrência sensível.", "erro");
+          dataAcompanhamentoInput.focus();
+          return;
+        }
       }
 
       const payload = {
         aluno_id: Number(alunoIdInput.value),
         tipo: tipoSelect.value,
         descricao: descricao,
-        data_ocorrencia: document.getElementById("data_ocorrencia").value || null
+        data_ocorrencia: document.getElementById("data_ocorrencia").value || null,
+        acao_tomada: acaoTomadaInput.value.trim() || null,
+        acompanhamento: acompanhamentoInput.value.trim() || null,
+        data_acompanhamento: dataAcompanhamentoInput.value || null
       };
 
       try {
@@ -283,6 +409,8 @@
           fotoExibida.src = "";
           nomeExibido.textContent = "";
           matriculaExibida.textContent = "";
+          painelSensivel.classList.remove("active");
+          motivosSensiveis.textContent = "";
         } else {
           mostrarAlerta(data.erro || "Erro ao cadastrar ocorrência.", "erro");
           console.error("Detalhes do erro:", data.detalhes || data);

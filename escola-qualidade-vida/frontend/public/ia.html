@@ -1,0 +1,708 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>IA de Acompanhamento - Qualidade de Vida Escolar</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;500;600;700;800&family=Poppins:wght@500;600;700;800&display=swap" rel="stylesheet" />
+  <script src="js/navbar-protection.js"></script>
+  <script src="js/api-config.js"></script>
+  <link rel="stylesheet" href="./css/ux-redesign.css" />
+  <style>
+    .ai-toolbar {
+      align-items: end;
+      display: grid;
+      gap: 16px;
+      grid-template-columns: minmax(180px, 1fr) minmax(180px, 1fr) auto;
+    }
+
+    .ai-status {
+      align-items: center;
+      background: var(--ux-blue-soft);
+      border: 1px solid rgba(37, 99, 168, 0.18);
+      border-radius: var(--ux-radius);
+      color: var(--ux-blue);
+      display: flex;
+      gap: 10px;
+      margin-bottom: 18px;
+      padding: 12px 14px;
+    }
+
+    .ai-summary {
+      display: grid;
+      gap: 12px;
+      grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+      margin-bottom: 18px;
+    }
+
+    .ai-summary-card {
+      background: var(--ux-surface);
+      border: 1px solid var(--ux-border);
+      border-radius: var(--ux-radius);
+      box-shadow: var(--ux-shadow-xs);
+      padding: 14px;
+    }
+
+    .ai-summary-card strong {
+      color: var(--ux-heading);
+      display: block;
+      font-family: "Poppins", "Open Sans", sans-serif;
+      font-size: 1.55rem;
+      line-height: 1;
+      margin-bottom: 6px;
+    }
+
+    .ai-summary-card span {
+      color: var(--ux-muted);
+      font-size: 0.78rem;
+      font-weight: 900;
+      text-transform: uppercase;
+    }
+
+    .ai-summary-card-alert {
+      background: var(--ux-danger-soft);
+      border-color: rgba(190, 24, 24, 0.28);
+    }
+
+    .ai-summary-card-alert strong,
+    .ai-summary-card-alert span {
+      color: var(--ux-danger);
+    }
+
+    .ai-summary-card-emotional {
+      background: var(--ux-amber-soft);
+      border-color: rgba(180, 83, 9, 0.28);
+    }
+
+    .ai-summary-card-emotional strong,
+    .ai-summary-card-emotional span {
+      color: var(--ux-amber);
+    }
+
+    .ai-grid {
+      display: grid;
+      gap: 16px;
+      grid-template-columns: 1fr;
+    }
+
+    .ai-card {
+      background: var(--ux-surface);
+      border: 1px solid var(--ux-border);
+      border-radius: var(--ux-radius);
+      box-shadow: var(--ux-shadow-xs);
+      display: grid;
+      gap: 12px;
+      padding: 18px;
+    }
+
+    .ai-card-alto { border-left: 5px solid var(--ux-danger); }
+    .ai-card-medio { border-left: 5px solid var(--ux-amber); }
+    .ai-card-baixo { border-left: 5px solid var(--ux-success); }
+
+    .ai-card-header {
+      align-items: start;
+      display: flex;
+      gap: 12px;
+      justify-content: space-between;
+    }
+
+    .ai-card h3 {
+      color: var(--ux-heading);
+      font-family: "Poppins", "Open Sans", sans-serif;
+      font-size: 1rem;
+      margin: 0 0 4px;
+    }
+
+    .ai-priority {
+      color: var(--ux-muted);
+      display: block;
+      font-size: 0.82rem;
+      font-weight: 900;
+      text-transform: uppercase;
+    }
+
+    .ai-card p {
+      color: var(--ux-muted);
+      line-height: 1.55;
+      margin: 0;
+    }
+
+    .risk {
+      border-radius: 999px;
+      font-size: 0.76rem;
+      font-weight: 900;
+      padding: 6px 10px;
+      text-transform: uppercase;
+      white-space: nowrap;
+    }
+
+    .risk-baixo { background: var(--ux-success-soft); color: var(--ux-success); }
+    .risk-medio { background: var(--ux-amber-soft); color: var(--ux-amber); }
+    .risk-alto { background: var(--ux-danger-soft); color: var(--ux-danger); }
+
+    .ai-score {
+      align-items: end;
+      display: grid;
+      justify-items: end;
+      min-width: 110px;
+    }
+
+    .ai-score strong {
+      color: var(--ux-heading);
+      font-family: "Poppins", "Open Sans", sans-serif;
+      font-size: 1.7rem;
+      line-height: 1;
+    }
+
+    .ai-score small {
+      color: var(--ux-muted);
+      font-weight: 800;
+      text-transform: uppercase;
+    }
+
+    .ai-explain,
+    .ai-next-step {
+      border-radius: var(--ux-radius-sm);
+      padding: 12px;
+    }
+
+    .ai-explain {
+      background: var(--ux-surface-muted);
+      border: 1px solid var(--ux-border);
+    }
+
+    .ai-next-step {
+      background: var(--ux-blue-soft);
+      border: 1px solid rgba(37, 99, 168, 0.16);
+    }
+
+    .ai-alert {
+      background: var(--ux-danger-soft);
+      border: 1px solid rgba(190, 24, 24, 0.24);
+      border-left: 5px solid var(--ux-danger);
+      border-radius: var(--ux-radius-sm);
+      color: var(--ux-danger);
+      display: grid;
+      gap: 8px;
+      padding: 12px;
+    }
+
+    .ai-alert strong {
+      color: var(--ux-danger);
+      display: block;
+      font-size: 1rem;
+      line-height: 1.45;
+    }
+
+    .ai-alert .ai-kicker {
+      color: var(--ux-danger);
+    }
+
+    .ai-alert p {
+      color: var(--ux-danger);
+    }
+
+    .ai-alert ul {
+      display: grid;
+      gap: 6px;
+      margin: 0;
+      padding-left: 18px;
+    }
+
+    .ai-alert li {
+      color: var(--ux-danger);
+      font-weight: 700;
+    }
+
+    .ai-emotional-alert {
+      background: var(--ux-amber-soft);
+      border: 1px solid rgba(180, 83, 9, 0.24);
+      border-left: 5px solid var(--ux-amber);
+      border-radius: var(--ux-radius-sm);
+      color: var(--ux-amber);
+      display: grid;
+      gap: 8px;
+      padding: 12px;
+    }
+
+    .ai-emotional-alert-critical {
+      background: var(--ux-danger-soft);
+      border-color: rgba(190, 24, 24, 0.24);
+      border-left-color: var(--ux-danger);
+      color: var(--ux-danger);
+    }
+
+    .ai-emotional-alert strong {
+      color: var(--ux-amber);
+      display: block;
+      font-size: 1rem;
+      line-height: 1.45;
+    }
+
+    .ai-emotional-alert p,
+    .ai-emotional-alert .ai-kicker,
+    .ai-emotional-alert li {
+      color: var(--ux-amber);
+    }
+
+    .ai-emotional-alert-critical strong,
+    .ai-emotional-alert-critical p,
+    .ai-emotional-alert-critical .ai-kicker,
+    .ai-emotional-alert-critical li {
+      color: var(--ux-danger);
+    }
+
+    .ai-emotional-alert ul {
+      display: grid;
+      gap: 6px;
+      margin: 0;
+      padding-left: 18px;
+    }
+
+    .ai-emotional-alert li {
+      font-weight: 700;
+    }
+
+    .ai-kicker {
+      color: var(--ux-muted);
+      display: block;
+      font-size: 0.75rem;
+      font-weight: 900;
+      margin-bottom: 5px;
+      text-transform: uppercase;
+    }
+
+    .ai-explain strong,
+    .ai-next-step strong {
+      color: var(--ux-heading);
+      display: block;
+      font-size: 1rem;
+      line-height: 1.45;
+    }
+
+    .ai-indicators {
+      display: grid;
+      gap: 10px;
+      grid-template-columns: repeat(4, minmax(120px, 1fr));
+    }
+
+    .ai-indicator {
+      background: var(--ux-surface-muted);
+      border: 1px solid var(--ux-border);
+      border-radius: var(--ux-radius-sm);
+      padding: 10px;
+    }
+
+    .ai-indicator span {
+      color: var(--ux-muted);
+      display: block;
+      font-size: 0.72rem;
+      font-weight: 900;
+      margin-bottom: 4px;
+      text-transform: uppercase;
+    }
+
+    .ai-indicator strong {
+      color: var(--ux-heading);
+      display: block;
+      font-size: 0.95rem;
+      line-height: 1.35;
+    }
+
+    .ai-columns {
+      display: grid;
+      gap: 14px;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .ai-block-title {
+      color: var(--ux-heading);
+      display: block;
+      font-weight: 900;
+      margin-bottom: 8px;
+    }
+
+    .ai-list {
+      display: grid;
+      gap: 8px;
+      margin: 0;
+      padding: 0;
+    }
+
+    .ai-list li {
+      background: var(--ux-surface-muted);
+      border: 1px solid var(--ux-border);
+      border-radius: var(--ux-radius-sm);
+      color: var(--ux-text);
+      list-style: none;
+      padding: 9px 10px;
+    }
+
+    .ai-meta {
+      color: var(--ux-muted);
+      display: flex;
+      flex-wrap: wrap;
+      font-size: 0.84rem;
+      font-weight: 800;
+      gap: 8px;
+    }
+
+    .ai-footer {
+      border-top: 1px solid var(--ux-border);
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px 18px;
+      padding-top: 12px;
+    }
+
+    .ai-footer p {
+      color: var(--ux-text);
+      font-size: 0.9rem;
+    }
+
+    @media (max-width: 760px) {
+      .ai-toolbar {
+        grid-template-columns: 1fr;
+      }
+
+      .ai-summary,
+      .ai-indicators,
+      .ai-columns {
+        grid-template-columns: 1fr;
+      }
+
+      .ai-card-header {
+        align-items: stretch;
+        flex-direction: column;
+      }
+
+      .ai-score {
+        align-items: start;
+        justify-items: start;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="header-content">
+      <div class="logo-container">
+        <img src="img/senai-logo.png" class="logo" alt="Logo SENAI" />
+        <h1>Sistema de Gestão de Alunos</h1>
+      </div>
+
+      <nav>
+        <button class="nav-toggle" id="navToggle" type="button">
+          <i class="fas fa-bars"></i>
+        </button>
+
+        <ul id="navMenu">
+          <li><a href="./principal.html"><i class="fas fa-home"></i> Home</a></li>
+          <li class="dropdown">
+            <a href="#"><i class="fas fa-user-graduate"></i> Alunos <i class="fas fa-chevron-down"></i></a>
+            <div class="dropdown-content">
+              <a href="./cadastroAluno.html"><i class="fas fa-user-plus"></i> Cadastrar Aluno</a>
+              <a href="./consultaAluno.html"><i class="fas fa-search"></i> Consultar Alunos</a>
+              <a href="./importar_alunos.html"><i class="fas fa-file-csv"></i> Importar CSV</a>
+            </div>
+          </li>
+          <li><a href="./turmas.html"><i class="fas fa-chalkboard"></i> Turmas</a></li>
+          <li><a href="./ocorrencias.html"><i class="fas fa-exclamation-triangle"></i> Ocorrências</a></li>
+          <li><a href="./dashboard.html"><i class="fas fa-history"></i> Dashboard</a></li>
+          <li><a href="./ia.html"><i class="fas fa-wand-magic-sparkles"></i> IA</a></li>
+          <li><a href="./criar_usuario.html"><i class="fas fa-user-cog"></i> Usuários</a></li>
+        </ul>
+      </nav>
+    </div>
+  </header>
+
+  <main id="conteudo-principal">
+    <section class="form-container">
+      <div class="form-header">
+        <h2><i class="fas fa-wand-magic-sparkles"></i> Análise inteligente</h2>
+      </div>
+      <div class="form-content">
+        <div class="ai-status" id="aiStatus">
+          <i class="fas fa-info-circle" aria-hidden="true"></i>
+          <span>Use a análise para priorizar acompanhamentos. As sugestões não substituem avaliação profissional.</span>
+        </div>
+
+        <div class="ai-toolbar">
+          <div class="form-group">
+            <label for="limiteAnalise">Quantidade de alunos</label>
+            <select id="limiteAnalise">
+              <option value="10">10 alunos</option>
+              <option value="20" selected>20 alunos</option>
+              <option value="50">50 alunos</option>
+              <option value="100">100 alunos</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label for="alunoCpf">Aluno específico (CPF opcional)</label>
+            <input id="alunoCpf" type="text" inputmode="numeric" maxlength="14" placeholder="Ex.: 123.456.789-00" />
+          </div>
+
+          <button id="btnAnalisar" type="button">
+            <i class="fas fa-wand-magic-sparkles"></i> Analisar
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <section class="section">
+      <h2><i class="fas fa-list-check"></i> Análises priorizadas</h2>
+      <div id="resumoIa" class="ai-summary" hidden></div>
+      <div id="resultadoIa" class="ai-grid">
+        <div class="sem-dados">Clique em Analisar para gerar sugestões.</div>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    const btnAnalisar = document.getElementById("btnAnalisar");
+    const resultadoIa = document.getElementById("resultadoIa");
+    const resumoIa = document.getElementById("resumoIa");
+    const aiStatus = document.getElementById("aiStatus");
+    const limiteAnalise = document.getElementById("limiteAnalise");
+    const alunoCpf = document.getElementById("alunoCpf");
+
+    function setStatus(message, type = "info") {
+      aiStatus.className = "ai-status";
+      if (type === "error") aiStatus.style.background = "var(--ux-danger-soft)";
+      else if (type === "success") aiStatus.style.background = "var(--ux-success-soft)";
+      else aiStatus.style.background = "var(--ux-blue-soft)";
+      aiStatus.querySelector("span").textContent = message;
+    }
+
+    function riskClass(risk) {
+      return `risk risk-${String(risk || "baixo").toLowerCase()}`;
+    }
+
+    function cardRiskClass(risk) {
+      return `ai-card ai-card-${String(risk || "baixo").toLowerCase()}`;
+    }
+
+    function riskLabel(risk) {
+      const labels = { alto: "Alto", medio: "Médio", baixo: "Baixo" };
+      return labels[String(risk || "baixo").toLowerCase()] || risk || "Baixo";
+    }
+
+    function formatCpf(value) {
+      const digits = String(value || "").replace(/\D/g, "").slice(0, 11);
+      return digits
+        .replace(/^(\d{3})(\d)/, "$1.$2")
+        .replace(/^(\d{3})\.(\d{3})(\d)/, "$1.$2.$3")
+        .replace(/\.(\d{3})(\d)/, ".$1-$2");
+    }
+
+    function renderSummary(data) {
+      const summary = data.resumo_geral;
+      if (!summary) {
+        resumoIa.hidden = true;
+        resumoIa.innerHTML = "";
+        return;
+      }
+
+      resumoIa.hidden = false;
+      resumoIa.innerHTML = `
+        <div class="ai-summary-card">
+          <strong>${escapeHtml(summary.total ?? data.total_analisado ?? 0)}</strong>
+          <span>Alunos analisados</span>
+        </div>
+        <div class="ai-summary-card">
+          <strong>${escapeHtml(summary.alto ?? 0)}</strong>
+          <span>Alta prioridade</span>
+        </div>
+        <div class="ai-summary-card">
+          <strong>${escapeHtml(summary.medio ?? 0)}</strong>
+          <span>Monitorar</span>
+        </div>
+        <div class="ai-summary-card">
+          <strong>${escapeHtml(summary.baixo ?? 0)}</strong>
+          <span>Rotina</span>
+        </div>
+        <div class="ai-summary-card ai-summary-card-alert">
+          <strong>${escapeHtml(summary.alertas_seguranca ?? 0)}</strong>
+          <span>Alertas de segurança</span>
+        </div>
+        <div class="ai-summary-card ai-summary-card-emotional">
+          <strong>${escapeHtml(summary.alertas_saude_emocional ?? 0)}</strong>
+          <span>Saúde emocional</span>
+        </div>
+        <div class="ai-summary-card ai-summary-card-alert">
+          <strong>${escapeHtml(summary.alertas_risco_vida ?? 0)}</strong>
+          <span>Risco à vida</span>
+        </div>
+      `;
+    }
+
+    function renderAnalysis(data) {
+      const analyses = data.analises || [];
+      resultadoIa.innerHTML = "";
+      renderSummary(data);
+
+      if (!analyses.length) {
+        resultadoIa.innerHTML = '<div class="sem-dados">Nenhum aluno encontrado para análise.</div>';
+        return;
+      }
+
+      analyses.forEach((item) => {
+        const card = document.createElement("article");
+        card.className = cardRiskClass(item.risco);
+
+        const securityAlert = item.alerta_seguranca || {};
+        const alertReasons = (securityAlert.motivos || []).map((reason) => `<li>${escapeHtml(reason)}</li>`).join("");
+        const alertGuidance = (securityAlert.orientacoes || []).map((guidance) => `<li>${escapeHtml(guidance)}</li>`).join("");
+        const alertOccurrences = (securityAlert.ocorrencias_relacionadas || []).map((occurrence) => (
+          `<li>${escapeHtml(occurrence.tipo || "Ocorrência")} - ${escapeHtml(occurrence.data || "Data não informada")}</li>`
+        )).join("");
+        const alertHtml = securityAlert.ativo ? `
+          <div class="ai-alert">
+            <span class="ai-kicker">Alerta crítico</span>
+            <strong>${escapeHtml(securityAlert.titulo || "Alerta de segurança")}</strong>
+            <p>${escapeHtml(securityAlert.mensagem || "")}</p>
+            ${alertReasons ? `<div><strong>Motivo do alerta</strong><ul>${alertReasons}</ul></div>` : ""}
+            ${alertOccurrences ? `<div><strong>Ocorrência relacionada</strong><ul>${alertOccurrences}</ul></div>` : ""}
+            ${alertGuidance ? `<div><strong>Orientações imediatas</strong><ul>${alertGuidance}</ul></div>` : ""}
+          </div>
+        ` : "";
+
+        const emotionalAlert = item.alerta_saude_emocional || {};
+        const emotionalReasons = (emotionalAlert.motivos || []).map((reason) => `<li>${escapeHtml(reason)}</li>`).join("");
+        const emotionalGuidance = (emotionalAlert.orientacoes || []).map((guidance) => `<li>${escapeHtml(guidance)}</li>`).join("");
+        const emotionalOccurrences = (emotionalAlert.ocorrencias_relacionadas || []).map((occurrence) => (
+          `<li>${escapeHtml(occurrence.tipo || "Ocorrência")} - ${escapeHtml(occurrence.data || "Data não informada")}</li>`
+        )).join("");
+        const emotionalCriticalClass = emotionalAlert.nivel === "critico" ? " ai-emotional-alert-critical" : "";
+        const emotionalAlertHtml = emotionalAlert.ativo ? `
+          <div class="ai-emotional-alert${emotionalCriticalClass}">
+            <span class="ai-kicker">${emotionalAlert.nivel === "critico" ? "Risco à vida" : "Saúde emocional"}</span>
+            <strong>${escapeHtml(emotionalAlert.titulo || "Alerta de saúde emocional")}</strong>
+            <p>${escapeHtml(emotionalAlert.mensagem || "")}</p>
+            ${emotionalReasons ? `<div><strong>Motivo do alerta</strong><ul>${emotionalReasons}</ul></div>` : ""}
+            ${emotionalOccurrences ? `<div><strong>Ocorrência relacionada</strong><ul>${emotionalOccurrences}</ul></div>` : ""}
+            ${emotionalGuidance ? `<div><strong>Orientações</strong><ul>${emotionalGuidance}</ul></div>` : ""}
+          </div>
+        ` : "";
+
+        const factors = (item.fatores || []).map((factor) => `<li>${escapeHtml(factor)}</li>`).join("");
+        const actions = (item.acoes_sugeridas || []).map((action) => `<li>${escapeHtml(action)}</li>`).join("");
+        const indicators = (item.indicadores || []).map((indicator) => `
+          <div class="ai-indicator">
+            <span>${escapeHtml(indicator.rotulo || "")}</span>
+            <strong>${escapeHtml(indicator.valor || "-")}</strong>
+          </div>
+        `).join("");
+
+        card.innerHTML = `
+          <div class="ai-card-header">
+            <div>
+              <h3>${escapeHtml(item.nome || "Aluno")}</h3>
+              <span class="ai-priority">${escapeHtml(item.prioridade || "Acompanhamento de rotina")}</span>
+              <div class="ai-meta">
+                <span>ID ${escapeHtml(item.aluno_id)}</span>
+                <span>${escapeHtml(item.curso || "-")}</span>
+                <span>${escapeHtml(item.turma || "-")}</span>
+              </div>
+            </div>
+            <div class="ai-score">
+              <span class="${riskClass(item.risco)}">Risco ${escapeHtml(riskLabel(item.risco))}</span>
+              <strong>${escapeHtml(item.pontuacao ?? 0)}</strong>
+              <small>pontos</small>
+            </div>
+          </div>
+
+          ${alertHtml}
+          ${emotionalAlertHtml}
+
+          <div class="ai-explain">
+            <span class="ai-kicker">Leitura rápida</span>
+            <strong>${escapeHtml(item.leitura_rapida || item.resumo || "")}</strong>
+            <p>${escapeHtml(item.motivo_principal || "")}</p>
+          </div>
+
+          <div class="ai-next-step">
+            <span class="ai-kicker">Próximo passo recomendado</span>
+            <strong>${escapeHtml(item.proximo_passo || "Manter acompanhamento de rotina.")}</strong>
+          </div>
+
+          <div class="ai-indicators">
+            ${indicators || '<div class="ai-indicator"><span>Indicadores</span><strong>Sem dados complementares</strong></div>'}
+          </div>
+
+          <div class="ai-columns">
+            <div>
+              <strong class="ai-block-title">Por que apareceu</strong>
+              <ul class="ai-list">${factors || "<li>Sem fatores críticos identificados.</li>"}</ul>
+            </div>
+            <div>
+              <strong class="ai-block-title">Ações sugeridas</strong>
+              <ul class="ai-list">${actions || "<li>Manter acompanhamento de rotina.</li>"}</ul>
+            </div>
+          </div>
+
+          <div class="ai-footer">
+            <p><strong>Prazo:</strong> ${escapeHtml(item.prazo_sugerido || "-")}</p>
+            <p><strong>Responsável:</strong> ${escapeHtml(item.responsavel_sugerido || "-")}</p>
+          </div>
+        `;
+        resultadoIa.appendChild(card);
+      });
+    }
+
+    async function analisar() {
+      btnAnalisar.disabled = true;
+      const original = btnAnalisar.innerHTML;
+      btnAnalisar.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Analisando...';
+      resumoIa.hidden = true;
+      resultadoIa.innerHTML = '<div class="sem-dados">Gerando sugestões...</div>';
+
+      try {
+        const cpf = alunoCpf.value.trim();
+        const url = cpf
+          ? `/ia/alunos/analise?cpf=${encodeURIComponent(cpf)}`
+          : `/ia/alunos/analise?limit=${encodeURIComponent(limiteAnalise.value)}`;
+
+        const response = await fetch(url);
+        const data = await response.json();
+
+        if (!response.ok) {
+          throw new Error(data.erro || "Falha ao gerar análise.");
+        }
+
+        setStatus(
+          `${data.resumo_geral?.mensagem || "Análise gerada."} Modo: ${data.modo}.`,
+          "success"
+        );
+        renderAnalysis(data);
+      } catch (error) {
+        console.error(error);
+        setStatus(error.message || "Erro ao gerar análise.", "error");
+        resumoIa.hidden = true;
+        resultadoIa.innerHTML = '<div class="sem-dados">Não foi possível gerar sugestões agora.</div>';
+      } finally {
+        btnAnalisar.disabled = false;
+        btnAnalisar.innerHTML = original;
+      }
+    }
+
+    function escapeHtml(value) {
+      return String(value ?? "")
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#039;");
+    }
+
+    alunoCpf.addEventListener("input", () => {
+      alunoCpf.value = formatCpf(alunoCpf.value);
+    });
+
+    btnAnalisar.addEventListener("click", analisar);
+  </script>
+  <script src="js/ux-redesign.js"></script>
+</body>
+</html>

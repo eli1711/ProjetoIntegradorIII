@@ -154,13 +154,17 @@
 
               <div class="form-grid">
                 <div class="form-group">
-                  <label for="curso">Curso: *</label>
-                  <input type="text" id="curso" name="curso" required />
+                  <label for="curso_id">Curso: *</label>
+                  <select id="curso_id" name="curso_id" required>
+                    <option value="">Carregando cursos...</option>
+                  </select>
                 </div>
 
                 <div class="form-group">
-                  <label for="turma">Turma: *</label>
-                  <input type="text" id="turma" name="turma" required />
+                  <label for="turma_id">Turma: *</label>
+                  <select id="turma_id" name="turma_id" required disabled>
+                    <option value="">Selecione um curso primeiro</option>
+                  </select>
                 </div>
 
                 <div class="form-group">
@@ -252,6 +256,8 @@
         const responsavelSection = document.getElementById("responsavelSection");
 
         const cpfInput = document.getElementById("cpf");
+        const cursoSelect = document.getElementById("curso_id");
+        const turmaSelect = document.getElementById("turma_id");
 
         cpfInput.addEventListener("input", function(e) {
           let value = e.target.value.replace(/\D/g, "");
@@ -302,8 +308,113 @@
           });
         }
 
+        function resetTurmas(mensagem = "Selecione um curso primeiro") {
+          turmaSelect.innerHTML = "";
+          const opt = document.createElement("option");
+          opt.value = "";
+          opt.textContent = mensagem;
+          turmaSelect.appendChild(opt);
+          turmaSelect.disabled = true;
+        }
+
+        async function carregarCursos() {
+          cursoSelect.disabled = true;
+          cursoSelect.innerHTML = "";
+          const opt = document.createElement("option");
+          opt.value = "";
+          opt.textContent = "Carregando cursos...";
+          cursoSelect.appendChild(opt);
+          resetTurmas();
+
+          try {
+            const res = await fetch("/cursos/");
+            const cursos = await res.json();
+
+            if (!res.ok || !Array.isArray(cursos)) {
+              throw new Error("Resposta invalida ao carregar cursos");
+            }
+
+            cursoSelect.innerHTML = "";
+            const placeholder = document.createElement("option");
+            placeholder.value = "";
+            placeholder.textContent = cursos.length ? "Selecione" : "Nenhum curso cadastrado";
+            cursoSelect.appendChild(placeholder);
+
+            cursos.forEach((curso) => {
+              const option = document.createElement("option");
+              option.value = curso.id;
+              option.textContent = curso.nome;
+              cursoSelect.appendChild(option);
+            });
+
+            cursoSelect.disabled = cursos.length === 0;
+            if (cursos.length === 0) {
+              resetTurmas("Cadastre um curso antes");
+              showAlert("error", "Cadastre um curso e uma turma antes de cadastrar alunos.");
+            }
+          } catch (err) {
+            console.error(err);
+            cursoSelect.innerHTML = "";
+            const erro = document.createElement("option");
+            erro.value = "";
+            erro.textContent = "Erro ao carregar cursos";
+            cursoSelect.appendChild(erro);
+            cursoSelect.disabled = true;
+            resetTurmas("Erro ao carregar turmas");
+            showAlert("error", "Nao foi possivel carregar os cursos cadastrados.");
+          }
+        }
+
+        async function carregarTurmasPorCurso(cursoId) {
+          if (!cursoId) {
+            resetTurmas();
+            return;
+          }
+
+          resetTurmas("Carregando turmas...");
+
+          try {
+            const params = new URLSearchParams({ curso_id: cursoId, status: "todas" });
+            const res = await fetch(`/turmas/?${params.toString()}`);
+            const turmas = await res.json();
+
+            if (!res.ok || !Array.isArray(turmas)) {
+              throw new Error("Resposta invalida ao carregar turmas");
+            }
+
+            turmaSelect.innerHTML = "";
+            const placeholder = document.createElement("option");
+            placeholder.value = "";
+            placeholder.textContent = turmas.length ? "Selecione" : "Nenhuma turma cadastrada para este curso";
+            turmaSelect.appendChild(placeholder);
+
+            turmas.forEach((turma) => {
+              const option = document.createElement("option");
+              option.value = turma.id;
+              const semestre = turma.semestre ? `Sem ${turma.semestre}` : "";
+              const status = turma.ativa === false ? "Finalizada" : "";
+              option.textContent = [turma.nome, semestre, status].filter(Boolean).join(" - ");
+              turmaSelect.appendChild(option);
+            });
+
+            turmaSelect.disabled = turmas.length === 0;
+            if (turmas.length === 0) {
+              showAlert("error", "Este curso ainda nao possui turma cadastrada.");
+            }
+          } catch (err) {
+            console.error(err);
+            resetTurmas("Erro ao carregar turmas");
+            showAlert("error", "Nao foi possivel carregar as turmas cadastradas.");
+          }
+        }
+
+        cursoSelect.addEventListener("change", () => {
+          carregarTurmasPorCurso(cursoSelect.value);
+        });
+
         nascInput.addEventListener("change", toggleResponsavel);
         toggleResponsavel();
+        carregarCursos();
 
         form.addEventListener("submit", async (e) => {
           e.preventDefault();
@@ -315,6 +426,20 @@
 
           try {
             const fd = new FormData(form);
+
+            if (!cursoSelect.value) {
+              showAlert("error", "Selecione um curso cadastrado.");
+              btn.disabled = false;
+              btn.innerHTML = original;
+              return;
+            }
+
+            if (!turmaSelect.value) {
+              showAlert("error", "Selecione uma turma cadastrada para o curso escolhido.");
+              btn.disabled = false;
+              btn.innerHTML = original;
+              return;
+            }
 
             // ✅ checkbox -> "true"/"" (backend entende via str_to_bool)
             const pcd = document.getElementById("pessoa_com_deficiencia").checked;
@@ -335,6 +460,7 @@
               showAlert("success", data.mensagem || "Aluno cadastrado com sucesso!");
               form.reset();
               toggleResponsavel();
+              resetTurmas();
             } else {
               showAlert("error", data.erro || "Erro no cadastro");
             }
