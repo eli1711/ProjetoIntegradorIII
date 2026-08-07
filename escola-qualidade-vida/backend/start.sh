@@ -20,5 +20,8 @@ do
   sleep 1
 done
 
-echo "PostgreSQL esta pronto. Iniciando aplicacao Flask..."
+echo "PostgreSQL esta pronto. Aplicando migracoes..."
+python -m flask --app app:create_app db upgrade
+
+echo "Iniciando aplicacao Flask..."
 exec gunicorn --bind 0.0.0.0:5000 wsgi:app

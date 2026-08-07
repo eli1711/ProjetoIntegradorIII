@@ -280,6 +280,8 @@ def analisar_alunos(limit=30, aluno_id=None, cpf=None):
 
     local_analysis = [_heuristic_analysis(context) for context in contexts]
     ai_analysis = _try_openai_analysis(contexts) if contexts else None
+    if ai_analysis:
+        ai_analysis = _restore_context_identity(ai_analysis, contexts)
 
     analyses = [
         _apply_emotional_alert(
@@ -891,6 +893,7 @@ def _try_openai_analysis(contexts):
         return None
 
     model = os.environ.get("OPENAI_MODEL", "gpt-4o-mini")
+    contexts_for_ai = _contexts_for_external_ai(contexts)
     payload = {
         "model": model,
         "input": [
@@ -906,7 +909,7 @@ def _try_openai_analysis(contexts):
                 "role": "user",
                 "content": json.dumps({
                     "disclaimer": DISCLAIMER,
-                    "alunos": contexts,
+                    "alunos": contexts_for_ai,
                     "schema": (
                         "lista de analises com prioridade, leitura_rapida, motivo_principal, "
                         "indicadores, fatores, acoes_sugeridas, proximo_passo, prazo_sugerido "
@@ -997,6 +1000,40 @@ def _try_openai_analysis(contexts):
         return None
 
     return None
+
+
+def _contexts_for_external_ai(contexts):
+    if os.environ.get("OPENAI_SEND_PERSONAL_DATA") == "1":
+        return contexts
+
+    redacted = []
+    for context in contexts:
+        safe_context = dict(context)
+        safe_context["nome"] = f"Aluno {context['aluno_id']}"
+        safe_context["ocorrencias"] = [
+            {
+                "tipo": occurrence.get("tipo"),
+                "descricao": "[omitida por privacidade]",
+                "data_ocorrencia": occurrence.get("data_ocorrencia"),
+            }
+            for occurrence in context.get("ocorrencias", [])
+        ]
+        redacted.append(safe_context)
+    return redacted
+
+
+def _restore_context_identity(analyses, contexts):
+    contexts_by_id = {context["aluno_id"]: context for context in contexts}
+    restored = []
+    for analysis in analyses:
+        item = dict(analysis)
+        context = contexts_by_id.get(item.get("aluno_id"))
+        if context:
+            item["nome"] = context["nome"]
+            item["curso"] = context["curso"]
+            item["turma"] = context["turma"]
+        restored.append(item)
+    return restored
 
 
 def _post_openai_response(api_key, payload):

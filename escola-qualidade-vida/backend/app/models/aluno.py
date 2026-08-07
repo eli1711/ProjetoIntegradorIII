@@ -25,7 +25,7 @@ class Aluno(db.Model):
     # Campos originais da sua tabela
     nome = db.Column(db.String(255), nullable=False)
     sobrenome = db.Column(db.String(255), nullable=False)
-    matricula = db.Column(db.String(255), nullable=False)
+    matricula = db.Column(db.String(255), unique=True, nullable=False)
 
     cidade = db.Column(db.String(255), nullable=False)
     bairro = db.Column(db.String(255), nullable=False)

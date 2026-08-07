@@ -123,7 +123,10 @@ def _configure_uploads(app, upload_folder: str):
     app.config["MAX_CONTENT_LENGTH"] = int(os.environ.get("MAX_UPLOAD_MB", "10")) * 1024 * 1024
     os.makedirs(app.config["UPLOAD_FOLDER"], exist_ok=True)
 
-    @app.route("/uploads/<path:filename>")
+    from app.services.permission_service import auth_required
+
+    @app.route("/files/uploads/<path:filename>")
+    @auth_required()
     def serve_uploaded_file(filename):
         try:
             return send_from_directory(app.config["UPLOAD_FOLDER"], filename)

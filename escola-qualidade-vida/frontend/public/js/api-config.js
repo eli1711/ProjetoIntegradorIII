@@ -60,4 +60,30 @@
 
     return nativeFetch(rewrittenUrl, init);
   };
+
+  window.setProtectedImage = async function setProtectedImage(img, url, fallbackUrl) {
+    if (!img) return;
+    if (!url) {
+      img.removeAttribute("data-object-url");
+      if (fallbackUrl) img.src = fallbackUrl;
+      return;
+    }
+
+    var previousObjectUrl = img.getAttribute("data-object-url");
+    if (previousObjectUrl) {
+      URL.revokeObjectURL(previousObjectUrl);
+      img.removeAttribute("data-object-url");
+    }
+
+    try {
+      var response = await window.fetch(url, { cache: "no-store" });
+      if (!response.ok) throw new Error("Imagem indisponivel");
+      var blob = await response.blob();
+      var objectUrl = URL.createObjectURL(blob);
+      img.src = objectUrl;
+      img.setAttribute("data-object-url", objectUrl);
+    } catch (error) {
+      if (fallbackUrl) img.src = fallbackUrl;
+    }
+  };
 })(window);

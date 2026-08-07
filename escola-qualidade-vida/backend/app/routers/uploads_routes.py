@@ -41,5 +41,5 @@ def upload_file():
     return jsonify({
         "message": "Arquivo salvo com sucesso",
         "filename": filename,
-        "url": f"/uploads/{filename}",
+        "url": f"/files/uploads/{filename}",
     }), 200

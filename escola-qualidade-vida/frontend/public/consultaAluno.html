@@ -160,7 +160,7 @@
 
             const fotoSrc = aluno.foto_url ? aluno.foto_url : null;
             const fotoHtml = fotoSrc
-              ? `<img class="foto-view" src="${safe(fotoSrc, "")}" alt="Foto de ${safe(aluno.nome, "Aluno")}">`
+              ? `<img class="foto-view" data-photo-url="${safe(fotoSrc, "")}" alt="Foto de ${safe(aluno.nome, "Aluno")}">`
               : `<div class="foto-view" style="width:120px;height:120px;border-radius:8px;background:#eee;display:flex;align-items:center;justify-content:center;color:#777;">Sem Foto</div>`;
 
             card.innerHTML = `
@@ -290,6 +290,9 @@
 
             // refs
             const imgEl = card.querySelector('.foto-view');
+            if (fotoSrc && imgEl?.tagName?.toLowerCase() === 'img' && window.setProtectedImage) {
+              window.setProtectedImage(imgEl, fotoSrc);
+            }
             const formEl = card.querySelector('.edit-form');
             const editBtn = card.querySelector('.btn-edit');
             const cancelBtn = card.querySelector('.btn-cancel');
@@ -319,16 +322,24 @@
                   if (!up.ok) { alert(upData.erro || 'Falha ao trocar foto.'); return; }
                   // atualiza visual
                   if (imgEl.tagName.toLowerCase() === 'img') {
-                    imgEl.src = `${upData.foto_url}?t=${Date.now()}`; // cache-busting
+                    if (window.setProtectedImage) {
+                      window.setProtectedImage(imgEl, `${upData.foto_url}?t=${Date.now()}`);
+                    } else {
+                      imgEl.src = `${upData.foto_url}?t=${Date.now()}`;
+                    }
                   } else {
                     // se era div "Sem Foto", troca para <img>
                     const wrapper = imgEl.parentElement;
                     imgEl.remove();
                     const newImg = document.createElement('img');
                     newImg.className = 'foto-view';
-                    newImg.src = `${upData.foto_url}?t=${Date.now()}`;
                     newImg.alt = `Foto de ${safe(aluno.nome, "Aluno")}`;
                     wrapper.insertBefore(newImg, wrapper.firstChild);
+                    if (window.setProtectedImage) {
+                      window.setProtectedImage(newImg, `${upData.foto_url}?t=${Date.now()}`);
+                    } else {
+                      newImg.src = `${upData.foto_url}?t=${Date.now()}`;
+                    }
                   }
                 }
 

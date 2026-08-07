@@ -12,7 +12,8 @@ COPY . /app
 ENV PYTHONPATH=/app:$PYTHONPATH
 
 RUN pip install --no-cache-dir -r requirements.txt
+RUN chmod +x /app/start.sh
 
 EXPOSE 5000
 
-CMD ["gunicorn", "--bind", "0.0.0.0:5000", "wsgi:app"]
+CMD ["./start.sh"]

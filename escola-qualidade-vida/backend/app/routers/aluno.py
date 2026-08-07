@@ -12,6 +12,10 @@ from app.models.aluno import Aluno, only_digits
 from app.models.responsavel import Responsavel
 from app.models.turma import Turma
 from app.models.curso import Curso
+from app.services.aluno_registration_service import (
+    StudentRegistrationError,
+    register_student_from_form,
+)
 from app.services.permission_service import permission_required
 
 aluno_bp = Blueprint("aluno", __name__, url_prefix="/alunos")
@@ -75,7 +79,6 @@ def _save_photo(file_storage, desired_name_base: str) -> str:
         i += 1
 
     file_storage.save(dest)
-    current_app.logger.info("Foto salva em: %s", dest)
     return filename
 
 def _json_aluno(a: Aluno):
@@ -92,7 +95,7 @@ def _json_aluno(a: Aluno):
         "nome_social": getattr(a, "nome_social", None),
 
         "foto": getattr(a, "foto", None),
-        "foto_url": f"/uploads/{a.foto}" if getattr(a, "foto", None) else None,
+        "foto_url": f"/files/uploads/{a.foto}" if getattr(a, "foto", None) else None,
 
         "curso": (curso.nome if curso else (getattr(a, "curso", None) or None)),
         "curso_id": getattr(a, "curso_id", None),
@@ -233,159 +236,11 @@ def cadastrar_aluno_com_cpf():
     Associa apenas Curso/Turma ja cadastrados.
     """
     try:
-        data = request.form
-        current_app.logger.info(f"Dados recebidos para cadastro: {dict(data)}")
-
-        # 1) CPF obrigatório
-        cpf = data.get("cpf")
-        if not cpf:
-            return jsonify({"erro": "CPF é obrigatório"}), 400
-
-        cpf_limpo = only_digits(cpf)
-        if not cpf_limpo or len(cpf_limpo) != 11:
-            return jsonify({"erro": "CPF deve conter 11 dígitos"}), 400
-
-        if Aluno.query.filter_by(cpf=cpf_limpo).first():
-            return jsonify({"erro": "CPF já cadastrado"}), 400
-
-        # 2) Matrícula única
-        matricula = _none_if_empty(data.get("matricula"))
-        if matricula and Aluno.query.filter_by(matricula=matricula).first():
-            return jsonify({"erro": "Matrícula já cadastrada"}), 400
-
-        # 3) Nome completo / nome / sobrenome / nome_social
-        nome_completo = _none_if_empty(data.get("nome_completo")) or ""
-        nome = _none_if_empty(data.get("nome")) or ""
-        sobrenome = _none_if_empty(data.get("sobrenome")) or ""
-        nome_social = _none_if_empty(data.get("nome_social"))
-
-        if nome_completo and not nome:
-            partes = nome_completo.strip().split(" ", 1)
-            nome = partes[0] if partes else ""
-            sobrenome = partes[1] if len(partes) > 1 else ""
-        elif nome and sobrenome and not nome_completo:
-            nome_completo = f"{nome} {sobrenome}".strip()
-
-        # 4) Campos principais
-        cidade = _none_if_empty(data.get("cidade")) or ""
-        bairro = _none_if_empty(data.get("bairro")) or ""
-        rua = _none_if_empty(data.get("rua")) or ""
-        telefone = only_digits(_none_if_empty(data.get("telefone"))) or None
-
-        empregado = (_norm(data.get("empregado")) or "nao").lower()
-        if empregado not in _EMPREGADO:
-            return jsonify({"erro": "empregado deve ser 'sim' ou 'nao'."}), 400
-
-        la = (_norm(data.get("linha_atendimento")) or "CAI").upper()
-        if la not in _LINHAS_AT:
-            return jsonify({"erro": "linha_atendimento deve ser CAI, CT ou CST."}), 400
-
-        escola_integrada = _norm(data.get("escola_integrada") or "Nenhuma")
-        if escola_integrada not in _ESCOLAS:
-            return jsonify({"erro": "escola_integrada deve ser SESI, SEDUC ou Nenhuma."}), 400
-
-        # Data nascimento + idade
-        data_nascimento = parse_date(_none_if_empty(data.get("data_nascimento")))
-
-        idade_raw = _none_if_empty(data.get("idade"))
-        if idade_raw:
-            try:
-                idade = int(idade_raw)
-            except Exception:
-                return jsonify({"erro": "idade inválida (inteiro)."}), 400
-        else:
-            idade = _calc_idade(data_nascimento) if data_nascimento else None
-
-        if idade is None:
-            idade = 18
-
-        # 5) Responsável (obrigatório se menor)
-        responsavel_obj = None
-        if idade < 18:
-            r_nome = _none_if_empty(data.get("responsavel_nome_completo"))
-            r_parentesco = _none_if_empty(data.get("responsavel_parentesco"))
-            r_tel = only_digits(_none_if_empty(data.get("responsavel_telefone"))) or None
-
-            if not (r_nome and r_parentesco and r_tel):
-                return jsonify({
-                    "erro": "Aluno menor de idade: campos do responsável são obrigatórios",
-                    "faltando": [
-                        c for c in ["responsavel_nome_completo", "responsavel_parentesco", "responsavel_telefone"]
-                        if not _none_if_empty(data.get(c))
-                    ]
-                }), 400
-
-            responsavel_obj = Responsavel(
-                nome_completo=r_nome,
-                parentesco=r_parentesco,
-                telefone=r_tel,
-                endereco=_none_if_empty(data.get("responsavel_endereco")),
-                cep=only_digits(_none_if_empty(data.get("responsavel_cep"))) or None,
-                bairro=_none_if_empty(data.get("responsavel_bairro")),
-                municipio=_none_if_empty(data.get("responsavel_cidade")),
-            )
-            db.session.add(responsavel_obj)
-            db.session.flush()
-
-        # 6) Curso/Turma: apenas registros existentes
-        curso_id = _none_if_empty(data.get("curso_id"))
-        turma_id = _none_if_empty(data.get("turma_id"))
-        curso_txt = _none_if_empty(data.get("curso"))
-        turma_txt = _none_if_empty(data.get("turma"))
-
-        resolved_curso, curso_erro = _resolve_existing_curso(curso_id, curso_txt)
-        if curso_erro:
-            return jsonify({"erro": curso_erro}), 400
-
-        resolved_turma, turma_erro = _resolve_existing_turma(turma_id, turma_txt, resolved_curso)
-        if turma_erro:
-            return jsonify({"erro": turma_erro}), 400
-
-        # 7) Criar aluno
-        aluno = Aluno(
-            nome=nome,
-            sobrenome=sobrenome,
-            nome_completo=nome_completo,
-            nome_social=nome_social,
-
-            cpf=cpf_limpo,
-            matricula=matricula,
-
-            cidade=cidade,
-            bairro=bairro,
-            rua=rua,
-            telefone=telefone,
-
-            idade=idade,
-            empregado=empregado,
-
-            data_nascimento=data_nascimento,
-            linha_atendimento=la,
-            escola_integrada=escola_integrada,
-
-            curso=(resolved_curso.nome if resolved_curso else curso_txt),
-            turma=(resolved_turma.nome if resolved_turma else turma_txt),
-            curso_id=(resolved_curso.id if resolved_curso else None),
-            turma_id=(resolved_turma.id if resolved_turma else None),
-
-            mora_com_quem=_none_if_empty(data.get("mora_com_quem")),
-            sobre_aluno=_none_if_empty(data.get("sobre_aluno")),
-            data_inicio_curso=parse_date(_none_if_empty(data.get("data_inicio_curso"))),
-            empresa_contratante=_none_if_empty(data.get("empresa_contratante")),
-            pessoa_com_deficiencia=str_to_bool(_norm(data.get("pessoa_com_deficiencia"))),
-            outras_informacoes=_none_if_empty(data.get("outras_informacoes")),
-
-            responsavel_id=(responsavel_obj.id if responsavel_obj else None),
+        aluno = register_student_from_form(
+            request.form,
+            request.files,
+            require_existing_course=True,
         )
-
-        # Foto
-        if "foto" in request.files and request.files["foto"].filename:
-            foto = request.files["foto"]
-            aluno.foto = _save_photo(foto, nome_completo or nome)
-
-        aluno.normalize()
-        db.session.add(aluno)
-        db.session.commit()
 
         return jsonify({
             "mensagem": "Aluno cadastrado com sucesso!",
@@ -397,9 +252,12 @@ def cadastrar_aluno_com_cpf():
             "turma_id": aluno.turma_id,
         }), 201
 
-    except Exception as e:
+    except StudentRegistrationError as e:
         db.session.rollback()
-        current_app.logger.error(f"Erro ao cadastrar aluno: {str(e)}", exc_info=True)
+        return jsonify(e.to_payload()), e.status_code
+    except Exception:
+        db.session.rollback()
+        current_app.logger.error("Erro ao cadastrar aluno", exc_info=True)
         return jsonify({"erro": "Erro interno ao cadastrar aluno"}), 500
 
 # -------------------------
@@ -761,7 +619,7 @@ def atualizar_aluno(aluno_id: int):
 
     except Exception as e:
         db.session.rollback()
-        current_app.logger.error(f"Erro ao atualizar aluno: {str(e)}", exc_info=True)
+        current_app.logger.error("Erro ao atualizar aluno", exc_info=True)
         return jsonify({"erro": "Erro interno ao atualizar aluno"}), 500
 
 
@@ -781,91 +639,23 @@ def atualizar_foto_aluno(aluno_id: int):
         return jsonify({
             "mensagem": "Foto atualizada com sucesso!",
             "foto": aluno.foto,
-            "foto_url": f"/uploads/{aluno.foto}",
+            "foto_url": f"/files/uploads/{aluno.foto}",
         }), 200
     except ValueError as e:
         return jsonify({"erro": str(e)}), 400
     except Exception as e:
         db.session.rollback()
-        current_app.logger.error(f"Erro ao atualizar foto: {str(e)}", exc_info=True)
+        current_app.logger.error("Erro ao atualizar foto", exc_info=True)
         return jsonify({"erro": "Erro interno ao atualizar foto"}), 500
 
 
 # -------------------------
-# DASHBOARD BACKUP - Retorna dados básicos para o dashboard
+# DASHBOARD COMPATIBILITY
 # -------------------------
 @aluno_bp.route("/dashboard_data", methods=["GET"])
 @permission_required("dashboard")
 def dashboard_data():
-    """
-    Endpoint de backup para fornecer dados ao dashboard.
-    """
-    try:
-        # Totais básicos
-        total_alunos = Aluno.query.count()
-        alunos_pcd = Aluno.query.filter_by(pessoa_com_deficiencia=True).count()
-        
-        # Média de idade
-        from sqlalchemy import func
-        media_idade_result = db.session.query(func.avg(Aluno.idade)).scalar()
-        media_idade = round(media_idade_result, 1) if media_idade_result else 0
-        
-        # Alunos por curso (simples)
-        alunos_por_curso = {}
-        alunos = Aluno.query.all()
-        for aluno in alunos:
-            curso = aluno.curso or 'Sem Curso'
-            alunos_por_curso[curso] = alunos_por_curso.get(curso, 0) + 1
-        
-        # Escolas
-        escolas = {}
-        for aluno in alunos:
-            escola = aluno.escola_integrada or 'Nenhuma'
-            escolas[escola] = escolas.get(escola, 0) + 1
-        
-        # Lista de alunos (limitada para performance)
-        alunos_lista = []
-        for aluno in alunos[:50]:  # Limitar a 50 alunos
-            alunos_lista.append({
-                'id': aluno.id,
-                'nome': aluno.nome_social or aluno.nome or aluno.nome_completo or '',
-                'turma': aluno.turma or '',
-                'curso': aluno.curso or '',
-                'idade': aluno.idade or 0,
-                'escola_integrada': aluno.escola_integrada or 'Nenhuma',
-                'pessoa_com_deficiencia': bool(aluno.pessoa_com_deficiencia),
-                'ocorrencias': 0  # Placeholder
-            })
-        
-        return jsonify({
-            'totalAlunos': total_alunos,
-            'alunosPCD': alunos_pcd,
-            'mediaIdade': media_idade,
-            'turmasAtivas': 0,  # Placeholder
-            'turmasFinalizadas': 0,  # Placeholder
-            'totalOcorrencias': 0,  # Placeholder
-            'alunosFiltrados': alunos_lista,
-            'graficos': {
-                'alunosPorCurso': alunos_por_curso,
-                'ocorrenciasPorTipo': {},  # Placeholder
-                'escolas': escolas
-            }
-        }), 200
-        
-    except Exception as e:
-        current_app.logger.error(f"Erro em dashboard_data: {str(e)}", exc_info=True)
-        return jsonify({
-            'erro': 'Dados temporariamente indisponíveis',
-            'totalAlunos': 0,
-            'alunosPCD': 0,
-            'mediaIdade': 0,
-            'turmasAtivas': 0,
-            'turmasFinalizadas': 0,
-            'totalOcorrencias': 0,
-            'alunosFiltrados': [],
-            'graficos': {
-                'alunosPorCurso': {},
-                'ocorrenciasPorTipo': {},
-                'escolas': {}
-            }
-        }), 200
+    from app.routers.dashboard import dashboard as dashboard_view
+
+    return dashboard_view()
+

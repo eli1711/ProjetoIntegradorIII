@@ -18,11 +18,11 @@ Variaveis uteis:
 - `MAX_UPLOAD_MB`: limite global para uploads, em MB. Padrao: `10`.
 - `CREATE_DEFAULT_ADMIN`: use `1` apenas em ambiente controlado.
 - `DEFAULT_ADMIN_PASSWORD`: obrigatoria quando `CREATE_DEFAULT_ADMIN=1`.
-- `ALLOW_PASSWORD_RESET_TOKEN_LOG`: mantenha `0`. Use `1` apenas em desenvolvimento local e temporario.
 - `ENABLE_OPENAI_ANALYSIS`: use `1` para habilitar analise com OpenAI. Padrao: `0`, usando regras locais.
 - `OPENAI_API_KEY`: chave da OpenAI usada pela analise quando habilitada.
 - `OPENAI_MODEL`: modelo usado pela analise. Padrao: `gpt-4o-mini`.
 - `OPENAI_TIMEOUT_SECONDS`: timeout da chamada externa. Padrao: `20`.
+- `OPENAI_SEND_PERSONAL_DATA`: use `1` somente com base legal e autorizacao institucional; por padrao nomes e descricoes sao omitidos das chamadas externas.
 
 ## Docker
 
@@ -64,14 +64,22 @@ $env:TARGET_EMAIL="admin@example.com"; $env:NEW_PASSWORD="nova-senha-segura"; py
 
 ## Banco de dados
 
-O projeto ja inicializa `Flask-Migrate`. Para evolucoes de schema, use migracoes:
+O projeto usa `Flask-Migrate`; o schema nao e criado automaticamente pelo app. No Docker, `start.sh` executa `flask db upgrade` antes do Gunicorn. Para evolucoes de schema, use migracoes:
 
 ```bash
-flask db migrate -m "descricao"
-flask db upgrade
+python -m flask --app app:create_app db migrate -m "descricao"
+python -m flask --app app:create_app db upgrade
 ```
 
 Evite alterar schema manualmente em producao.
+
+Para reprocessar alertas de ocorrencias antigas, use:
+
+```bash
+python -m app.scripts.sincronizar_ocorrencias_sensiveis
+```
+
+Tambem e possivel acionar pelo backend com `POST /ocorrencias/sensiveis/sincronizar`, usando um usuario com permissao de ocorrencias.
 
 ## IA de acompanhamento
 
@@ -79,4 +87,4 @@ A rota `GET /ia/alunos/analise` analisa alunos e ocorrencias para sugerir acoes 
 
 Tambem existe `GET /ia/alunos/<id>/analise` para analisar um aluno especifico.
 
-Por padrao, a analise roda em modo heuristico local. Para usar OpenAI, defina `ENABLE_OPENAI_ANALYSIS=1`, `OPENAI_API_KEY` e, opcionalmente, `OPENAI_MODEL`, depois reinicie o backend.
+Por padrao, a analise roda em modo heuristico local. Para usar OpenAI, defina `ENABLE_OPENAI_ANALYSIS=1`, `OPENAI_API_KEY` e, opcionalmente, `OPENAI_MODEL`, depois reinicie o backend. Mesmo com OpenAI habilitado, nomes e descricoes de ocorrencias sao omitidos por padrao; use `OPENAI_SEND_PERSONAL_DATA=1` apenas quando isso for uma decisao institucional aprovada.

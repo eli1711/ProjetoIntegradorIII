@@ -2,6 +2,7 @@ import json
 from datetime import datetime
 
 from flask import Blueprint, current_app, jsonify, request
+from sqlalchemy import func
 
 from app.extensions import db
 from app.models.aluno import Aluno
@@ -104,7 +105,6 @@ def listar_ocorrencias_sensiveis():
     tipo_alerta = (request.args.get("tipo_alerta") or "todos").strip().lower()
 
     try:
-        _sync_ocorrencias_sensiveis_existentes()
         query = Ocorrencia.query.filter(Ocorrencia.alerta_sensivel.is_(True))
 
         if status == "abertos":
@@ -144,6 +144,21 @@ def listar_ocorrencias_sensiveis():
         db.session.rollback()
         current_app.logger.error("Erro ao listar ocorrencias sensiveis: %s", e, exc_info=True)
         return jsonify({"erro": "Erro ao listar ocorrencias sensiveis"}), 500
+
+
+@ocorrencia_bp.route("/sensiveis/sincronizar", methods=["POST"])
+@permission_required("ocorrencias")
+def sincronizar_ocorrencias_sensiveis():
+    try:
+        total_atualizadas = _sync_ocorrencias_sensiveis_existentes()
+        return jsonify({
+            "mensagem": "Ocorrencias sensiveis sincronizadas com sucesso",
+            "atualizadas": total_atualizadas,
+        }), 200
+    except Exception as e:
+        db.session.rollback()
+        current_app.logger.error("Erro ao sincronizar ocorrencias sensiveis: %s", e, exc_info=True)
+        return jsonify({"erro": "Erro ao sincronizar ocorrencias sensiveis"}), 500
 
 
 @ocorrencia_bp.route("/", methods=["GET"])
@@ -350,13 +365,14 @@ def _parse_optional_date(value):
 
 
 def _sync_ocorrencias_sensiveis_existentes():
-    updated = False
+    updated_count = 0
     for ocorrencia in Ocorrencia.query.all():
         if _sync_alerta_sensivel(ocorrencia):
-            updated = True
+            updated_count += 1
 
-    if updated:
+    if updated_count:
         db.session.commit()
+    return updated_count
 
 
 def _sync_alerta_sensivel(ocorrencia):
@@ -399,25 +415,27 @@ def _sync_alerta_sensivel(ocorrencia):
 
 
 def _totais_ocorrencias_sensiveis():
-    query = Ocorrencia.query.filter(Ocorrencia.alerta_sensivel.is_(True))
-    ocorrencias = query.all()
+    base_filter = Ocorrencia.alerta_sensivel.is_(True)
+    status_counts = dict(
+        db.session.query(Ocorrencia.status_acompanhamento, func.count(Ocorrencia.id))
+        .filter(base_filter)
+        .group_by(Ocorrencia.status_acompanhamento)
+        .all()
+    )
+    level_counts = dict(
+        db.session.query(Ocorrencia.alerta_sensivel_nivel, func.count(Ocorrencia.id))
+        .filter(base_filter)
+        .group_by(Ocorrencia.alerta_sensivel_nivel)
+        .all()
+    )
 
     totais = {
-        "total": len(ocorrencias),
-        "pendente": 0,
-        "em_andamento": 0,
-        "concluido": 0,
-        "critico": 0,
-        "atencao": 0,
+        "total": sum(status_counts.values()),
+        "pendente": int(status_counts.get("pendente", 0)),
+        "em_andamento": int(status_counts.get("em_andamento", 0)),
+        "concluido": int(status_counts.get("concluido", 0)),
+        "critico": int(level_counts.get("critico", 0)),
+        "atencao": int(level_counts.get("atencao", 0)),
     }
-
-    for ocorrencia in ocorrencias:
-        status = ocorrencia.status_acompanhamento or "pendente"
-        nivel = ocorrencia.alerta_sensivel_nivel or "atencao"
-        if status in totais:
-            totais[status] += 1
-        if nivel in totais:
-            totais[nivel] += 1
-
     totais["abertos"] = totais["pendente"] + totais["em_andamento"]
     return totais

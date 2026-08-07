@@ -1,4 +1,3 @@
-import os
 import secrets
 import smtplib
 from datetime import datetime, timedelta
@@ -114,13 +113,7 @@ def enviar_email_recuperacao(email, token):
     frontend_url = current_app.config.get("FRONTEND_URL", "http://localhost:8080")
 
     if not all([smtp_server, email_from, email_password]):
-        current_app.logger.warning("SMTP nao configurado; email de recuperacao nao enviado para %s", email)
-        if os.environ.get("ALLOW_PASSWORD_RESET_TOKEN_LOG") == "1":
-            current_app.logger.warning(
-                "Link de recuperacao habilitado explicitamente para desenvolvimento: %s/redefinir_senha.html?token=%s",
-                frontend_url,
-                token,
-            )
+        current_app.logger.warning("SMTP nao configurado; email de recuperacao nao enviado")
         return False
 
     link = f"{frontend_url}/redefinir_senha.html?token={token}"
@@ -151,8 +144,8 @@ def enviar_email_recuperacao(email, token):
             server.starttls()
             server.login(email_from, email_password)
             server.send_message(msg)
-        current_app.logger.info("Email de recuperacao enviado para %s", email)
+        current_app.logger.info("Email de recuperacao enviado")
         return True
     except Exception as e:
-        current_app.logger.error("Erro ao enviar email de recuperacao para %s: %s", email, e, exc_info=True)
+        current_app.logger.error("Erro ao enviar email de recuperacao: %s", e, exc_info=True)
         return False

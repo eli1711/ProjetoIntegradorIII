@@ -23,7 +23,7 @@ def _json_aluno_consulta(a: Aluno):
         "nome_completo": getattr(a, "nome_completo", None),
         "nome_social": getattr(a, "nome_social", None),
         "foto": getattr(a, "foto", None),
-        "foto_url": f"/uploads/{a.foto}" if getattr(a, "foto", None) else None,
+        "foto_url": f"/files/uploads/{a.foto}" if getattr(a, "foto", None) else None,
         "curso": (curso.nome if curso else getattr(a, "curso", None)),
         "curso_id": getattr(a, "curso_id", None),
         "turma": (turma.nome if turma else getattr(a, "turma", None)),

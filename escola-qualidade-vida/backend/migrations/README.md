@@ -1,13 +1,12 @@
-# Migrações do banco
+# Migracoes do banco
 
-Este projeto está preparado para usar Flask-Migrate.
+Esta pasta contem as migracoes versionadas do Flask-Migrate/Alembic.
 
 Fluxo recomendado dentro do container/backend:
 
 ```bash
-flask db init
-flask db migrate -m "estrutura inicial"
-flask db upgrade
+python -m flask --app app:create_app db migrate -m "descricao"
+python -m flask --app app:create_app db upgrade
 ```
 
-Depois que a pasta `migrations/` for criada pelo comando acima, versionar essa pasta no Git.
+Nao use `flask db init` neste projeto: a estrutura de migrations ja esta versionada.

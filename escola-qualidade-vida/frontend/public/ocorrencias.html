@@ -321,9 +321,18 @@
 
       // Monta URL da foto
       if (aluno.foto_url) {
-        fotoExibida.src = aluno.foto_url;
+        if (window.setProtectedImage) {
+          window.setProtectedImage(fotoExibida, aluno.foto_url);
+        } else {
+          fotoExibida.src = aluno.foto_url;
+        }
       } else if (aluno.foto) {
-        fotoExibida.src = `/uploads/${aluno.foto}`;
+        const fotoUrl = `/files/uploads/${aluno.foto}`;
+        if (window.setProtectedImage) {
+          window.setProtectedImage(fotoExibida, fotoUrl);
+        } else {
+          fotoExibida.src = fotoUrl;
+        }
       } else {
         fotoExibida.src = "./img/sem-foto.png";
       }
